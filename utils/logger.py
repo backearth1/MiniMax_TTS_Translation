@@ -150,10 +150,10 @@ class WebSocketLogger:
                                 print(f"    检查时间戳: {file_timestamp}")
                                 for client_timestamp in client_timestamps:
                                     print(f"    对比client时间戳: {client_timestamp}")
-                                    # 使用前7位进行匹配（相差几分钟内的时间戳）
-                                    if file_timestamp[:7] == client_timestamp[:7]:
+                                    # 使用前8位进行匹配（相差几秒钟内的时间戳）
+                                    if file_timestamp[:8] == client_timestamp[:8]:
                                         should_delete = True
-                                        print(f"    匹配格式4: 时间戳前缀匹配 (文件:{file_timestamp[:7]}, 客户端:{client_timestamp[:7]})")
+                                        print(f"    匹配格式4: 时间戳前缀匹配 (文件:{file_timestamp[:8]}, 客户端:{client_timestamp[:8]})")
                                         break
                                 if should_delete:
                                     break

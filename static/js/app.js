@@ -236,12 +236,6 @@ class VoiceGeneratorApp {
 
             this.websocket.onmessage = (event) => {
                 try {
-                    // 处理心跳ping消息
-                    if (event.data === 'ping') {
-                        this.websocket.send('pong');
-                        return;
-                    }
-                    
                     const logData = JSON.parse(event.data);
                     this.handleWebSocketMessage(logData);
                 } catch (error) {

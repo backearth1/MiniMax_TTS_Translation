@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
 """
-FastAPI 多人配音生成器
-支持SRT字幕文件解析、角色语音配置、多角色TTS生成
+FastAPI 多人配音 Web 服务
 """
 import asyncio
 import json
-import uvicorn
-from contextlib import asynccontextmanager
+import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional, Dict
 
-from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
+import aiofiles
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+import uvicorn
 
-from config import Config
-from utils.logger import get_process_logger, websocket_logger
+from config import Config, create_directories
 from audio_processor import AudioProcessor
+from utils.logger import websocket_logger, get_process_logger
 from subtitle_manager import subtitle_manager
 from admin import admin_router, record_user_activity, start_cleanup_task
-from config import create_directories
+
+from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -270,39 +271,17 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
     try:
         await websocket_logger.connect(websocket, client_id)
         
-        # 设置心跳检测
-        last_ping = datetime.now()
-        ping_interval = 30  # 30秒发送一次ping
-        timeout_limit = 120  # 2分钟无响应则断开
-        
         # 保持连接
         while True:
             try:
-                # 检查是否需要发送ping
-                current_time = datetime.now()
-                if (current_time - last_ping).total_seconds() > ping_interval:
-                    await websocket.send_text("ping")
-                    last_ping = current_time
+                # 等待客户端消息 (ping/pong)
+                data = await websocket.receive_text()
                 
-                # 等待客户端消息，设置超时
-                try:
-                    data = await asyncio.wait_for(websocket.receive_text(), timeout=5.0)
-                    
-                    # 处理客户端消息
-                    if data == "pong":
-                        last_ping = current_time
-                    elif data == "ping":
-                        await websocket.send_text("pong")
-                        
-                except asyncio.TimeoutError:
-                    # 检查是否超时
-                    if (current_time - last_ping).total_seconds() > timeout_limit:
-                        print(f"WebSocket 超时断开: {client_id}")
-                        break
-                    continue
+                # 可以处理客户端发送的消息
+                if data == "ping":
+                    await websocket.send_text("pong")
                     
             except WebSocketDisconnect:
-                print(f"WebSocket 客户端主动断开: {client_id}")
                 break
             except Exception as e:
                 print(f"WebSocket 错误: {e}")
@@ -311,7 +290,6 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
     except Exception as e:
         print(f"WebSocket 连接错误: {e}")
     finally:
-        print(f"WebSocket 连接结束，开始清理: {client_id}")
         websocket_logger.disconnect(client_id)
 
 @app.post("/api/test-upload")
@@ -397,11 +375,9 @@ async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None
             detail="当前在线用户数过多，请稍后再试。当前限制：10个用户"
         )
     
-    # 记录用户活动
-    if not clientId:
-        # 如果没有提供clientId，生成一个基于文件名的临时ID，但保持一致性
-        temp_client_id = f"parse_{file.filename}"
-    else:
+    # 记录用户活动（使用文件名作为临时clientId）
+    temp_client_id = f"parse_{file.filename}"
+    if clientId:
         temp_client_id = clientId
     record_user_activity(temp_client_id, "parse_subtitle")
     

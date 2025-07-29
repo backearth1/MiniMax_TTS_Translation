@@ -467,46 +467,15 @@ def cleanup_old_activities():
 
 # 定期清理任务
 async def cleanup_task():
-    """定期清理任务"""
+    """定期清理过期数据"""
     while True:
-        await asyncio.sleep(300)  # 每5分钟运行一次
-        cleanup_old_activities()
-        
-        # 添加清理不活跃用户的逻辑
-        await cleanup_inactive_users()
-        
-        logger = get_process_logger("admin_cleanup")
-        await logger.info("定期清理完成", f"活跃用户数: {len(user_activities)}")
-
-async def cleanup_inactive_users():
-    """清理不活跃用户及其文件"""
-    try:
-        from datetime import datetime, timedelta
-        current_time = datetime.now()
-        inactive_users = []
-        
-        # 找出超过10分钟没有活动的用户
-        for client_id, activity in list(user_activities.items()):
-            last_activity = activity.get("last_activity", current_time)
-            if current_time - last_activity > timedelta(minutes=10):
-                inactive_users.append(client_id)
-        
-        if inactive_users:
-            print(f"发现 {len(inactive_users)} 个不活跃用户，开始清理...")
-            
-            # 清理不活跃用户的数据
-            from utils.logger import websocket_logger
-            for client_id in inactive_users:
-                print(f"清理不活跃用户: {client_id}")
-                websocket_logger._cleanup_user_data(client_id)
-                
-        else:
-            print("没有发现不活跃用户")
-            
-    except Exception as e:
-        print(f"清理不活跃用户时出错: {e}")
-        import traceback
-        traceback.print_exc()
+        try:
+            cleanup_old_activities()
+            await asyncio.sleep(3600)  # 每小时清理一次
+        except Exception as e:
+            logger = get_process_logger("admin_cleanup")
+            await logger.error("清理过期数据失败", f"错误: {str(e)}")
+            await asyncio.sleep(3600)
 
 # 启动清理任务
 def start_cleanup_task():

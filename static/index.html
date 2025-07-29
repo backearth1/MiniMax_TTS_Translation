@@ -451,9 +451,9 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-gear-wide-connected me-2"></i>SRT处理</h5>
-                                                    <button class="btn btn-danger btn-sm py-1 px-2" onclick="oneClickTranslate()" id="oneClickTranslateBtn" style="font-size: 0.8rem;">
-                                <i class="bi bi-magic me-1"></i>一键翻译
-                            </button>
+                        <button class="btn btn-danger btn-sm py-1 px-2" onclick="oneClickTranslate()" id="oneClickTranslateBtn" style="font-size: 0.8rem;">
+                            <i class="bi bi-magic me-1"></i>一键翻译
+                        </button>
                     </div>
                     <div class="card-body">
                         <!-- 简化上传区域 -->
@@ -751,7 +751,7 @@
                                     <div class="col-12">
                                         <div class="mb-3">
                                             <h6 class="fw-bold text-primary">1. 使用说明</h6>
-                                            <p class="mb-2">本网站仅用于测试体验，在线人数多时将自动限流，如果规模化商用，请下载开源版本自行部署</p>
+                                            <p class="mb-2">本网站仅用于测试体验，在线人数多时将自动限流，如果长期商业化使用，请下载开源版本自行部署 <a href="https://github.com/backearth1/MiniMax_TTS_Translation" target="_blank" class="text-decoration-none">https://github.com/backearth1/MiniMax_TTS_Translation</a></p>
                                         </div>
                                         
                                         <div class="mb-3">
@@ -960,15 +960,6 @@
             try {
                 const formData = new FormData();
                 formData.append('file', file);
-                
-                // 添加clientId参数
-                if (window.app && window.app.clientId) {
-                    formData.append('clientId', window.app.clientId);
-                } else {
-                    // 如果window.app还没初始化，生成一个临时的clientId
-                    const tempClientId = 'client_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    formData.append('clientId', tempClientId);
-                }
 
                 const response = await fetch('/api/parse-subtitle', {
                     method: 'POST',
@@ -1520,13 +1511,7 @@
             batchTTSBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>正在生成...';
             
             // 开始实时日志更新
-            if (!window.app || !window.app.clientId) {
-                showToast('系统初始化未完成，请刷新页面重试');
-                batchTTSBtn.disabled = false;
-                batchTTSBtn.innerHTML = originalText;
-                return;
-            }
-            const clientId = window.app.clientId;
+            const clientId = generateClientId();
             let logUpdateInterval;
             
             try {
@@ -1699,13 +1684,7 @@
                 showToast('开始拼接音频...');
                 
                 const formData = new FormData();
-                if (!window.app || !window.app.clientId) {
-                    showToast('系统初始化未完成，请刷新页面重试');
-                    mergeBtn.disabled = false;
-                    mergeBtn.innerHTML = originalText;
-                    return;
-                }
-                formData.append('clientId', window.app.clientId);
+                formData.append('clientId', generateClientId());
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/merge-audio`, {
                     method: 'POST',
@@ -2033,27 +2012,35 @@
         // 自动加载示例SRT文件
         async function loadSampleSrt() {
             try {
-                addLog('正在加载示例文件...');
-                
                 // 获取示例SRT文件
                 const response = await fetch('/samples/double_life_English.srt');
                 if (!response.ok) {
-                    addLog('示例文件不可用，请手动上传SRT文件');
+                    console.log('示例文件不存在或无法访问');
                     return;
                 }
                 
                 const fileContent = await response.text();
+                
+                // 创建文件对象
                 const blob = new Blob([fileContent], { type: 'text/plain' });
                 const file = new File([blob], 'double_life_English.srt', { type: 'text/plain' });
                 
                 // 调用现有的上传处理函数
                 await handleQuickSrtUpload(file);
                 
-                addLog('示例文件加载成功');
+                console.log('示例SRT文件已自动加载');
                 showToast('✨ 已自动加载示例文件：双重生活英文字幕');
             } catch (error) {
-                console.error('自动加载示例文件失败:', error);
-                addLog('自动加载失败: ' + error.message);
+                console.log('自动加载示例文件失败:', error);
+                
+                // 如果自动加载失败，恢复默认界面
+                const container = document.getElementById('subtitleEditor');
+                container.innerHTML = `
+                    <div class="text-center py-5" style="color: var(--pink-400);">
+                        <i class="bi bi-file-earmark-text fs-1"></i>
+                        <p class="mt-2">上传SRT文件开始编辑</p>
+                    </div>
+                `;
             }
         }
 
@@ -2085,34 +2072,19 @@
 
         // 页面加载完成后自动加载示例文件
         document.addEventListener('DOMContentLoaded', () => {
-            try {
-                // 初始化VoiceGeneratorApp
-                addLog('正在初始化系统...');
-                window.app = new VoiceGeneratorApp();
-                
-                // 简单延迟后加载示例文件
-                setTimeout(() => {
-                    if (window.app && window.app.clientId) {
-                        addLog('系统初始化成功');
-                        loadSampleSrt();
-                    } else {
-                        addLog('系统初始化异常');
-                    }
-                }, 500);
-                
-                // 隐藏翻译功能区域
-                const translationSection = document.getElementById('translationSection');
-                if (translationSection) {
-                    translationSection.style.display = 'none';
-                }
-                
-                // 添加初始日志
-                addLog('角色语音配置已加载');
-                
-            } catch (error) {
-                console.error('系统初始化出错:', error);
-                addLog('系统初始化出错: ' + error.message);
+            // 角色配置现在在HTML中静态定义，无需动态加载
+            // 加载示例文件
+            loadSampleSrt();
+            
+            // 隐藏翻译功能区域
+            const translationSection = document.getElementById('translationSection');
+            if (translationSection) {
+                translationSection.style.display = 'none';
             }
+            
+            // 添加初始日志
+            addLog('系统初始化完成');
+            addLog('角色语音配置已加载');
             
             // 绑定清空日志按钮
             const clearLogsBtn = document.getElementById('clearLogsBtn');
@@ -2139,8 +2111,6 @@
                 });
             }
         });
-
-
 
         // 简化的Toast函数，不再使用颜色参数
         function showToast(message) {
@@ -2186,16 +2156,8 @@
                 addLog(`开始批量翻译: 目标语言=${targetLanguage}, 段落数=${segments.length}`);
                 showToast('开始批量翻译...');
                 
-                // 检查系统初始化状态
-                if (!window.app || !window.app.clientId) {
-                    showToast('系统初始化未完成，请刷新页面重试');
-                    batchTranslateBtn.disabled = false;
-                    batchTranslateBtn.innerHTML = originalText;
-                    return;
-                }
-                
                 // 生成客户端ID用于日志
-                const clientId = window.app.clientId;
+                const clientId = generateClientId();
                 
                 // 开始实时日志更新
                 startRealTimeLogUpdates(clientId);
@@ -2591,15 +2553,6 @@
                 return;
             }
             
-            // 检查系统初始化状态
-            if (!window.app || !window.app.clientId) {
-                showToast('系统初始化未完成，请刷新页面重试');
-                addLog('错误: 系统初始化未完成');
-                return;
-            }
-            
-            addLog('开始一键翻译流程');
-            
             // 获取API配置
             const groupId = document.getElementById('groupId').value;
             const apiKey = document.getElementById('apiKey').value;
@@ -2667,10 +2620,7 @@
 
         // 执行批量翻译的辅助函数
         async function executeBatchTranslate(targetLanguage, groupId, apiKey) {
-            if (!window.app || !window.app.clientId) {
-                throw new Error('系统初始化未完成，请刷新页面重试');
-            }
-            const clientId = window.app.clientId;
+            const clientId = generateClientId();
             startRealTimeLogUpdates(clientId);
             
             try {
@@ -2701,10 +2651,7 @@
 
         // 执行批量TTS的辅助函数
         async function executeBatchTTS(groupId, apiKey) {
-            if (!window.app || !window.app.clientId) {
-                throw new Error('系统初始化未完成，请刷新页面重试');
-            }
-            const clientId = window.app.clientId;
+            const clientId = generateClientId();
             startRealTimeLogUpdates(clientId);
             
             try {
@@ -2737,10 +2684,7 @@
 
         // 执行拼接音频的辅助函数
         async function executeMergeAudio() {
-            if (!window.app || !window.app.clientId) {
-                throw new Error('系统初始化未完成，请刷新页面重试');
-            }
-            const clientId = window.app.clientId;
+            const clientId = generateClientId();
             startRealTimeLogUpdates(clientId);
             
             try {
@@ -2767,3 +2711,4 @@
         }
     </script>
 </body>
+</html> 
