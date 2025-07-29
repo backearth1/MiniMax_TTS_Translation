@@ -1,0 +1,682 @@
+/* 多人配音生成器 - 样式文件 */
+
+/* 全局样式 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+/* 导航栏样式 */
+.navbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+/* 卡片样式 */
+.card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* 开始生成区域样式 */
+.card-header.bg-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
+.card-header.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.card-header.bg-info {
+    background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%) !important;
+}
+
+.card-header.bg-success {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* 表单样式 */
+.form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+
+.form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #3d8bfe 0%, #00d4e6 100%);
+    transform: translateY(-2px);
+}
+
+/* 日志容器样式 */
+.log-container {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    max-height: 450px;
+    overflow-y: auto;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.log-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.log-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.log-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.log-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 日志条目样式 */
+.log-entry {
+    margin-bottom: 4px;
+    padding: 2px 0;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.log-entry:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 日志内容布局 */
+.log-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.log-time {
+    color: #6c757d;
+    font-weight: 500;
+    min-width: 70px;
+    flex-shrink: 0;
+}
+
+.log-level {
+    color: #495057;
+    font-weight: 600;
+    min-width: 60px;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.log-message {
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+}
+
+.log-details {
+    margin-top: 4px;
+    margin-left: 138px; /* 对齐时间戳和级别 */
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-style: italic;
+    word-break: break-word;
+}
+
+/* 日志级别颜色 */
+.log-info {
+    border-left: 3px solid #17a2b8;
+}
+
+.log-success {
+    border-left: 3px solid #28a745;
+}
+
+.log-warning {
+    border-left: 3px solid #ffc107;
+}
+
+.log-error {
+    border-left: 3px solid #dc3545;
+}
+
+.log-progress {
+    border-left: 3px solid #007bff;
+}
+
+.log-debug {
+    border-left: 3px solid #6c757d;
+    color: #6c757d;
+}
+
+/* 语音映射行样式 */
+.voice-mapping-row {
+    padding: 0.25rem;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.voice-mapping-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* 样例文件按钮样式 */
+.sample-file-btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.sample-file-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+/* 状态徽章样式 */
+#statusBadge {
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+}
+
+/* 音频播放器样式 */
+audio {
+    border-radius: 10px;
+    outline: none;
+}
+
+/* 加载动画 */
+.spin {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 进度条样式 */
+.progress {
+    height: 20px;
+    border-radius: 10px;
+    background-color: #e9ecef;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #ffc107 0%, #fd7e14 100%);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: linear-gradient(
+        -45deg,
+        rgba(255,255,255,.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255,255,255,.2) 50%,
+        rgba(255,255,255,.2) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 50px 50px;
+    animation: move 1s linear infinite;
+}
+
+@keyframes move {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 50px 50px;
+    }
+}
+
+/* 进度卡片样式 - 改为淡蓝色 */
+#progressCard .card-header {
+    background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%) !important;
+    color: #1f2937 !important;
+}
+
+#progressStatus {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #495057;
+}
+
+#progressText {
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #212529;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+}
+
+/* 按钮组间距 */
+.d-flex.gap-2 {
+    gap: 0.5rem !important;
+}
+
+/* 日志搜索过滤样式 */
+#logSearch::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+#logSearch:focus, #logFilter:focus {
+    background: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+#logFilter option {
+    background: #007bff;
+    color: white;
+}
+
+/* 过滤状态提示 */
+.filter-status {
+    border-radius: 8px;
+    border: 1px solid #bee5eb;
+    background: linear-gradient(135deg, #e7f9fd 0%, #d1ecf1 100%);
+    color: #0c5460;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 日志高亮效果 */
+.log-entry.highlight {
+    background: #fff3cd !important;
+    border-left-color: #ffc107 !important;
+    animation: highlightPulse 0.8s ease;
+}
+
+@keyframes highlightPulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 0.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .log-container {
+        height: 300px;
+    }
+    
+    .voice-mapping-row .col-4,
+    .voice-mapping-row .col-8 {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* 移动端按钮调整 */
+    #generateBtn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .card-header .d-flex {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .card-header .d-flex > div {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* 移动端日志优化 */
+    .log-container {
+        height: 400px;
+        font-size: 0.8rem;
+    }
+    
+    .log-entry {
+        padding: 0.3rem 0.4rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .log-time {
+        font-size: 0.7rem;
+    }
+    
+    .log-message {
+        font-size: 0.8rem;
+    }
+    
+    .log-details {
+        font-size: 0.75rem;
+    }
+    
+    /* 移动端搜索过滤 */
+    #logSearch, #logFilter {
+        font-size: 0.85rem;
+    }
+}
+
+/* 文件上传区域样式 */
+.file-upload-area {
+    border: 2px dashed #667eea;
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    background: rgba(102, 126, 234, 0.05);
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.file-upload-area:hover {
+    border-color: #764ba2;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.file-upload-area.dragover {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+/* 工具提示样式 */
+.tooltip-inner {
+    background: #212529;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.875rem;
+}
+
+/* 模态框样式 */
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+/* 音频信息样式 */
+#audioInfo {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* 右上角按钮组样式 */
+#generateBtn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    transition: all 0.3s;
+}
+
+#generateBtn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1abc9c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+#generateBtn:disabled {
+    background: #6c757d;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 清空日志按钮样式 */
+#clearLogsBtn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+}
+
+/* 角色配置折叠按钮样式 */
+#toggleVoiceMapping {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+#toggleVoiceMapping:hover {
+    background-color: #007bff;
+    color: white;
+    transform: scale(1.1);
+}
+
+#voiceMappingIcon {
+    transition: transform 0.3s ease;
+    font-size: 1rem;
+}
+
+#voiceMappingIcon.rotated {
+    transform: rotate(180deg);
+}
+
+/* 折叠容器动画 */
+#voiceMappingContainer {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* 角色名字徽章样式 - 改为黑色字体白色背景 */
+.voice-mapping-row .badge.speaker-badge, 
+.badge.speaker-badge, 
+.speaker-badge.badge, 
+.speaker-badge {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    border: 1px solid #dee2e6 !important;
+}
+
+#voiceMappingContainer:not(.show) {
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+}
+
+#voiceMappingContainer.show {
+    max-height: 500px;
+    opacity: 1;
+    padding: 0;
+    margin: 0;
+}
+
+/* 简化字幕显示样式 */
+.emotion-badge-simple, .emotion-simple {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.speaker-simple {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.speed-badge, .duration-simple {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+/* 简化按钮样式 */
+.btn-link {
+    text-decoration: none !important;
+    border: none !important;
+    background: none !important;
+    padding: 0.25rem 0.5rem;
+    box-shadow: none !important;
+}
+
+.btn-link:hover, .btn-link:focus, .btn-link:active {
+    text-decoration: none !important;
+    opacity: 0.7;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 生成按钮加载状态 */
+.loading {
+    position: relative;
+    color: transparent;
+}
+
+.loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    animation: button-loading-spinner 1s linear infinite;
+}
+
+@keyframes button-loading-spinner {
+    from {
+        transform: rotate(0turn);
+    }
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+/* 分割线样式 */
+.border-bottom {
+    border-bottom: 2px solid #e9ecef !important;
+}
+
+/* 输入组样式 */
+.input-group .form-control {
+    border-right: none;
+}
+
+.input-group .btn {
+    border-left: none;
+}
+
+/* 成功状态样式 */
+.text-success {
+    color: #198754 !important;
+    font-weight: 600;
+}
+
+/* 错误状态样式 */
+.text-danger {
+    color: #dc3545 !important;
+    font-weight: 600;
+}
+
+/* 加载状态样式 */
+.loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.loading .btn {
+    cursor: not-allowed;
+} 

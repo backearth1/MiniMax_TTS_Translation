@@ -1,0 +1,2769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniMax TTS配音翻译工具</title>
+    <link rel="icon" type="image/png" href="/static/mm_logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        :root {
+            --blue-50: #f0f9ff;
+            --blue-100: #e0f2fe;
+            --blue-200: #bae6fd;
+            --blue-300: #7dd3fc;
+            --blue-400: #38bdf8;
+            --blue-500: #0ea5e9;
+            --blue-600: #0284c7;
+            --blue-700: #0369a1;
+            --blue-800: #075985;
+            
+            /* 音频播放器样式 */
+            --audio-primary: #0ea5e9;
+            --audio-secondary: #64748b;
+            --audio-success: #10b981;
+            --audio-warning: #f59e0b;
+            --audio-danger: #ef4444;
+        }
+        
+        /* 音频播放器容器样式 */
+        .audio-player-container {
+            background: linear-gradient(135deg, var(--blue-50) 0%, var(--blue-100) 100%);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--blue-200);
+        }
+        
+        /* 进度条样式 */
+        #audioProgress {
+            height: 8px;
+            border-radius: 4px;
+            background: var(--blue-200);
+            outline: none;
+            cursor: pointer;
+        }
+        
+        #audioProgress::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--audio-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        #audioProgress::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--audio-primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* 音量滑块样式 */
+        #audioVolume {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--blue-200);
+            outline: none;
+        }
+        
+        #audioVolume::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--audio-secondary);
+            cursor: pointer;
+        }
+        
+        /* 合并结果卡片样式 */
+        #mergeResultCard {
+            border: 2px solid var(--blue-200);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+        }
+        
+        #mergeResultCard .card-header {
+            background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%);
+            color: white;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--blue-50) 0%, var(--blue-100) 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            border-bottom: 2px solid var(--blue-300);
+        }
+        
+        .card {
+            border: 1px solid var(--blue-200);
+            box-shadow: 0 4px 6px rgba(14, 165, 233, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            min-height: 400px;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            border-bottom: 1px solid var(--blue-200);
+            color: #1f2937 !important;
+        }
+        
+        /* 彻底覆盖所有按钮为淡蓝色 */
+        .btn, .btn-primary, .btn-success, .btn-outline-primary, .btn-secondary, .btn-outline-light, .btn-warning, .btn-danger, .btn-info {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            border-color: var(--blue-300) !important;
+            color: #1f2937 !important;
+        }
+        
+        .btn:hover, .btn:focus, .btn:active, .btn-primary:hover, .btn-success:hover, .btn-outline-primary:hover {
+            background: linear-gradient(135deg, var(--blue-300) 0%, var(--blue-400) 100%) !important;
+            border-color: var(--blue-400) !important;
+            color: #1f2937 !important;
+        }
+        
+        .btn:disabled {
+            background: var(--blue-100) !important;
+            border-color: var(--blue-200) !important;
+            color: #6b7280 !important;
+            opacity: 0.6;
+        }
+        
+        /* 彻底覆盖进度条 */
+        .progress-bar, .bg-warning, .bg-success, .bg-info, .bg-primary {
+            background: linear-gradient(135deg, var(--blue-300) 0%, var(--blue-400) 100%) !important;
+        }
+        
+        .progress-bar-striped {
+            background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent) !important;
+        }
+        
+        .progress-bar-animated {
+            animation: progress-bar-stripes 1s linear infinite !important;
+        }
+        
+        /* 彻底覆盖所有徽章和背景色 */
+        .badge, .bg-secondary, .bg-info, .bg-primary, .bg-success, .bg-warning, .bg-danger {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            color: #1f2937 !important;
+            border: none !important;
+        }
+        
+        /* 强制覆盖所有可能的颜色样式 */
+        .badge-danger, .badge-primary, .badge-success, .badge-warning, .badge-info, .badge-secondary {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            color: #1f2937 !important;
+            border: none !important;
+        }
+        
+        /* 强制覆盖所有按钮变体 */
+        .btn-danger, .btn-primary, .btn-success, .btn-warning, .btn-info, .btn-secondary,
+        .btn-outline-danger, .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info, .btn-outline-secondary {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            border-color: var(--blue-300) !important;
+            color: #1f2937 !important;
+        }
+        
+        .btn-danger:hover, .btn-primary:hover, .btn-success:hover, .btn-warning:hover, .btn-info:hover, .btn-secondary:hover,
+        .btn-outline-danger:hover, .btn-outline-primary:hover, .btn-outline-success:hover, .btn-outline-warning:hover, .btn-outline-info:hover, .btn-outline-secondary:hover {
+            background: linear-gradient(135deg, var(--blue-300) 0%, var(--blue-400) 100%) !important;
+            border-color: var(--blue-400) !important;
+            color: #1f2937 !important;
+        }
+        
+        /* 强制覆盖所有卡片标题背景 */
+        .card-header, .card-header.bg-primary, .card-header.bg-success, .card-header.bg-warning, .card-header.bg-danger, .card-header.bg-info {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            color: #1f2937 !important;
+            border-bottom: 1px solid var(--blue-200) !important;
+        }
+        
+        /* 强制覆盖所有边框颜色 */
+        .border-primary, .border-success, .border-warning, .border-danger, .border-info {
+            border-color: var(--blue-300) !important;
+        }
+        
+        /* 彻底覆盖所有文字颜色 */
+        .text-primary, .text-secondary, .text-success, .text-danger, .text-warning, .text-info, .text-light, .text-dark, .text-muted {
+            color: #1f2937 !important;
+        }
+        
+        /* 强制覆盖所有可能的红色元素 */
+        * {
+            /* 覆盖任何可能的红色背景 */
+        }
+        
+        /* 针对特定的Bootstrap类进行强制覆盖 */
+        .btn-sm, .btn-lg, .btn-group .btn, .dropdown-toggle, .nav-link {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            border-color: var(--blue-300) !important;
+            color: #1f2937 !important;
+        }
+        
+        /* 强制覆盖所有Alert样式 */
+        .alert, .alert-primary, .alert-success, .alert-warning, .alert-danger, .alert-info {
+            background: linear-gradient(135deg, var(--blue-100) 0%, var(--blue-200) 100%) !important;
+            border-color: var(--blue-300) !important;
+            color: #1f2937 !important;
+        }
+        
+        /* 强制覆盖分页和导航 */
+        .pagination .page-link, .nav-tabs .nav-link, .navbar-nav .nav-link {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            border-color: var(--blue-300) !important;
+            color: #1f2937 !important;
+        }
+        
+        /* 强制覆盖表格样式 */
+        .table-primary, .table-success, .table-warning, .table-danger, .table-info {
+            background: var(--blue-100) !important;
+            border-color: var(--blue-300) !important;
+        }
+        
+        /* 强制覆盖任何遗留的Bootstrap背景颜色 */
+        [class*="bg-primary"], [class*="bg-success"], [class*="bg-warning"], [class*="bg-danger"], [class*="bg-info"] {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            color: #1f2937 !important;
+        }
+        
+        /* 强制覆盖按钮颜色 */
+        [class*="btn-"] {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            border-color: var(--blue-300) !important;
+            color: #1f2937 !important;
+        }
+        
+        /* 强制覆盖徽章颜色 */
+        [class*="badge-"] {
+            background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+            color: #1f2937 !important;
+            border: none !important;
+        }
+        
+        /* 文字颜色保持合理 */
+        [class*="text-primary"], [class*="text-success"], [class*="text-warning"], [class*="text-danger"], [class*="text-info"] {
+            color: #1f2937 !important;
+        }
+        
+        /* 简洁的表单控件样式 */
+        .form-control, .form-select {
+            color: #374151 !important;
+            background-color: #f9fafb !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 6px !important;
+            padding: 8px 12px !important;
+            font-size: 14px !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        .form-control:hover, .form-select:hover {
+            border-color: #d1d5db !important;
+            background-color: #ffffff !important;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #9ca3af !important;
+            background-color: #ffffff !important;
+            box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.1) !important;
+            outline: none !important;
+        }
+        
+        /* 配置区域的输入框特殊样式 */
+        .config-section .form-control,
+        .config-section .form-select {
+            border: 1px solid #f3f4f6 !important;
+            background-color: #fafafa !important;
+            color: #6b7280 !important;
+            font-size: 13px !important;
+            padding: 6px 10px !important;
+        }
+        
+        .config-section .form-control:focus,
+        .config-section .form-select:focus {
+            border-color: #d1d5db !important;
+            background-color: #ffffff !important;
+            color: #374151 !important;
+        }
+        
+        /* 配置区域的标签样式 */
+        .config-section .form-label {
+            font-size: 12px !important;
+            color: #6b7280 !important;
+            font-weight: 500 !important;
+            margin-bottom: 4px !important;
+        }
+        
+        /* 配置卡片样式 */
+        .config-section {
+            background-color: #fafafa !important;
+        }
+        
+        .subtitle-editor {
+            /* 移除高度限制，让内容完全展开 */
+        }
+        
+        .segment-item {
+            border: 1px solid var(--blue-200);
+            border-radius: 6px;
+            margin-bottom: 4px;
+            background: white;
+            transition: all 0.2s ease;
+            padding: 8px !important;
+        }
+        
+        .segment-item:hover {
+            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
+            border-color: var(--blue-300);
+        }
+        
+        .upload-zone {
+            border-color: var(--blue-300) !important;
+            background: var(--blue-50) !important;
+            transition: all 0.2s ease;
+        }
+        
+        .upload-zone:hover {
+            background: var(--blue-100) !important;
+            border-color: var(--blue-400) !important;
+        }
+        
+        /* 角色配置特殊样式 */
+        .speaker-badge, .speaker-badge.badge, .badge.speaker-badge {
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        /* 强制覆盖Bootstrap的badge默认样式 */
+        .voice-mapping-row .badge.speaker-badge {
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        /* 编辑按钮特殊样式 - 覆盖全局按钮样式 */
+        .btn-link, .btn-link:hover, .btn-link:focus, .btn-link:active {
+            background: none !important;
+            border: none !important;
+            text-decoration: none !important;
+            box-shadow: none !important;
+        }
+        .voice-config-container {
+            background: white !important;
+            border: 2px solid var(--pink-300) !important;
+            border-radius: 12px !important;
+            padding: 20px !important;
+            margin-top: 10px !important;
+        }
+        
+        .voice-config-title {
+            color: var(--pink-700) !important;
+            font-weight: bold !important;
+            font-size: 1.2rem !important;
+            margin-bottom: 15px !important;
+        }
+        
+        .speaker-badge {
+            background: var(--pink-500) !important;
+            color: white !important;
+            font-size: 0.9rem !important;
+            padding: 8px 12px !important;
+            font-weight: bold !important;
+        }
+        
+        .voice-input {
+            border: 2px solid var(--pink-300) !important;
+            border-radius: 6px !important;
+        }
+        
+        .voice-input:focus {
+            border-color: var(--pink-500) !important;
+            box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25) !important;
+        }
+        
+        /* 覆盖所有可能的颜色类 */
+        .alert, .toast {
+            background: var(--pink-50) !important;
+            border-color: var(--pink-300) !important;
+            color: var(--pink-700) !important;
+        }
+        
+        .modal-header {
+            background: var(--pink-300) !important;
+            color: white !important;
+        }
+        
+        .btn-close, .btn-close-white {
+            background-color: transparent !important;
+            border: none !important;
+            color: white !important;
+            opacity: 0.8;
+        }
+        
+        /* 覆盖HTML5表单验证 */
+        input:invalid {
+            border-color: var(--pink-400) !important;
+            box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25) !important;
+        }
+        
+        input:valid {
+            border-color: var(--pink-300) !important;
+            box-shadow: none !important;
+        }
+        
+        /* 确保没有默认的focus outline */
+        *:focus {
+            outline: none !important;
+            box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25) !important;
+        }
+        
+        /* 确保链接也是粉红色 */
+        a, a:hover, a:focus, a:active {
+            color: inherit !important;
+            text-decoration: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1 text-dark d-flex align-items-center">
+                <img src="/static/mm_logo.png" alt="MiniMax" style="height: 32px; width: auto; margin-right: 8px;">MiniMax TTS配音翻译工具
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid p-4">
+        <!-- 新布局：左侧SRT处理，右侧参数配置和控制区 -->
+        <div class="row g-4">
+            <!-- 左侧：SRT处理区域 -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-gear-wide-connected me-2"></i>SRT处理</h5>
+                                                    <button class="btn btn-danger btn-sm py-1 px-2" onclick="oneClickTranslate()" id="oneClickTranslateBtn" style="font-size: 0.8rem;">
+                                <i class="bi bi-magic me-1"></i>一键翻译
+                            </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- 简化上传区域 -->
+                        <div class="d-flex gap-2 justify-content-center mb-3">
+                            <input type="file" id="quickSrtUpload" accept=".srt" style="display: none;">
+                            <button class="btn btn-primary btn-sm" onclick="document.getElementById('quickSrtUpload').click()">
+                                <i class="bi bi-upload me-1"></i>上传SRT
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="batchTranslate()" id="batchTranslateBtn">
+                                <i class="bi bi-translate me-1"></i>文字翻译
+                            </button>
+                            <button class="btn btn-info btn-sm" onclick="batchGenerateTTS()" id="batchTTSBtn">
+                                <i class="bi bi-music-note-list me-1"></i>批量TTS
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="mergeAudio()" id="mergeBtn">
+                                <i class="bi bi-soundwave me-1"></i>拼接音频
+                            </button>
+                            <button class="btn btn-warning btn-sm" id="exportSrtBtn" onclick="exportSrtFile()" style="display: none;">
+                                <i class="bi bi-download me-1"></i>导出SRT
+                            </button>
+                        </div>
+
+                        <!-- 翻译功能区域 -->
+                        <div class="d-flex gap-2 justify-content-center mb-3" id="translationSection" style="display: none;">
+                        </div>
+
+                        <!-- 字幕段落列表 -->
+                        <div class="subtitle-editor" id="subtitleEditor" style="min-height: 200px;">
+                            <div class="text-center py-5" style="color: var(--pink-400);">
+                                <i class="bi bi-hourglass-split fs-1"></i>
+                                <p class="mt-2">正在加载示例字幕文件...</p>
+                            </div>
+                        </div>
+
+                        <!-- 分页控制 -->
+                        <div class="d-flex justify-content-between align-items-center mt-3" id="paginationControls" style="display: none;">
+                            <button class="btn btn-sm btn-outline-primary" id="prevPage" disabled>
+                                <i class="bi bi-chevron-left"></i> 上一页
+                            </button>
+                            <span id="pageInfo" style="color: var(--pink-600);">第 1 页</span>
+                            <button class="btn btn-sm btn-outline-primary" id="nextPage" disabled>
+                                下一页 <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：参数配置和控制区 -->
+            <div class="col-lg-4">
+                <!-- 上半部分：参数配置 -->
+                <div class="row g-4 mb-5">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>配置参数</h5>
+                            </div>
+                            <div class="card-body config-section">
+                                <form id="configForm">
+                                    <!-- API配置 -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-6">
+                                            <label for="groupId" class="form-label">Group ID</label>
+                                            <input type="text" class="form-control" id="groupId" required style="border-color: #2196f3;">
+                                        </div>
+                                        <div class="col-6">
+                                            <label for="apiKey" class="form-label">API Key</label>
+                                            <input type="password" class="form-control" id="apiKey" required style="border-color: #2196f3;">
+                                        </div>
+                                    </div>
+
+                                    <!-- 语音配置 -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-8">
+                                            <label for="voiceModel" class="form-label">语音模型</label>
+                                            <input type="text" class="form-control" id="voiceModel" value="speech-02-hd">
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="language" class="form-label">语言</label>
+                                            <select class="form-select" id="language">
+                                                <option value="Chinese" selected>中文</option>
+                                                <option value="Chinese,Yue">粤语</option>
+                                                <option value="English">英语</option>
+                                                <option value="Japanese">日语</option>
+                                                <option value="Korean">韩语</option>
+                                                <option value="Spanish">西班牙语</option>
+                                                <option value="French">法语</option>
+                                                <option value="German">德语</option>
+                                                <option value="Italian">意大利语</option>
+                                                <option value="Portuguese">葡萄牙语</option>
+                                                <option value="Russian">俄语</option>
+                                                <option value="Arabic">阿拉伯语</option>
+                                                <option value="Turkish">土耳其语</option>
+                                                <option value="Dutch">荷兰语</option>
+                                                <option value="Ukrainian">乌克兰语</option>
+                                                <option value="Vietnamese">越南语</option>
+                                                <option value="Indonesian">印尼语</option>
+                                                <option value="Thai">泰语</option>
+                                                <option value="Polish">波兰语</option>
+                                                <option value="Romanian">罗马尼亚语</option>
+                                                <option value="Greek">希腊语</option>
+                                                <option value="Czech">捷克语</option>
+                                                <option value="Finnish">芬兰语</option>
+                                                <option value="Hindi">印地语</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- 角色语音配置 -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-6">
+                                            <label for="speaker00Voice" class="form-label">SPEAKER_00 语音</label>
+                                            <input type="text" class="form-control" id="speaker00Voice" value="ai_her_04">
+                                        </div>
+                                        <div class="col-6">
+                                            <label for="speaker01Voice" class="form-label">SPEAKER_01 语音</label>
+                                            <input type="text" class="form-control" id="speaker01Voice" value="wumei_yujie">
+                                        </div>
+                                    </div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-6">
+                                            <label for="speaker02Voice" class="form-label">SPEAKER_02 语音</label>
+                                            <input type="text" class="form-control" id="speaker02Voice" value="uk_oldwoman4">
+                                        </div>
+                                        <div class="col-6">
+                                            <label for="speaker03Voice" class="form-label">SPEAKER_03 语音</label>
+                                            <input type="text" class="form-control" id="speaker03Voice" value="female-chengshu">
+                                        </div>
+                                    </div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-6">
+                                            <label for="speaker04Voice" class="form-label">SPEAKER_04 语音</label>
+                                            <input type="text" class="form-control" id="speaker04Voice" value="Serene_Elder">
+                                        </div>
+                                        <div class="col-6">
+                                            <label for="speaker05Voice" class="form-label">SPEAKER_05 语音</label>
+                                            <input type="text" class="form-control" id="speaker05Voice" value="Serene_Elder">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 隐藏的文件输入，用于兼容现有生成逻辑 -->
+                                    <input type="file" id="subtitleFile" accept=".srt,.txt" style="display: none;">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 下半部分：控制区域 -->
+                <div class="row g-3">
+                    <!-- 隐藏的状态和下载按钮，保留功能 -->
+                    <div class="col-12" style="display: none;">
+                        <div class="text-center">
+                            <!-- 隐藏的状态和下载按钮，保留功能 -->
+                            <div style="display: none;">
+                                <span class="badge px-3 py-2" id="statusBadge">准备就绪</span>
+                                <button class="btn btn-primary btn-lg w-100 mt-2" id="downloadBtn" style="display: none;">
+                                    <i class="bi bi-download me-2"></i>下载音频文件
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 配音进度条 -->
+                    <div class="col-12">
+                        <div class="card" id="progressCard" style="display: none;">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-hourglass-split me-2"></i>处理进度</h6>
+                            </div>
+                            <div class="card-body py-3">
+                                <div class="progress mb-2" style="height: 20px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         id="progressBar" role="progressbar" style="width: 0%">
+                                        <span id="progressText" class="fw-bold">0%</span>
+                                    </div>
+                                </div>
+                                <div id="progressStatus" class="text-center">
+                                    准备开始...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 拼接音频结果区 -->
+                    <div class="col-12">
+                        <div class="card" id="mergeResultCard">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-soundwave me-2"></i>音频预览</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="mergeResultContent">
+                                    <!-- 音频信息显示区域 -->
+                                    <div class="row mb-3" id="audioInfoSection" style="display: none;">
+                                        <div class="col-12">
+                                            <div class="alert alert-info mb-0">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <small><strong>文件名:</strong> <span id="mergeFileName">-</span></small>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <small><strong>段落数:</strong> <span id="mergeSegmentsCount">-</span></small>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <small><strong>总时长:</strong> <span id="mergeTotalDuration">-</span>秒</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 音频播放器 -->
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="audio-player-container">
+                                                <!-- 波形显示区域 -->
+                                                <div class="waveform-container mb-3">
+                                                    <canvas id="audioWaveform" width="800" height="100" 
+                                                            style="width: 100%; height: 100px; border: 1px solid #ddd; border-radius: 4px; background: #f8f9fa;">
+                                                    </canvas>
+                                                </div>
+                                                
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="text-muted small me-2" id="currentTime">00:00</span>
+                                                    <div class="flex-grow-1 mx-2">
+                                                        <input type="range" class="form-range" id="audioProgress" 
+                                                               min="0" max="100" value="0" step="0.1">
+                                                    </div>
+                                                    <span class="text-muted small ms-2" id="totalTime">00:00</span>
+                                                </div>
+                                                
+                                                <!-- 播放控制按钮 -->
+                                                <div class="d-flex justify-content-center mt-3">
+                                                    <button class="btn btn-primary btn-sm me-2" id="mergePlayBtn" disabled>
+                                                        <i class="bi bi-play-circle me-2"></i>播放
+                                                    </button>
+                                                    <button class="btn btn-secondary btn-sm me-2" id="mergePauseBtn" style="display: none;" disabled>
+                                                        <i class="bi bi-pause-circle me-2"></i>暂停
+                                                    </button>
+                                                    <button class="btn btn-primary btn-sm" id="downloadAudioBtn" disabled>
+                                                        <i class="bi bi-download me-2"></i>下载
+                                                    </button>
+                                                </div>
+                                                
+                                                <!-- 隐藏的下载链接 -->
+                                                <a id="mergeDownloadBtn" href="#" download="" style="display: none;"></a>
+                                                
+                                                <!-- 状态提示 -->
+                                                <div class="text-center mt-2" id="audioStatus">
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-info-circle me-1"></i>
+                                                        请先生成TTS音频，然后拼接音频以启用播放功能
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 日志展示区 -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-terminal me-2"></i>日志排查</h5>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-light" id="downloadLogsBtn">
+                                        <i class="bi bi-download"></i> 下载日志
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-light" id="clearLogsBtn">
+                                        <i class="bi bi-trash"></i> 清空
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-2">
+                                <div id="logContainer" class="log-container border rounded p-2" 
+                                     style="height: 450px; overflow-y: auto; font-size: 0.85rem; background: var(--pink-50);">
+                                    <div class="text-center py-3" style="color: var(--pink-400);">
+                                        <i class="bi bi-info-circle"></i> 系统已就绪，等待操作...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 使用说明区 -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-question-circle me-2"></i>使用说明</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <h6 class="fw-bold text-primary">1. 使用说明</h6>
+                                            <p class="mb-2">本网站仅用于测试体验，在线人数多时将自动限流，如果规模化商用，请下载开源版本自行部署</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h6 class="fw-bold text-primary">2. API配置</h6>
+                                            <p class="mb-2">请到<a href="https://platform.minimaxi.com" target="_blank" class="text-decoration-none">MiniMax开放平台</a>注册获取api_key，地址 "https://platform.minimaxi.com", 使用问题请联系MiniMax技术支持或邮件<a href="mailto:devin@minimaxi.com" class="text-decoration-none">devin@minimaxi.com</a></p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h6 class="fw-bold text-primary">3. 建议流程</h6>
+                                            <ol class="mb-2">
+                                                <li>上传SRT文件</li>
+                                                <li>编辑优化SRT的文本，角色，情绪等</li>
+                                                <li>批量生成</li>
+                                                <li>合成预览，根据效果，再返回优化文本</li>
+                                            </ol>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h6 class="fw-bold text-primary">4. 一键翻译功能</h6>
+                                            <p class="mb-2">点击"一键翻译"按钮可自动完成以下流程：</p>
+                                            <ol class="mb-2">
+                                                <li><strong>批量翻译</strong>：将原文翻译为目标语言</li>
+                                                <li><strong>批量TTS</strong>：为翻译后的文本生成语音</li>
+                                                <li><strong>拼接音频</strong>：将所有音频片段拼接为完整文件</li>
+                                            </ol>
+                                            <p class="mb-2"><small class="text-muted">注意：一键翻译会使用当前配置的语言设置，请确保已正确配置API参数</small></p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h6 class="fw-bold text-primary">5. 批量TTS时间戳对齐处理逻辑</h6>
+                                            <p class="mb-2">系统会自动处理TTS生成音频与字幕时间戳的对齐问题：</p>
+                                            <ul class="mb-2">
+                                                <li><strong>翻译优化</strong>：当加速比例 > 1.3 时，系统会尝试重新翻译文本以缩短内容</li>
+                                                <li><strong>速度调整</strong>：当加速比例 ≤ 1.3 或翻译优化无效时，会逐步调整语速参数（1.0 → 1.2 → 1.4 → 2.0）</li>
+                                                <li><strong>失败处理</strong>：当速度达到2.0且比例仍 > 1.0时，该段落会被标记为失败并使用静音</li>
+                                                <li><strong>手动优化</strong>：建议根据实际效果手动调整文本长度，以获得最佳对齐效果</li>
+                                            </ul>
+                                            <p class="mb-2"><small class="text-muted">注：加速比例 = TTS音频时长 / 字幕时长，比例 ≤ 1.0 表示音频时长在字幕时长范围内</small></p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h6 class="fw-bold text-primary">6. SRT格式支持</h6>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <h6 class="fw-bold text-success">有序号</h6>
+                                                    <pre class="bg-light p-2 rounded small">1
+00:00:06.879 --> 00:00:11.039
+嗨，你好啊</pre>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <h6 class="fw-bold text-success">无序号</h6>
+                                                    <pre class="bg-light p-2 rounded small">00:00:06.879 --> 00:00:11.039
+嗨，你好啊</pre>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <h6 class="fw-bold text-success">完整标注</h6>
+                                                    <pre class="bg-light p-2 rounded small">1
+[00:00:06.879 --> 00:00:11.039] SPEAKER_00 [emotion: happy]
+嗨，你好啊</pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 字幕段落编辑模态框 -->
+    <div class="modal fade" id="segmentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>编辑字幕段落</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">开始时间</label>
+                            <input type="text" class="form-control" id="segmentStartTime" placeholder="00:00:00,000">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">结束时间</label>
+                            <input type="text" class="form-control" id="segmentEndTime" placeholder="00:00:00,000">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">说话人</label>
+                            <input type="text" class="form-control" id="segmentSpeaker">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">语速</label>
+                            <input type="number" class="form-control" id="segmentSpeed" min="1" max="2" step="0.1" value="1.0">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">情绪</label>
+                        <select class="form-select" id="segmentEmotion">
+                            <option value="auto">自动检测</option>
+                            <option value="happy">开心</option>
+                            <option value="sad">悲伤</option>
+                            <option value="angry">愤怒</option>
+                            <option value="fearful">恐惧</option>
+                            <option value="disgusted">厌恶</option>
+                            <option value="surprised">惊讶</option>
+                            <option value="calm">平静</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">原文</label>
+                        <textarea class="form-control" id="segmentText" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">译文</label>
+                        <textarea class="form-control" id="segmentTranslatedText" rows="3" placeholder="翻译后的文本"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveSegmentBtn">
+                        <i class="bi bi-check-circle me-2"></i>保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert">
+            <div class="toast-header">
+                <i class="bi bi-bell-fill me-2"></i>
+                <strong class="me-auto">系统通知</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastBody">
+                <!-- Toast 内容 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 导出SRT文件函数
+        async function exportSrtFile() {
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+
+            try {
+                // 使用专门的导出API
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/export-srt`);
+                const result = await response.json();
+                
+                if (result.success && result.srt_content) {
+                    // 创建下载链接
+                    const blob = new Blob([result.srt_content], { type: 'text/plain;charset=utf-8' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = result.filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    showToast('SRT文件导出成功！');
+                } else {
+                    showToast('导出失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('导出SRT失败:', error);
+                showToast('导出失败: ' + error.message);
+            }
+        }
+    </script>
+    <script>
+        // 合并字幕编辑功能到主页面
+        let currentSubtitleProject = null;
+        let currentPage = 1;
+        let segments = [];
+
+        // 简化上传SRT功能
+        document.getElementById('quickSrtUpload').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleQuickSrtUpload(e.target.files[0]);
+            }
+        });
+
+        async function handleQuickSrtUpload(file) {
+            if (!file.name.toLowerCase().endsWith('.srt')) {
+                showToast('请选择SRT格式文件');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                // 添加clientId参数
+                if (window.app && window.app.clientId) {
+                    formData.append('clientId', window.app.clientId);
+                } else {
+                    // 如果window.app还没初始化，生成一个临时的clientId
+                    const tempClientId = 'client_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    formData.append('clientId', tempClientId);
+                }
+
+                const response = await fetch('/api/parse-subtitle', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentSubtitleProject = result.project;
+                    currentPage = 1; // 重置到第一页
+                    loadSubtitleSegments();
+                    
+                    // 显示导出按钮
+                    document.getElementById('exportSrtBtn').style.display = 'inline-block';
+                    
+                    // 同时设置到隐藏的文件输入中，用于兼容现有生成逻辑
+                    const hiddenFileInput = document.getElementById('subtitleFile');
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    hiddenFileInput.files = dt.files;
+                    
+                    showToast(`解析成功！${result.project.total_segments} 个段落，每页显示20条`);
+                } else {
+                    showToast('解析失败: ' + result.message);
+                }
+            } catch (error) {
+                showToast('上传失败: ' + error.message);
+            }
+        }
+
+        async function loadSubtitleSegments() {
+            if (!currentSubtitleProject) return;
+
+            try {
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/segments?page=${currentPage}&per_page=20`);
+                const result = await response.json();
+
+                if (result.success) {
+                    segments = result.segments;
+                    renderSubtitleSegments();
+                    updatePaginationInfo(result.pagination);
+                    
+                    // 显示翻译功能区域
+                    const translationSection = document.getElementById('translationSection');
+                    if (translationSection) {
+                        translationSection.style.display = 'flex';
+                    }
+                    
+                    // 显示导出SRT按钮
+                    const exportSrtBtn = document.getElementById('exportSrtBtn');
+                    if (exportSrtBtn) {
+                        exportSrtBtn.style.display = 'inline-block';
+                    }
+                }
+            } catch (error) {
+                console.error('加载段落失败:', error);
+            }
+        }
+
+        function updatePaginationInfo(pagination) {
+            if (!pagination) return;
+            
+            const pageInfo = document.getElementById('pageInfo');
+            const paginationControls = document.getElementById('paginationControls');
+            const prevPage = document.getElementById('prevPage');
+            const nextPage = document.getElementById('nextPage');
+            
+            if (pageInfo) {
+                pageInfo.textContent = `第 ${pagination.page} 页，共 ${pagination.pages} 页 (${pagination.total} 条，每页20条)`;
+            }
+            
+            // 显示分页控制
+            if (pagination.pages > 1) {
+                paginationControls.style.display = 'flex';
+                prevPage.disabled = pagination.page <= 1;
+                nextPage.disabled = pagination.page >= pagination.pages;
+            } else {
+                paginationControls.style.display = 'none';
+            }
+        }
+
+        function renderSubtitleSegments() {
+            const container = document.getElementById('subtitleEditor');
+            
+            if (segments.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5" style="color: var(--pink-400);">
+                        <i class="bi bi-file-earmark-text fs-1"></i>
+                        <p class="mt-2">上传SRT文件开始编辑</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const segmentsHtml = segments.map(segment => `
+                <div class="segment-item">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge" style="background: var(--pink-400);">${segment.index}</span>
+                            <small style="color: var(--pink-600);">${segment.start_time} → ${segment.end_time}</small>
+                            <span class="speaker-simple">${segment.speaker}</span>
+                            <span class="emotion-simple">${segment.emotion}</span>
+                            <small style="color: var(--pink-600);">×${segment.speed}</small>
+                            <div class="btn-group btn-group-sm ms-auto" role="group">
+                                <button class="btn btn-outline-primary btn-sm" 
+                                        onclick="generateTTS('${segment.id}')" 
+                                        title="生成TTS"
+                                        style="width: 70px; min-width: 70px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; white-space: nowrap;">
+                                    生成
+                                </button>
+                                <button class="btn btn-outline-success btn-sm" 
+                                        onclick="playAudio('${segment.id}')" 
+                                        ${segment.audio_url && segment.audio_url !== '' ? '' : 'disabled'}
+                                        title="播放音频"
+                                        style="width: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-link text-muted" 
+                                        onclick="editSegment('${segment.id}')"
+                                        title="编辑"
+                                        style="width: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" 
+                                        onclick="insertNewSegment(${segments.indexOf(segment)})"
+                                        title="在此段落后插入新段落"
+                                        style="width: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteSegment('${segment.id}')"
+                                        title="删除段落"
+                                        style="width: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div class="flex-grow-1">
+                                <div class="mb-1">
+                                    <small style="color: var(--pink-700); font-weight: 500;">原文: ${segment.text}</small>
+                                </div>
+                                ${segment.translated_text ? 
+                                    `<div class="mb-1">
+                                        <small style="color: var(--blue-600); font-weight: 500;">译文: ${segment.translated_text}</small>
+                                    </div>` : 
+                                    `<div class="mb-1">
+                                        <small style="color: var(--gray-500); font-style: italic;">译文: 未翻译</small>
+                                    </div>`
+                                }
+                            </div>
+                            <div class="ms-2" style="min-width: 120px;">
+                                ${segment.trace_id && !segment.trace_id.startsWith('test_') ? `<small class="text-muted" title="${segment.trace_id}">Trace: ${segment.trace_id}</small>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = segmentsHtml;
+        }
+
+        // TTS生成函数
+        async function generateTTS(segmentId) {
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+
+            const segment = segments.find(s => s.id === segmentId);
+            if (!segment) {
+                showToast('找不到指定的段落');
+                return;
+            }
+
+            addLog(`开始生成TTS: 段落${segmentId}`);
+
+            try {
+                // 获取当前配置
+                const groupId = document.getElementById('groupId').value;
+                const apiKey = document.getElementById('apiKey').value;
+                const model = document.getElementById('voiceModel').value;
+                const language = document.getElementById('language').value;
+                
+                // 获取voiceMapping（从动态生成的元素中）
+                const voiceMapping = getVoiceMapping();
+
+                if (!groupId || !apiKey) {
+                    addLog('配置错误: 缺少Group ID或API Key');
+                    showToast('请先配置Group ID和API Key');
+                    return;
+                }
+
+                addLog(`调用TTS API: 模型=${model}, 说话人=${segment.speaker}, 情绪=${segment.emotion}`);
+                showToast('正在生成TTS...');
+
+                const formData = new FormData();
+                formData.append('groupId', groupId);
+                formData.append('apiKey', apiKey);
+                formData.append('model', model);
+                formData.append('language', language);
+                formData.append('voiceMapping', JSON.stringify(voiceMapping));
+
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/segment/${segmentId}/generate-tts`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const traceInfo = result.trace_id ? `, trace_id=${result.trace_id}` : '';
+                    const ratioInfo = result.duration_ratio ? `, 比例=${result.duration_ratio.toFixed(2)}` : '';
+                    addLog(`TTS生成成功: 段落${segmentId}${traceInfo}${ratioInfo}`);
+                    showToast('TTS生成成功！');
+                    // 重新加载段落以更新状态
+                    loadSubtitleSegments();
+                } else {
+                    // 生成失败，记录详细信息但不更新界面
+                    const traceInfo = result.trace_id ? `, trace_id=${result.trace_id}` : '';
+                    const ratioInfo = result.duration_ratio ? `, 比例=${result.duration_ratio.toFixed(2)}` : '';
+                    const durationInfo = result.target_duration && result.current_duration ? 
+                        `, 目标时长=${result.target_duration}ms, 当前时长=${result.current_duration}ms` : '';
+                    
+                    addLog(`TTS生成失败: 段落${segmentId}${traceInfo}${ratioInfo}${durationInfo}`);
+                    addLog(`失败原因: ${result.message}`);
+                    showToast('TTS生成失败: ' + result.message);
+                    // 不重新加载段落，保持原有状态
+                }
+            } catch (error) {
+                console.error('TTS生成失败:', error);
+                addLog(`TTS生成失败: 段落${segmentId}, 错误=${error.message}`);
+                showToast('TTS生成失败: ' + error.message);
+            }
+        }
+
+        // 生成客户端ID
+        function generateClientId() {
+            return 'client_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // 添加新段落
+        async function addNewSegment() {
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+
+            // 生成新的段落ID
+            const newSegmentId = 'segment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // 计算新的时间戳（在最后一个段落之后）
+            let newStartTime = '00:00:00,000';
+            let newEndTime = '00:00:05,000';
+            
+            if (segments.length > 0) {
+                const lastSegment = segments[segments.length - 1];
+                // 解析最后一个段落的结束时间
+                const lastEndTime = lastSegment.end_time;
+                const [hours, minutes, seconds] = lastEndTime.split(':');
+                const [secs, ms] = seconds.split(',');
+                
+                // 计算新的开始时间（在最后一个段落结束后）
+                const totalSeconds = parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseInt(secs) + parseInt(ms) / 1000;
+                const newStartSeconds = totalSeconds + 0.5; // 添加0.5秒间隔
+                const newEndSeconds = newStartSeconds + 5; // 默认5秒时长
+                
+                newStartTime = formatTime(newStartSeconds);
+                newEndTime = formatTime(newEndSeconds);
+            }
+
+            // 创建新段落对象
+            const newSegment = {
+                id: newSegmentId,
+                index: segments.length + 1,
+                start_time: newStartTime,
+                end_time: newEndTime,
+                speaker: 'SPEAKER_00',
+                emotion: 'neutral',
+                speed: 1.0,
+                text: '请输入文本内容',
+                translated_text: '',
+                audio_data: null,
+                audio_duration: 0,
+                audio_url: '',
+                trace_id: '',
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                // 通过API添加段落
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/segment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newSegment)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog(`添加新段落: ${newSegmentId}`);
+                    showToast('新段落已添加');
+                    
+                    // 重新加载当前页面，保持分页
+                    await loadSubtitleSegments();
+                } else {
+                    showToast('添加段落失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('添加段落失败:', error);
+                showToast('添加段落失败: ' + error.message);
+            }
+        }
+
+        // 在指定位置插入新段落
+        async function insertNewSegment(afterIndex) {
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+
+            if (afterIndex < 0 || afterIndex >= segments.length) {
+                showToast('插入位置无效');
+                return;
+            }
+
+            // 生成新的段落ID
+            const newSegmentId = 'segment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // 计算插入位置的时间戳
+            const currentSegment = segments[afterIndex];
+            const nextSegment = segments[afterIndex + 1];
+            
+            let newStartTime, newEndTime;
+            
+            if (nextSegment) {
+                // 在两个段落之间插入
+                const currentEndTime = currentSegment.end_time;
+                const nextStartTime = nextSegment.start_time;
+                
+                // 计算中间时间
+                const [hours1, minutes1, seconds1] = currentEndTime.split(':');
+                const [secs1, ms1] = seconds1.split(',');
+                const currentEndSeconds = parseInt(hours1) * 3600 + parseInt(minutes1) * 60 + parseInt(secs1) + parseInt(ms1) / 1000;
+                
+                const [hours2, minutes2, seconds2] = nextStartTime.split(':');
+                const [secs2, ms2] = seconds2.split(',');
+                const nextStartSeconds = parseInt(hours2) * 3600 + parseInt(minutes2) * 60 + parseInt(secs2) + parseInt(ms2) / 1000;
+                
+                const middleTime = (currentEndSeconds + nextStartSeconds) / 2;
+                const newStartSeconds = middleTime - 2.5; // 新段落开始时间
+                const newEndSeconds = middleTime + 2.5; // 新段落结束时间
+                
+                newStartTime = formatTime(newStartSeconds);
+                newEndTime = formatTime(newEndSeconds);
+            } else {
+                // 在最后一个段落之后插入
+                const lastEndTime = currentSegment.end_time;
+                const [hours, minutes, seconds] = lastEndTime.split(':');
+                const [secs, ms] = seconds.split(',');
+                
+                const totalSeconds = parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseInt(secs) + parseInt(ms) / 1000;
+                const newStartSeconds = totalSeconds + 0.5;
+                const newEndSeconds = newStartSeconds + 5;
+                
+                newStartTime = formatTime(newStartSeconds);
+                newEndTime = formatTime(newEndSeconds);
+            }
+
+            // 创建新段落对象
+            const newSegment = {
+                id: newSegmentId,
+                index: afterIndex + 2, // 临时序号，后面会更新
+                start_time: newStartTime,
+                end_time: newEndTime,
+                speaker: 'SPEAKER_00',
+                emotion: 'neutral',
+                speed: 1.0,
+                text: '请输入文本内容',
+                translated_text: '',
+                audio_data: null,
+                audio_duration: 0,
+                audio_url: '',
+                trace_id: '',
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                // 通过API添加段落
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/segment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newSegment)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog(`在段落${afterIndex + 1}后插入新段落: ${newSegmentId}`);
+                    showToast(`新段落已插入到段落${afterIndex + 1}之后`);
+                    
+                    // 重新加载当前页面，保持分页
+                    await loadSubtitleSegments();
+                } else {
+                    showToast('插入段落失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('插入段落失败:', error);
+                showToast('插入段落失败: ' + error.message);
+            }
+        }
+
+        // 删除段落
+        async function deleteSegment(segmentId) {
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+
+            const segmentIndex = segments.findIndex(s => s.id === segmentId);
+            if (segmentIndex === -1) {
+                showToast('找不到指定的段落');
+                return;
+            }
+
+            // 确认删除
+            if (!confirm(`确定要删除段落 ${segments[segmentIndex].index} 吗？`)) {
+                return;
+            }
+
+            try {
+                // 通过API删除段落
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/segment/${segmentId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog(`删除段落: ${segmentId}`);
+                    showToast('段落已删除');
+                    
+                    // 重新加载当前页面，保持分页
+                    await loadSubtitleSegments();
+                } else {
+                    showToast('删除段落失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('删除段落失败:', error);
+                showToast('删除段落失败: ' + error.message);
+            }
+        }
+
+        // 更新段落序号
+        function updateSegmentIndexes() {
+            segments.forEach((segment, index) => {
+                segment.index = index + 1;
+            });
+        }
+
+        // 格式化时间函数
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            const ms = Math.floor((seconds % 1) * 1000);
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
+        }
+
+        // 获取voiceMapping的函数
+        function getVoiceMapping() {
+            const mapping = {};
+            
+            // 从新的HTML结构中获取语音配置
+            const speakers = ['SPEAKER_00', 'SPEAKER_01', 'SPEAKER_02', 'SPEAKER_03', 'SPEAKER_04', 'SPEAKER_05'];
+            
+            speakers.forEach(speaker => {
+                const elementId = `speaker${speaker.slice(-2)}Voice`;
+                const selectElement = document.getElementById(elementId);
+                
+                if (selectElement) {
+                    const voice = selectElement.value;
+                    if (voice) {
+                        mapping[speaker] = voice;
+                    }
+                }
+            });
+
+            return mapping;
+        }
+
+        // 音频播放函数
+        function playAudio(segmentId) {
+            const segment = segments.find(s => s.id === segmentId);
+            if (!segment || !segment.audio_url || segment.audio_url === '') {
+                showToast('没有可播放的音频');
+                return;
+            }
+
+            try {
+                const audio = new Audio(segment.audio_url);
+                audio.play().catch(error => {
+                    console.error('音频播放失败:', error);
+                    showToast('音频播放失败: ' + error.message);
+                });
+            } catch (error) {
+                console.error('音频播放失败:', error);
+                showToast('音频播放失败: ' + error.message);
+            }
+        }
+
+        // 批量生成TTS
+        async function batchGenerateTTS() {
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+            
+            const groupId = document.getElementById('groupId').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const model = document.getElementById('voiceModel').value;
+            const language = document.getElementById('language').value;
+            const voiceMapping = getVoiceMapping();
+            
+            if (!groupId || !apiKey) {
+                addLog('配置错误: 缺少Group ID或API Key');
+                showToast('请先配置Group ID和API Key');
+                return;
+            }
+            
+            if (Object.keys(voiceMapping).length === 0) {
+                addLog('配置错误: 缺少角色语音映射');
+                showToast('请先配置角色语音映射');
+                return;
+            }
+            
+            addLog(`开始批量生成TTS: 项目${currentSubtitleProject.id}, 总段落数=${segments.length}`);
+            
+            // 禁用按钮
+            const batchTTSBtn = document.getElementById('batchTTSBtn');
+            const originalText = batchTTSBtn.innerHTML;
+            batchTTSBtn.disabled = true;
+            batchTTSBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>正在生成...';
+            
+            // 开始实时日志更新
+            if (!window.app || !window.app.clientId) {
+                showToast('系统初始化未完成，请刷新页面重试');
+                batchTTSBtn.disabled = false;
+                batchTTSBtn.innerHTML = originalText;
+                return;
+            }
+            const clientId = window.app.clientId;
+            let logUpdateInterval;
+            
+            try {
+                addLog(`调用批量TTS API: 模型=${model}, 语言=${language}`);
+                showToast('开始批量生成TTS...');
+                
+                // 开始实时日志更新
+                startRealTimeLogUpdates(clientId);
+                
+                const formData = new FormData();
+                formData.append('groupId', groupId);
+                formData.append('apiKey', apiKey);
+                formData.append('model', model);
+                formData.append('language', language);
+                formData.append('voiceMapping', JSON.stringify(voiceMapping));
+                formData.append('clientId', clientId);
+                
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-generate-tts`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                // 停止实时日志更新
+                stopRealTimeLogUpdates();
+                
+                if (result.success) {
+                    const stats = result.statistics || {};
+                    const total = stats.total_segments || result.updated_segments.length;
+                    const successful = stats.successful_segments || result.updated_segments.length;
+                    const failed = stats.failed_segments || 0;
+                    const accelerated = stats.accelerated_segments || 0;
+                    const maxSpeed = stats.max_speed_segments || 0;
+                    
+                    let message = `批量TTS生成完成！成功处理 ${successful}/${total} 个段落`;
+                    if (failed > 0) {
+                        message += `，失败 ${failed} 个`;
+                    }
+                    if (accelerated > 0) {
+                        message += `，加速 ${accelerated} 个`;
+                    }
+                    if (maxSpeed > 0) {
+                        message += `，最大加速 ${maxSpeed} 个`;
+                    }
+                    
+                    addLog(`批量TTS生成成功: ${successful}/${total}个段落`);
+                    if (failed > 0) {
+                        addLog(`失败段落: ${failed}个`);
+                    }
+                    if (accelerated > 0) {
+                        addLog(`加速段落: ${accelerated}个`);
+                    }
+                    if (maxSpeed > 0) {
+                        addLog(`最大加速段落: ${maxSpeed}个`);
+                    }
+                    
+                    // 显示速度调整详情
+                    if (result.speed_adjustments && result.speed_adjustments.length > 0) {
+                        addLog(`速度调整详情:`);
+                        result.speed_adjustments.forEach(adjustment => {
+                            addLog(`  ${adjustment}`);
+                        });
+                    }
+                    
+                    showToast(message);
+                    // 重新加载字幕段落以更新播放按钮和trace_id
+                    loadSubtitleSegments();
+                } else {
+                    addLog(`批量TTS生成失败: ${result.message}`);
+                    showToast('批量TTS生成失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('批量TTS生成失败:', error);
+                addLog(`批量TTS生成失败: ${error.message}`);
+                showToast('批量TTS生成失败: ' + error.message);
+            } finally {
+                // 停止实时日志更新
+                stopRealTimeLogUpdates();
+                // 恢复按钮
+                batchTTSBtn.disabled = false;
+                batchTTSBtn.innerHTML = originalText;
+            }
+        }
+        
+        // 开始实时日志更新
+        function startRealTimeLogUpdates(clientId) {
+            // 清除之前的定时器
+            if (window.logUpdateTimer) {
+                clearInterval(window.logUpdateTimer);
+            }
+            
+            // 设置定时器，每2秒检查一次日志更新
+            window.logUpdateTimer = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/logs/${clientId}`);
+                    
+                    if (response.ok) {
+                        const logs = await response.json();
+                        
+                        if (logs && logs.length > 0) {
+                            // 添加新的日志条目
+                            logs.forEach(log => {
+                                if (log.message && !window.processedLogs.has(log.id)) {
+                                    // 组合message和details
+                                    let logText = log.message;
+                                    if (log.details && log.details.trim()) {
+                                        logText += `: ${log.details}`;
+                                    }
+                                    
+                                    // 调试信息 - 特别关注ratio信息
+                                    if (log.message.includes('时长比例')) {
+                                        console.log('DEBUG: 接收到ratio日志', log);
+                                    }
+                                    
+                                    addLog(logText);
+                                    window.processedLogs.add(log.id);
+                                }
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('获取日志失败:', error);
+                }
+            }, 2000);
+            
+            // 初始化已处理日志集合
+            if (!window.processedLogs) {
+                window.processedLogs = new Set();
+            }
+        }
+        
+        // 停止实时日志更新
+        function stopRealTimeLogUpdates() {
+            if (window.logUpdateTimer) {
+                clearInterval(window.logUpdateTimer);
+                window.logUpdateTimer = null;
+            }
+            // 清空已处理日志集合
+            if (window.processedLogs) {
+                window.processedLogs.clear();
+            }
+        }
+
+        // 拼接音频输出
+        async function mergeAudio() {
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+            
+            // 检查是否有音频数据
+            const segmentsWithAudio = segments.filter(s => s.audio_url && s.audio_url !== '');
+            if (segmentsWithAudio.length === 0) {
+                addLog('合并失败: 没有可用的音频数据');
+                showToast('没有可用的音频数据，请先生成TTS');
+                return;
+            }
+            
+                            addLog(`开始拼接音频: 项目${currentSubtitleProject.id}, 可用音频段落=${segmentsWithAudio.length}`);
+            
+            // 禁用按钮
+            const mergeBtn = document.getElementById('mergeBtn');
+            const originalText = mergeBtn.innerHTML;
+            mergeBtn.disabled = true;
+            mergeBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>正在合并...';
+            
+            try {
+                addLog('调用拼接音频API...');
+                showToast('开始拼接音频...');
+                
+                const formData = new FormData();
+                if (!window.app || !window.app.clientId) {
+                    showToast('系统初始化未完成，请刷新页面重试');
+                    mergeBtn.disabled = false;
+                    mergeBtn.innerHTML = originalText;
+                    return;
+                }
+                formData.append('clientId', window.app.clientId);
+                
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/merge-audio`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog(`音频拼接成功: 输出文件=${result.output_file}, 段落数=${result.segments_count}`);
+                    showToast(`音频拼接完成！输出文件: ${result.output_file}`);
+                    
+                    // 显示合并结果在固定位置
+                    showMergeResult(result);
+                    
+                } else {
+                    addLog(`音频拼接失败: ${result.message}`);
+                    showToast('音频拼接失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('音频拼接失败:', error);
+                addLog(`音频拼接失败: ${error.message}`);
+                showToast('音频拼接失败: ' + error.message);
+            } finally {
+                // 恢复按钮
+                mergeBtn.disabled = false;
+                mergeBtn.innerHTML = originalText;
+            }
+        }
+
+        // 显示合并结果
+        function showMergeResult(result) {
+            const mergeResultCard = document.getElementById('mergeResultCard');
+            const mergeFileName = document.getElementById('mergeFileName');
+            const mergeSegmentsCount = document.getElementById('mergeSegmentsCount');
+            const mergeTotalDuration = document.getElementById('mergeTotalDuration');
+            const mergeDownloadBtn = document.getElementById('mergeDownloadBtn');
+            const audioInfoSection = document.getElementById('audioInfoSection');
+            const audioStatus = document.getElementById('audioStatus');
+            const playBtn = document.getElementById('mergePlayBtn');
+            const pauseBtn = document.getElementById('mergePauseBtn');
+            
+            // 检查必要的DOM元素是否存在
+            if (!mergeResultCard) {
+                console.error('mergeResultCard not found');
+                return;
+            }
+            
+            // 更新信息（如果元素存在）
+            if (mergeFileName) {
+                mergeFileName.textContent = result.output_file;
+            }
+            if (mergeSegmentsCount) {
+                mergeSegmentsCount.textContent = result.segments_count;
+            }
+            if (mergeTotalDuration) {
+                mergeTotalDuration.textContent = Math.round(result.total_duration_ms / 1000);
+            }
+            
+            // 设置下载链接（如果元素存在）
+            if (mergeDownloadBtn) {
+                mergeDownloadBtn.href = result.download_url;
+                mergeDownloadBtn.download = result.output_file;
+            }
+            
+            // 显示音频信息区域（如果元素存在）
+            if (audioInfoSection) {
+                audioInfoSection.style.display = 'block';
+            }
+            
+            // 启用播放器（如果元素存在）
+            if (playBtn) {
+                playBtn.disabled = false;
+            }
+            if (pauseBtn) {
+                pauseBtn.disabled = false;
+            }
+            
+            // 启用下载按钮（如果元素存在）
+            const downloadBtn = document.getElementById('downloadAudioBtn');
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+            }
+            
+            // 更新状态提示（如果元素存在）
+            if (audioStatus) {
+                audioStatus.innerHTML = `
+                    <small class="text-success">
+                        <i class="bi bi-check-circle me-1"></i>
+                        音频已准备就绪，可以播放
+                    </small>
+                `;
+            }
+            
+            // 初始化音频播放器
+            initAudioPlayer(result.download_url);
+        }
+
+        // 初始化音频播放器
+        let currentAudio = null;
+        let audioUpdateTimer = null;
+        let audioContext = null;
+        let audioAnalyser = null;
+        let waveformData = null;
+
+        function initAudioPlayer(audioUrl) {
+            // 清理之前的音频
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            if (audioUpdateTimer) {
+                clearInterval(audioUpdateTimer);
+            }
+            
+            // 创建新的音频对象
+            currentAudio = new Audio(audioUrl);
+            
+            // 获取播放器元素
+            const playBtn = document.getElementById('mergePlayBtn');
+            const pauseBtn = document.getElementById('mergePauseBtn');
+            const progressBar = document.getElementById('audioProgress');
+            const currentTimeSpan = document.getElementById('currentTime');
+            const totalTimeSpan = document.getElementById('totalTime');
+            const volumeSlider = document.getElementById('audioVolume');
+            const speedSelect = document.getElementById('audioSpeed');
+            const waveformCanvas = document.getElementById('audioWaveform');
+            
+            // 检查必要的DOM元素是否存在
+            if (!playBtn || !pauseBtn || !progressBar || !currentTimeSpan || !totalTimeSpan || !waveformCanvas) {
+                console.error('Some audio player elements not found');
+                return;
+            }
+            
+            // 生成波形
+            generateWaveform(audioUrl, waveformCanvas);
+            
+            // 波形点击事件
+            waveformCanvas.onclick = (event) => {
+                if (!currentAudio) return;
+                
+                const rect = waveformCanvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const progress = x / rect.width;
+                const seekTime = progress * currentAudio.duration;
+                
+                currentAudio.currentTime = seekTime;
+                updateWaveformPosition(progress);
+                
+                // 更新进度条
+                progressBar.value = progress * 100;
+                currentTimeSpan.textContent = formatTime(seekTime);
+            };
+            
+            // 播放按钮事件
+            playBtn.onclick = () => {
+                currentAudio.play().then(() => {
+                    playBtn.style.display = 'none';
+                    pauseBtn.style.display = 'inline-block';
+                    startProgressUpdate();
+                    startWaveformUpdate();
+                }).catch(error => {
+                    console.error('播放失败:', error);
+                    showToast('播放失败: ' + error.message);
+                });
+            };
+            
+            // 暂停按钮事件
+            pauseBtn.onclick = () => {
+                currentAudio.pause();
+                playBtn.style.display = 'inline-block';
+                pauseBtn.style.display = 'none';
+                stopProgressUpdate();
+                stopWaveformUpdate();
+            };
+            
+            // 进度条事件
+            progressBar.oninput = () => {
+                if (!currentAudio) return;
+                
+                const seekTime = (progressBar.value / 100) * currentAudio.duration;
+                currentAudio.currentTime = seekTime;
+                currentTimeSpan.textContent = formatTime(seekTime);
+                updateWaveformPosition(progressBar.value / 100);
+            };
+            
+            // 音频加载完成事件
+            currentAudio.onloadedmetadata = () => {
+                totalTimeSpan.textContent = formatTime(currentAudio.duration);
+                progressBar.max = 100;
+            };
+            
+            // 音频播放事件
+            currentAudio.onplay = () => {
+                startProgressUpdate();
+            };
+            
+            // 音频暂停事件
+            currentAudio.onpause = () => {
+                stopProgressUpdate();
+            };
+            
+            // 音频结束事件
+            currentAudio.onended = () => {
+                playBtn.style.display = 'inline-block';
+                pauseBtn.style.display = 'none';
+                stopProgressUpdate();
+                stopWaveformUpdate();
+                progressBar.value = 0;
+                currentTimeSpan.textContent = '00:00';
+                updateWaveformPosition(0);
+            };
+        }
+        
+        // 开始进度更新
+        function startProgressUpdate() {
+            audioUpdateTimer = setInterval(() => {
+                if (currentAudio && !currentAudio.paused) {
+                    const progressBar = document.getElementById('audioProgress');
+                    const currentTimeSpan = document.getElementById('currentTime');
+                    
+                    if (progressBar && currentTimeSpan) {
+                        const progress = (currentAudio.currentTime / currentAudio.duration) * 100;
+                        progressBar.value = progress;
+                        currentTimeSpan.textContent = formatTime(currentAudio.currentTime);
+                        
+                        // 更新波形播放位置
+                        updateWaveformPosition(currentAudio.currentTime / currentAudio.duration);
+                    }
+                }
+            }, 100);
+        }
+        
+        // 停止进度更新
+        function stopProgressUpdate() {
+            if (audioUpdateTimer) {
+                clearInterval(audioUpdateTimer);
+                audioUpdateTimer = null;
+            }
+        }
+        
+        // 格式化时间
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 播放合并音频（简化版本，用于兼容）
+        function playMergedAudio(audioUrl) {
+            try {
+                const audio = new Audio(audioUrl);
+                audio.play().catch(error => {
+                    console.error('播放失败:', error);
+                    showToast('播放失败: ' + error.message);
+                });
+            } catch (error) {
+                console.error('播放失败:', error);
+                showToast('播放失败: ' + error.message);
+            }
+        }
+
+        // 分页按钮事件处理
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                loadSubtitleSegments();
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            currentPage++;
+            loadSubtitleSegments();
+        });
+
+        function editSegment(segmentId) {
+            const segment = segments.find(s => s.id === segmentId);
+            if (!segment) return;
+
+            document.getElementById('segmentStartTime').value = segment.start_time;
+            document.getElementById('segmentEndTime').value = segment.end_time;
+            document.getElementById('segmentSpeaker').value = segment.speaker;
+            document.getElementById('segmentEmotion').value = segment.emotion;
+            document.getElementById('segmentSpeed').value = segment.speed;
+            document.getElementById('segmentText').value = segment.text;
+            document.getElementById('segmentTranslatedText').value = segment.translated_text || '';
+
+            const modal = new bootstrap.Modal(document.getElementById('segmentModal'));
+            modal.show();
+
+            // 保存按钮事件
+            document.getElementById('saveSegmentBtn').onclick = async () => {
+                try {
+                    const updatedSegment = {
+                        start_time: document.getElementById('segmentStartTime').value,
+                        end_time: document.getElementById('segmentEndTime').value,
+                        speaker: document.getElementById('segmentSpeaker').value,
+                        emotion: document.getElementById('segmentEmotion').value,
+                        speed: parseFloat(document.getElementById('segmentSpeed').value),
+                        text: document.getElementById('segmentText').value,
+                        translated_text: document.getElementById('segmentTranslatedText').value
+                    };
+
+                    const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/segment/${segmentId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(updatedSegment)
+                    });
+
+                    if (response.ok) {
+                        modal.hide();
+                        loadSubtitleSegments();
+                        showToast('段落更新成功');
+                    } else {
+                        showToast('更新失败');
+                    }
+                } catch (error) {
+                    showToast('更新失败: ' + error.message);
+                }
+            };
+        }
+
+        // 自动加载示例SRT文件
+        async function loadSampleSrt() {
+            try {
+                addLog('正在加载示例文件...');
+                
+                // 获取示例SRT文件
+                const response = await fetch('/samples/double_life_English.srt');
+                if (!response.ok) {
+                    addLog('示例文件不可用，请手动上传SRT文件');
+                    return;
+                }
+                
+                const fileContent = await response.text();
+                const blob = new Blob([fileContent], { type: 'text/plain' });
+                const file = new File([blob], 'double_life_English.srt', { type: 'text/plain' });
+                
+                // 调用现有的上传处理函数
+                await handleQuickSrtUpload(file);
+                
+                addLog('示例文件加载成功');
+                showToast('✨ 已自动加载示例文件：双重生活英文字幕');
+            } catch (error) {
+                console.error('自动加载示例文件失败:', error);
+                addLog('自动加载失败: ' + error.message);
+            }
+        }
+
+        // 添加日志到日志容器
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            if (!logContainer) return;
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry mb-1 p-1';
+            logEntry.textContent = message;  // 直接使用textContent，不做任何HTML处理
+            
+            // 如果是第一条日志，清除初始提示
+            if (logContainer.querySelector('.text-center')) {
+                logContainer.innerHTML = '';
+            }
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 清空日志
+        function clearLogs() {
+            const logContainer = document.getElementById('logContainer');
+            if (logContainer) {
+                logContainer.innerHTML = '';
+            }
+        }
+
+        // 页面加载完成后自动加载示例文件
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // 初始化VoiceGeneratorApp
+                addLog('正在初始化系统...');
+                window.app = new VoiceGeneratorApp();
+                
+                // 简单延迟后加载示例文件
+                setTimeout(() => {
+                    if (window.app && window.app.clientId) {
+                        addLog('系统初始化成功');
+                        loadSampleSrt();
+                    } else {
+                        addLog('系统初始化异常');
+                    }
+                }, 500);
+                
+                // 隐藏翻译功能区域
+                const translationSection = document.getElementById('translationSection');
+                if (translationSection) {
+                    translationSection.style.display = 'none';
+                }
+                
+                // 添加初始日志
+                addLog('角色语音配置已加载');
+                
+            } catch (error) {
+                console.error('系统初始化出错:', error);
+                addLog('系统初始化出错: ' + error.message);
+            }
+            
+            // 绑定清空日志按钮
+            const clearLogsBtn = document.getElementById('clearLogsBtn');
+            if (clearLogsBtn) {
+                clearLogsBtn.addEventListener('click', clearLogs);
+            }
+            
+            // 绑定关闭合并结果按钮
+            const clearMergeResultBtn = document.getElementById('clearMergeResultBtn');
+            if (clearMergeResultBtn) {
+                clearMergeResultBtn.addEventListener('click', () => {
+                    const mergeResultCard = document.getElementById('mergeResultCard');
+                    mergeResultCard.style.display = 'none';
+                    
+                    // 停止音频播放
+                    if (currentAudio) {
+                        currentAudio.pause();
+                        currentAudio = null;
+                    }
+                    if (audioUpdateTimer) {
+                        clearInterval(audioUpdateTimer);
+                        audioUpdateTimer = null;
+                    }
+                });
+            }
+        });
+
+
+
+        // 简化的Toast函数，不再使用颜色参数
+        function showToast(message) {
+            const toastBody = document.getElementById('toastBody');
+            toastBody.textContent = message;
+            
+            const toastElement = document.getElementById('toast');
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        }
+
+        // 批量翻译函数
+        async function batchTranslate() {
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+            
+            // 获取翻译语言（使用配置参数区的语言选项）
+            const targetLanguage = document.getElementById('language').value;
+            if (!targetLanguage) {
+                showToast('请选择目标语言');
+                return;
+            }
+            
+            // 获取API配置
+            const groupId = document.getElementById('groupId').value;
+            const apiKey = document.getElementById('apiKey').value;
+            
+            if (!groupId || !apiKey) {
+                addLog('配置错误: 缺少Group ID或API Key');
+                showToast('请先配置Group ID和API Key');
+                return;
+            }
+            
+            // 禁用按钮
+            const batchTranslateBtn = document.getElementById('batchTranslateBtn');
+            const originalText = batchTranslateBtn.innerHTML;
+            batchTranslateBtn.disabled = true;
+            batchTranslateBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>正在翻译...';
+            
+            try {
+                addLog(`开始批量翻译: 目标语言=${targetLanguage}, 段落数=${segments.length}`);
+                showToast('开始批量翻译...');
+                
+                // 检查系统初始化状态
+                if (!window.app || !window.app.clientId) {
+                    showToast('系统初始化未完成，请刷新页面重试');
+                    batchTranslateBtn.disabled = false;
+                    batchTranslateBtn.innerHTML = originalText;
+                    return;
+                }
+                
+                // 生成客户端ID用于日志
+                const clientId = window.app.clientId;
+                
+                // 开始实时日志更新
+                startRealTimeLogUpdates(clientId);
+                
+                const formData = new FormData();
+                formData.append('groupId', groupId);
+                formData.append('apiKey', apiKey);
+                formData.append('target_language', targetLanguage);
+                formData.append('clientId', clientId);
+                
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-translate`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                // 停止实时日志更新
+                stopRealTimeLogUpdates();
+                
+                if (result.success) {
+                    // 安全地获取统计数据
+                    const stats = result.statistics || {};
+                    const updatedSegments = result.updated_segments || [];
+                    
+                    // 使用多种方式获取总数，确保有值
+                    const total = stats.total_segments || result.total_segments || updatedSegments.length || segments.length;
+                    const successful = stats.successful_segments || result.successful_translations || updatedSegments.length || 0;
+                    const failed = stats.failed_segments || result.failed_translations || 0;
+                    
+                    addLog(`批量翻译成功: ${successful}/${total}个段落`);
+                    if (failed > 0) {
+                        addLog(`失败段落: ${failed}个`);
+                    }
+                    
+                    showToast(`批量翻译完成！成功处理 ${successful}/${total} 个段落`);
+                    // 重新加载字幕段落以显示翻译结果
+                    loadSubtitleSegments();
+                } else {
+                    const errorMessage = result.message || '未知错误';
+                    addLog(`批量翻译失败: ${errorMessage}`);
+                    showToast('批量翻译失败: ' + errorMessage);
+                }
+            } catch (error) {
+                console.error('批量翻译失败:', error);
+                // 停止实时日志更新
+                stopRealTimeLogUpdates();
+                
+                let errorMessage = '未知错误';
+                if (error.message) {
+                    errorMessage = error.message;
+                } else if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error.toString) {
+                    errorMessage = error.toString();
+                }
+                
+                addLog(`批量翻译失败: ${errorMessage}`);
+                showToast('批量翻译失败: ' + errorMessage);
+            } finally {
+                // 停止实时日志更新
+                stopRealTimeLogUpdates();
+                // 恢复按钮
+                batchTranslateBtn.disabled = false;
+                batchTranslateBtn.innerHTML = originalText;
+            }
+        }
+
+        // 开始实时日志更新
+    </script>
+    <script>
+        // 停止进度更新
+        function stopProgressUpdate() {
+            if (audioUpdateTimer) {
+                clearInterval(audioUpdateTimer);
+                audioUpdateTimer = null;
+            }
+        }
+        
+        // 生成音频波形
+        async function generateWaveform(audioUrl, canvas) {
+            try {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // 清空画布
+                ctx.clearRect(0, 0, width, height);
+                
+                // 创建音频上下文
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // 获取音频数据
+                const response = await fetch(audioUrl);
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // 获取音频数据
+                const channelData = audioBuffer.getChannelData(0);
+                const dataLength = channelData.length;
+                
+                // 计算采样间隔
+                const sampleStep = Math.ceil(dataLength / width);
+                const samples = [];
+                
+                // 采样数据
+                for (let i = 0; i < width; i++) {
+                    const start = i * sampleStep;
+                    const end = Math.min(start + sampleStep, dataLength);
+                    let sum = 0;
+                    let count = 0;
+                    
+                    for (let j = start; j < end; j++) {
+                        sum += Math.abs(channelData[j]);
+                        count++;
+                    }
+                    
+                    samples.push(sum / count);
+                }
+                
+                // 存储波形数据
+                waveformData = samples;
+                
+                // 绘制波形
+                drawWaveform(ctx, samples, width, height);
+                
+            } catch (error) {
+                console.error('波形生成失败:', error);
+                // 绘制错误提示
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('波形加载失败', canvas.width / 2, canvas.height / 2);
+            }
+        }
+        
+        // 绘制波形
+        function drawWaveform(ctx, samples, width, height) {
+            const centerY = height / 2;
+            const maxAmplitude = Math.max(...samples);
+            
+            ctx.strokeStyle = '#007bff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            
+            for (let i = 0; i < samples.length; i++) {
+                const x = i;
+                const amplitude = (samples[i] / maxAmplitude) * (height / 2);
+                const y1 = centerY - amplitude;
+                const y2 = centerY + amplitude;
+                
+                ctx.moveTo(x, y1);
+                ctx.lineTo(x, y2);
+            }
+            
+            ctx.stroke();
+        }
+        
+        // 更新波形播放位置
+        function updateWaveformPosition(progress) {
+            if (!waveformData) return;
+            
+            const canvas = document.getElementById('audioWaveform');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // 重新绘制波形
+            drawWaveform(ctx, waveformData, width, height);
+            
+            // 绘制播放位置指示器
+            const playPosition = progress * width;
+            ctx.strokeStyle = '#dc3545';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(playPosition, 0);
+            ctx.lineTo(playPosition, height);
+            ctx.stroke();
+        }
+        
+        // 开始波形更新
+        function startWaveformUpdate() {
+            // 波形更新已经集成到进度更新中
+        }
+        
+        // 停止波形更新
+        function stopWaveformUpdate() {
+            // 波形更新已经集成到进度更新中，不需要单独停止
+        }
+        
+        // 格式化时间
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+    </script>
+    <script>
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化播放器状态
+            initAudioPlayerState();
+            
+            // 其他初始化代码...
+        });
+        
+        // 初始化音频播放器状态
+        function initAudioPlayerState() {
+            const playBtn = document.getElementById('mergePlayBtn');
+            const pauseBtn = document.getElementById('mergePauseBtn');
+            const audioInfoSection = document.getElementById('audioInfoSection');
+            const audioStatus = document.getElementById('audioStatus');
+            const waveformCanvas = document.getElementById('audioWaveform');
+            
+            // 检查必要的DOM元素是否存在
+            if (!playBtn || !pauseBtn || !audioInfoSection || !audioStatus || !waveformCanvas) {
+                console.error('Some audio player state elements not found');
+                return;
+            }
+            
+            // 确保播放器默认显示但禁用
+            playBtn.disabled = true;
+            pauseBtn.disabled = true;
+            audioInfoSection.style.display = 'none';
+            
+            // 初始化波形显示等待状态
+            const ctx = waveformCanvas.getContext('2d');
+            ctx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+            ctx.fillStyle = '#6c757d';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('等待音频数据...', waveformCanvas.width / 2, waveformCanvas.height / 2);
+            
+            // 设置默认状态提示
+            audioStatus.innerHTML = `
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    请先生成TTS音频，然后拼接音频以启用播放功能
+                </small>
+            `;
+        }
+    </script>
+    <script>
+        // 关闭合并结果
+        document.getElementById('clearMergeResultBtn').addEventListener('click', function() {
+            const mergeResultCard = document.getElementById('mergeResultCard');
+            const audioInfoSection = document.getElementById('audioInfoSection');
+            const playBtn = document.getElementById('mergePlayBtn');
+            const pauseBtn = document.getElementById('mergePauseBtn');
+            const audioStatus = document.getElementById('audioStatus');
+            const waveformCanvas = document.getElementById('audioWaveform');
+            const progressBar = document.getElementById('audioProgress');
+            const currentTimeSpan = document.getElementById('currentTime');
+            const totalTimeSpan = document.getElementById('totalTime');
+            const downloadBtn = document.getElementById('downloadAudioBtn');
+            
+            // 检查必要的DOM元素是否存在
+            if (!mergeResultCard || !audioInfoSection || !playBtn || !pauseBtn || !audioStatus || !waveformCanvas) {
+                console.error('Some clear merge result elements not found');
+                return;
+            }
+            
+            // 停止当前音频播放
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            if (audioUpdateTimer) {
+                clearInterval(audioUpdateTimer);
+                audioUpdateTimer = null;
+            }
+            
+            // 重置播放器状态
+            playBtn.disabled = true;
+            pauseBtn.disabled = true;
+            playBtn.style.display = 'inline-block';
+            pauseBtn.style.display = 'none';
+            
+            // 禁用下载按钮（如果存在）
+            if (downloadBtn) {
+                downloadBtn.disabled = true;
+            }
+            
+            audioInfoSection.style.display = 'none';
+            
+            // 重置进度条和时间显示（如果元素存在）
+            if (progressBar) {
+                progressBar.value = 0;
+            }
+            if (currentTimeSpan) {
+                currentTimeSpan.textContent = '00:00';
+            }
+            if (totalTimeSpan) {
+                totalTimeSpan.textContent = '00:00';
+            }
+            
+            // 清空波形
+            const ctx = waveformCanvas.getContext('2d');
+            ctx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+            ctx.fillStyle = '#6c757d';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('等待音频数据...', waveformCanvas.width / 2, waveformCanvas.height / 2);
+            
+            // 重置状态提示
+            audioStatus.innerHTML = `
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    请先生成TTS音频，然后拼接音频以启用播放功能
+                </small>
+            `;
+            
+            addLog('已重置音频播放器状态');
+        });
+    </script>
+    <script>
+        // 清空日志
+        document.getElementById('clearLogsBtn').addEventListener('click', function() {
+            const logContainer = document.getElementById('logContainer');
+            logContainer.innerHTML = `
+                <div class="text-center py-3" style="color: var(--pink-400);">
+                    <i class="bi bi-info-circle"></i> 系统已就绪，等待操作...
+                </div>
+            `;
+            addLog('日志已清空');
+        });
+        
+        // 下载日志
+        document.getElementById('downloadLogsBtn').addEventListener('click', function() {
+            downloadLogs();
+        });
+        
+        // 下载日志功能
+        function downloadLogs() {
+            const logContainer = document.getElementById('logContainer');
+            const logElements = logContainer.querySelectorAll('.log-entry');
+            
+            if (logElements.length === 0) {
+                showToast('没有日志可下载');
+                return;
+            }
+            
+            // 直接收集所有日志内容
+            let logContent = '';
+            logElements.forEach((element) => {
+                logContent += element.textContent + '\n';
+            });
+            
+            // 创建下载链接
+            const blob = new Blob([logContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `处理日志_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addLog('日志已下载');
+            showToast('日志下载成功');
+        }
+        
+        // 音频预览下载按钮
+        document.getElementById('downloadAudioBtn').addEventListener('click', function() {
+            const mergeDownloadBtn = document.getElementById('mergeDownloadBtn');
+            if (mergeDownloadBtn && mergeDownloadBtn.href && mergeDownloadBtn.href !== '#') {
+                // 触发现有的下载链接
+                mergeDownloadBtn.click();
+                addLog('音频下载已触发');
+                showToast('音频下载已开始');
+            } else {
+                showToast('没有可下载的音频文件');
+            }
+        });
+    </script>
+    <script>
+        // 一键翻译函数 - 自动按顺序执行翻译、TTS、合并
+        async function oneClickTranslate() {
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+            
+            // 检查系统初始化状态
+            if (!window.app || !window.app.clientId) {
+                showToast('系统初始化未完成，请刷新页面重试');
+                addLog('错误: 系统初始化未完成');
+                return;
+            }
+            
+            addLog('开始一键翻译流程');
+            
+            // 获取API配置
+            const groupId = document.getElementById('groupId').value;
+            const apiKey = document.getElementById('apiKey').value;
+            
+            if (!groupId || !apiKey) {
+                addLog('配置错误: 缺少Group ID或API Key');
+                showToast('请先配置Group ID和API Key');
+                return;
+            }
+            
+            // 获取翻译语言
+            const targetLanguage = document.getElementById('language').value;
+            if (!targetLanguage) {
+                showToast('请选择目标语言');
+                return;
+            }
+            
+            // 禁用一键翻译按钮
+            const oneClickBtn = document.getElementById('oneClickTranslateBtn');
+            const originalText = oneClickBtn.innerHTML;
+            oneClickBtn.disabled = true;
+            oneClickBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>正在处理...';
+            
+            try {
+                addLog('=== 开始一键翻译流程 ===');
+                showToast('开始一键翻译流程...');
+                
+                // 第一步：批量翻译
+                addLog('步骤1: 开始批量翻译...');
+                const translateResult = await executeBatchTranslate(targetLanguage, groupId, apiKey);
+                if (!translateResult.success) {
+                    throw new Error(`翻译失败: ${translateResult.message}`);
+                }
+                addLog('步骤1: 批量翻译完成');
+                
+                // 第二步：批量TTS
+                addLog('步骤2: 开始批量TTS...');
+                const ttsResult = await executeBatchTTS(groupId, apiKey);
+                if (!ttsResult.success) {
+                    throw new Error(`TTS失败: ${ttsResult.message}`);
+                }
+                addLog('步骤2: 批量TTS完成');
+                
+                // 第三步：拼接音频
+                addLog('步骤3: 开始拼接音频...');
+                const mergeResult = await executeMergeAudio();
+                if (!mergeResult.success) {
+                    throw new Error(`拼接失败: ${mergeResult.message}`);
+                }
+                addLog('步骤3: 拼接音频完成');
+                
+                addLog('=== 一键翻译流程完成 ===');
+                showToast('一键翻译完成！音频已准备就绪');
+                
+            } catch (error) {
+                console.error('一键翻译失败:', error);
+                addLog(`一键翻译失败: ${error.message}`);
+                showToast('一键翻译失败: ' + error.message);
+            } finally {
+                // 恢复按钮状态
+                oneClickBtn.disabled = false;
+                oneClickBtn.innerHTML = originalText;
+            }
+        }
+
+        // 执行批量翻译的辅助函数
+        async function executeBatchTranslate(targetLanguage, groupId, apiKey) {
+            if (!window.app || !window.app.clientId) {
+                throw new Error('系统初始化未完成，请刷新页面重试');
+            }
+            const clientId = window.app.clientId;
+            startRealTimeLogUpdates(clientId);
+            
+            try {
+                const formData = new FormData();
+                formData.append('groupId', groupId);
+                formData.append('apiKey', apiKey);
+                formData.append('target_language', targetLanguage);
+                formData.append('clientId', clientId);
+                
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-translate`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                stopRealTimeLogUpdates();
+                
+                if (result.success) {
+                    loadSubtitleSegments(); // 重新加载以显示翻译结果
+                }
+                
+                return result;
+            } catch (error) {
+                stopRealTimeLogUpdates();
+                return { success: false, message: error.message };
+            }
+        }
+
+        // 执行批量TTS的辅助函数
+        async function executeBatchTTS(groupId, apiKey) {
+            if (!window.app || !window.app.clientId) {
+                throw new Error('系统初始化未完成，请刷新页面重试');
+            }
+            const clientId = window.app.clientId;
+            startRealTimeLogUpdates(clientId);
+            
+            try {
+                const formData = new FormData();
+                formData.append('groupId', groupId);
+                formData.append('apiKey', apiKey);
+                formData.append('model', document.getElementById('voiceModel').value);
+                formData.append('language', document.getElementById('language').value);
+                formData.append('voiceMapping', JSON.stringify(getVoiceMapping()));
+                formData.append('clientId', clientId);
+                
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-generate-tts`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                stopRealTimeLogUpdates();
+                
+                if (result.success) {
+                    loadSubtitleSegments(); // 重新加载以显示TTS结果
+                }
+                
+                return result;
+            } catch (error) {
+                stopRealTimeLogUpdates();
+                return { success: false, message: error.message };
+            }
+        }
+
+        // 执行拼接音频的辅助函数
+        async function executeMergeAudio() {
+            if (!window.app || !window.app.clientId) {
+                throw new Error('系统初始化未完成，请刷新页面重试');
+            }
+            const clientId = window.app.clientId;
+            startRealTimeLogUpdates(clientId);
+            
+            try {
+                const formData = new FormData();
+                formData.append('clientId', clientId);
+                
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/merge-audio`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                stopRealTimeLogUpdates();
+                
+                if (result.success) {
+                    showMergeResult(result);
+                }
+                
+                return result;
+            } catch (error) {
+                stopRealTimeLogUpdates();
+                return { success: false, message: error.message };
+            }
+        }
+    </script>
+</body>
