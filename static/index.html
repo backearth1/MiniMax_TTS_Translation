@@ -524,6 +524,23 @@
                                             <input type="password" class="form-control" id="apiKey" required style="border-color: #2196f3;">
                                         </div>
                                     </div>
+                                    
+                                    <!-- API端点选择 -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-12">
+                                            <label for="apiEndpoint" class="form-label">
+                                                <i class="bi bi-globe"></i> API接入点
+                                                <small class="text-muted">(根据网络环境选择)</small>
+                                            </label>
+                                            <select class="form-select" id="apiEndpoint" style="border-color: #2196f3;">
+                                                <option value="domestic" selected>🇨🇳 国内 (api.minimaxi.com)</option>
+                                                <option value="overseas">🌍 海外 (api.minimax.io)</option>
+                                            </select>
+                                            <div class="form-text">
+                                                <small>国内用户建议选择国内接入点，海外用户建议选择海外接入点以获得更好的网络连接</small>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <!-- 语音配置 -->
                                     <div class="row g-3 mb-3">
@@ -1160,6 +1177,7 @@
                 const formData = new FormData();
                 formData.append('groupId', groupId);
                 formData.append('apiKey', apiKey);
+                formData.append('apiEndpoint', document.getElementById('apiEndpoint').value);
                 formData.append('model', model);
                 formData.append('language', language);
                 formData.append('voiceMapping', JSON.stringify(voiceMapping));
@@ -1524,6 +1542,7 @@
                 const formData = new FormData();
                 formData.append('groupId', groupId);
                 formData.append('apiKey', apiKey);
+                formData.append('apiEndpoint', document.getElementById('apiEndpoint').value);
                 formData.append('model', model);
                 formData.append('language', language);
                 formData.append('voiceMapping', JSON.stringify(voiceMapping));
@@ -2165,6 +2184,7 @@
                 const formData = new FormData();
                 formData.append('groupId', groupId);
                 formData.append('apiKey', apiKey);
+                formData.append('apiEndpoint', document.getElementById('apiEndpoint').value);
                 formData.append('target_language', targetLanguage);
                 formData.append('clientId', clientId);
                 
@@ -2627,6 +2647,7 @@
                 const formData = new FormData();
                 formData.append('groupId', groupId);
                 formData.append('apiKey', apiKey);
+                formData.append('apiEndpoint', document.getElementById('apiEndpoint').value);
                 formData.append('target_language', targetLanguage);
                 formData.append('clientId', clientId);
                 
@@ -2658,6 +2679,7 @@
                 const formData = new FormData();
                 formData.append('groupId', groupId);
                 formData.append('apiKey', apiKey);
+                formData.append('apiEndpoint', document.getElementById('apiEndpoint').value);
                 formData.append('model', document.getElementById('voiceModel').value);
                 formData.append('language', document.getElementById('language').value);
                 formData.append('voiceMapping', JSON.stringify(getVoiceMapping()));

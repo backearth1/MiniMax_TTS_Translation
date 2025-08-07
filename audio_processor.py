@@ -159,11 +159,12 @@ class SubtitleParser:
 class TTSService:
     """TTS 服务调用器"""
     
-    def __init__(self, logger: ProcessLogger, group_id: str = None, api_key: str = None):
+    def __init__(self, logger: ProcessLogger, group_id: str = None, api_key: str = None, api_endpoint: str = "domestic"):
         self.logger = logger
         self.session = None
         self.group_id = group_id
         self.api_key = api_key
+        self.api_endpoint = api_endpoint
         self._last_request_time = 0  # 添加请求时间控制
         self._request_interval = 1.0  # 请求间隔1秒
         
@@ -206,8 +207,9 @@ class TTSService:
             if self.group_id and self.api_key:
                 await self.logger.info("调用MiniMax API", f"Group ID: {self.group_id[:8]}***, 文本长度: {len(text)} 字符")
                 
-                # 构建真实的API请求参数
-                api_url = "https://api.minimaxi.com/v1/t2a_v2"
+                # 根据配置选择API端点
+                api_url = Config.API_ENDPOINTS["tts"][self.api_endpoint]
+                await self.logger.info("使用API端点", f"端点类型: {self.api_endpoint}, URL: {api_url}")
                 headers = {
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json"
@@ -686,7 +688,7 @@ class TTSService:
 class AudioProcessor:
     """音频处理器"""
     
-    def __init__(self, logger, group_id: str = None, api_key: str = None):
+    def __init__(self, logger, group_id: str = None, api_key: str = None, api_endpoint: str = "domestic"):
         """
         初始化音频处理器
         
@@ -694,18 +696,23 @@ class AudioProcessor:
             logger: 日志记录器
             group_id: MiniMax Group ID
             api_key: MiniMax API Key
+            api_endpoint: API端点选择 ("domestic" 或 "overseas")
         """
         self.logger = logger
         self.group_id = group_id
         self.api_key = api_key
-        self.tts_service = TTSService(logger, group_id, api_key)
+        self.api_endpoint = api_endpoint
+        self.tts_service = TTSService(logger, group_id, api_key, api_endpoint)
         self._last_request_time = 0  # 添加请求时间控制
         self._request_interval = 1.0  # 请求间隔1秒
         
-    async def initialize(self, group_id: str = None, api_key: str = None):
+    async def initialize(self, group_id: str = None, api_key: str = None, api_endpoint: str = None):
         """初始化音频处理器"""
+        if api_endpoint:
+            self.api_endpoint = api_endpoint
+            self.tts_service.api_endpoint = api_endpoint
         await self.tts_service.initialize(group_id, api_key)
-        await self.logger.info("音频处理器初始化完成")
+        await self.logger.info("音频处理器初始化完成", f"使用API端点: {self.api_endpoint}")
         
     async def process_subtitle_file(
         self,

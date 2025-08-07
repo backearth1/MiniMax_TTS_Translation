@@ -24,6 +24,19 @@ from admin import admin_router, record_user_activity, start_cleanup_task
 
 from contextlib import asynccontextmanager
 
+def get_api_endpoint(api_type: str, endpoint_type: str = "domestic") -> str:
+    """
+    获取API端点URL
+    
+    Args:
+        api_type: API类型 ("tts" 或 "translation")
+        endpoint_type: 端点类型 ("domestic" 或 "overseas")
+    
+    Returns:
+        API端点URL
+    """
+    return Config.API_ENDPOINTS[api_type][endpoint_type]
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 应用启动时执行
@@ -140,7 +153,8 @@ async def generate_audio(
     model: str = Form(Config.TTS_CONFIG["default_model"]),
     language: str = Form(Config.TTS_CONFIG["default_language"]),
     voiceMapping: str = Form(...),
-    clientId: str = Form(...)
+    clientId: str = Form(...),
+    apiEndpoint: str = Form("domestic")
 ):
     """生成音频文件"""
     # 检查用户数量限制
@@ -231,8 +245,8 @@ async def generate_audio(
         
         # 初始化音频处理器
         print(f"🔥 DEBUG: 初始化音频处理器")
-        audio_processor = AudioProcessor(logger)
-        await audio_processor.initialize(groupId, apiKey)
+        audio_processor = AudioProcessor(logger, api_endpoint=apiEndpoint)
+        await audio_processor.initialize(groupId, apiKey, apiEndpoint)
         print(f"🔥 DEBUG: 音频处理器初始化完成")
         
         # 处理音频
@@ -614,7 +628,8 @@ async def generate_tts_for_segment(
     apiKey: str = Form(...),
     model: str = Form(Config.TTS_CONFIG["default_model"]),
     language: str = Form(Config.TTS_CONFIG["default_language"]),
-    voiceMapping: str = Form(...)
+    voiceMapping: str = Form(...),
+    apiEndpoint: str = Form("domestic")
 ):
     """为单个字幕段落生成TTS音频"""
     try:
@@ -646,7 +661,7 @@ async def generate_tts_for_segment(
         from utils.logger import get_process_logger
         
         logger = get_process_logger(f"tts_{project_id}_{segment_id}")
-        tts_service = TTSService(logger)
+        tts_service = TTSService(logger, api_endpoint=apiEndpoint)
         await tts_service.initialize(groupId, apiKey)
         
         # 计算字幕时间长度 T_srt (毫秒)
@@ -765,7 +780,8 @@ async def batch_generate_tts_for_project(
     model: str = Form(Config.TTS_CONFIG["default_model"]),
     language: str = Form(Config.TTS_CONFIG["default_language"]),
     voiceMapping: str = Form(...),
-    clientId: str = Form(None)
+    clientId: str = Form(None),
+    apiEndpoint: str = Form("domestic")
 ):
     """为项目中的所有字幕段落批量生成TTS音频（包含时间戳匹配和speed调整）"""
     # 检查用户数量限制
@@ -800,7 +816,7 @@ async def batch_generate_tts_for_project(
         # 使用传入的clientId或生成新的
         log_client_id = clientId if clientId else f"batch_tts_{project_id}"
         logger = get_process_logger(log_client_id)
-        tts_service = TTSService(logger)
+        tts_service = TTSService(logger, api_endpoint=apiEndpoint)
         await tts_service.initialize(groupId, apiKey)
         
         # 创建audio_files目录
@@ -1184,6 +1200,7 @@ async def merge_audio_for_project(
         
         # 初始化音频处理器
         from audio_processor import AudioProcessor
+        # 从请求中获取API端点配置
         audio_processor = AudioProcessor(logger)
         
         # 准备音频段落数据
@@ -1263,7 +1280,8 @@ async def translate_segment(
     segment_id: str,
     groupId: str = Form(...),
     apiKey: str = Form(...),
-    target_language: str = Form(...)
+    target_language: str = Form(...),
+    apiEndpoint: str = Form("domestic")
 ):
     """翻译单个字幕段落"""
     try:
@@ -1286,7 +1304,8 @@ async def translate_segment(
             segment.text, 
             target_language, 
             groupId, 
-            apiKey
+            apiKey,
+            api_endpoint=apiEndpoint
         )
         
         if translated_text:
@@ -1315,7 +1334,8 @@ async def batch_translate_project(
     groupId: str = Form(...),
     apiKey: str = Form(...),
     target_language: str = Form(...),
-    clientId: str = Form(None)
+    clientId: str = Form(None),
+    apiEndpoint: str = Form("domestic")
 ):
     """为项目中的所有字幕段落批量翻译"""
     # 检查用户数量限制
@@ -1364,7 +1384,8 @@ async def batch_translate_project(
                     target_language, 
                     groupId, 
                     apiKey,
-                    logger
+                    logger,
+                    api_endpoint=apiEndpoint
                 )
                 
                 if translated_text:
@@ -1444,7 +1465,7 @@ async def batch_translate_project(
             }
         }
 
-async def translate_text_with_minimax(text: str, target_language: str, group_id: str, api_key: str, logger=None) -> str:
+async def translate_text_with_minimax(text: str, target_language: str, group_id: str, api_key: str, logger=None, api_endpoint: str = "domestic") -> str:
     """使用MiniMax API翻译文本"""
     import aiohttp
     import json
@@ -1453,7 +1474,9 @@ async def translate_text_with_minimax(text: str, target_language: str, group_id:
     # 生成trace_id
     trace_id = str(uuid.uuid4())
     
-    url = f"https://api.minimax.chat/v1/text/chatcompletion_v2?GroupId={group_id}"
+    # 使用配置的翻译API端点
+    base_url = get_api_endpoint("translation", api_endpoint)
+    url = f"{base_url}?GroupId={group_id}"
     
     payload = {
         "model": Config.TRANSLATION_CONFIG["model"],
@@ -1527,7 +1550,8 @@ async def optimize_translation_for_audio_length(
     target_audio_length: float,
     group_id: str, 
     api_key: str,
-    logger=None
+    logger=None,
+    api_endpoint: str = "domestic"
 ) -> str:
     """优化翻译以适应目标音频长度"""
     import aiohttp
@@ -1541,7 +1565,9 @@ async def optimize_translation_for_audio_length(
     current_char_count = len(current_translation)
     target_char_count = int(current_char_count * target_audio_length / current_audio_length)
     
-    url = f"https://api.minimax.chat/v1/text/chatcompletion_v2?GroupId={group_id}"
+    # 使用配置的翻译API端点
+    base_url = get_api_endpoint("translation", api_endpoint)
+    url = f"{base_url}?GroupId={group_id}"
     
     # 如果是原文生成，则ORIGINAL_TEXT为空
     original_text_for_optimization = original_text if original_text else ""

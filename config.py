@@ -27,6 +27,20 @@ class Config:
         "ffmpeg_path": "ffmpeg"  # 系统路径中的 ffmpeg
     }
     
+    # API 端点配置
+    API_ENDPOINTS = {
+        "tts": {
+            "domestic": "https://api.minimaxi.com/v1/t2a_v2",
+            "overseas": "https://api.minimax.io/v1/t2a_v2",
+            "default": "domestic"  # 默认使用国内端点
+        },
+        "translation": {
+            "domestic": "https://api.minimaxi.com/v1/text/chatcompletion_v2",
+            "overseas": "https://api.minimax.io/v1/text/chatcompletion_v2", 
+            "default": "domestic"  # 默认使用国内端点
+        }
+    }
+    
     # TTS 配置
     TTS_CONFIG = {
         "default_model": "speech-02-hd",
