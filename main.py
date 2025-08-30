@@ -28,6 +28,31 @@ from contextlib import asynccontextmanager
 running_tasks = {}
 task_cancellation_flags = {}
 
+# 确保必要目录存在
+def ensure_directories():
+    """确保所有必要的目录存在"""
+    import os
+    
+    # 只在目录不存在时才创建，避免重复日志
+    directories = [
+        Config.UPLOAD_DIR,
+        Config.OUTPUT_DIR, 
+        Config.SAMPLES_DIR,
+        Config.STATIC_DIR,
+        Config.STATIC_DIR / "css",
+        Config.STATIC_DIR / "js",
+        Path("audio_files"),
+        Path("temp_audio")
+    ]
+    
+    for directory in directories:
+        if not directory.exists():
+            directory.mkdir(parents=True, exist_ok=True)
+            print(f"📁 创建目录: {directory}")
+
+# 在应用启动前创建目录
+ensure_directories()
+
 def get_api_endpoint(api_type: str, endpoint_type: str = "domestic") -> str:
     """
     获取API端点URL
