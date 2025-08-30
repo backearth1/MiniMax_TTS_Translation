@@ -43,24 +43,39 @@
 - FFmpeg（用于音频处理）
 - MiniMax API Key
 
-### 安装依赖
+### 一键启动
 
 ```bash
-# 克隆项目
-git clone https://github.com/your-username/fastapi-voice-generator.git
-cd fastapi-voice-generator
+# 1. 克隆项目
+git clone https://github.com/backearth1/MiniMax_TTS_Translation.git
+cd MiniMax_TTS_Translation
 
-# 安装Python依赖
+# 2. 安装依赖
 pip install -r requirements.txt
 
-# 安装FFmpeg（Ubuntu/Debian）
-sudo apt update
-sudo apt install ffmpeg
+# 3. 启动服务（自动创建所需目录）
+python3 main.py
+```
 
-# 安装FFmpeg（macOS）
+### 访问服务
+
+启动成功后，在浏览器访问：
+- **主界面**: http://localhost:5215
+- **API文档**: http://localhost:5215/docs  
+- **管理面板**: http://localhost:5215/admin/dashboard
+
+### 安装FFmpeg（可选）
+
+如果需要高级音频处理功能：
+
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install ffmpeg
+
+# macOS
 brew install ffmpeg
 
-# 安装FFmpeg（Windows）
+# Windows
 # 请从 https://ffmpeg.org/download.html 下载并添加到PATH
 ```
 
