@@ -133,9 +133,29 @@ class SubtitleProject:
         self.created_at = datetime.now().isoformat()
         self.updated_at = datetime.now().isoformat()
     
-    def add_segment(self, segment: SubtitleSegment):
+    def add_segment(self, segment: SubtitleSegment, insert_after_index: int = None):
         """添加段落"""
-        self.segments.append(segment)
+        print(f"🔥 DEBUG: add_segment调用 - insert_after_index={insert_after_index}, 当前段落数={len(self.segments)}")
+        
+        if insert_after_index is not None:
+            # 在指定索引位置后插入
+            # 由于索引是从1开始的，转换为列表位置（从0开始）
+            insert_position = insert_after_index  # 在index后插入，所以位置就是index值
+            print(f"🔥 DEBUG: 计算插入位置 insert_position={insert_position}")
+            
+            if insert_position <= len(self.segments):
+                print(f"🔥 DEBUG: 在位置{insert_position}插入段落")
+                self.segments.insert(insert_position, segment)
+            else:
+                # 如果位置超出范围，追加到末尾
+                print(f"🔥 DEBUG: 位置超出范围，追加到末尾")
+                self.segments.append(segment)
+        else:
+            # 追加到末尾
+            print(f"🔥 DEBUG: insert_after_index为None，追加到末尾")
+            self.segments.append(segment)
+        
+        print(f"🔥 DEBUG: 插入后段落数={len(self.segments)}")
         self.reindex_segments()
         self.updated_at = datetime.now().isoformat()
     
@@ -222,8 +242,16 @@ class SubtitleManager:
             if not segments_data:
                 return False, "SRT文件格式无效或为空", None
             
-            if len(segments_data) > 100:
-                return False, f"字幕条目过多({len(segments_data)}条)，最多支持100条", None
+            if len(segments_data) > 500:
+                return False, f"字幕条目过多({len(segments_data)}条)，最多支持500条", None
+            
+            # 检查总时长限制（20分钟 = 1200秒）
+            if segments_data:
+                from audio_processor import SubtitleParser
+                last_segment = segments_data[-1]
+                last_end_time = SubtitleParser._time_to_seconds(last_segment['end'])
+                if last_end_time > 1200:  # 20分钟限制
+                    return False, f"字幕总时长过长({last_end_time:.1f}秒)，最多支持20分钟(1200秒)", None
             
             # 创建新项目
             project = SubtitleProject(filename, client_id)

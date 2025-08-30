@@ -144,26 +144,38 @@ class VoiceGeneratorApp {
 
     bindEvents() {
         // 表单提交事件
-        document.getElementById('configForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.startGeneration();
-        });
+        const configForm = document.getElementById('configForm');
+        if (configForm) {
+            configForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.startGeneration();
+            });
+        }
 
         // 生成按钮事件
-        document.getElementById('generateBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.startGeneration();
-        });
+        const generateBtn = document.getElementById('generateBtn');
+        if (generateBtn) {
+            generateBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.startGeneration();
+            });
+        }
 
         // 清空日志事件
-        document.getElementById('clearLogsBtn').addEventListener('click', () => {
-            this.clearLogs();
-        });
+        const clearLogsBtn = document.getElementById('clearLogsBtn');
+        if (clearLogsBtn) {
+            clearLogsBtn.addEventListener('click', () => {
+                this.clearLogs();
+            });
+        }
 
         // 下载按钮事件
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            this.downloadAudio();
-        });
+        const downloadBtn = document.getElementById('downloadBtn');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => {
+                this.downloadAudio();
+            });
+        }
 
         // 文件选择事件（隐藏的文件输入）
         const subtitleFileInput = document.getElementById('subtitleFile');

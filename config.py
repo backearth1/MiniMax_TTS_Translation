@@ -8,7 +8,7 @@ from pathlib import Path
 class Config:
     # 服务器配置
     HOST = "0.0.0.0"
-    PORT = 8000
+    PORT = 5215
     DEBUG = True
     
     # 目录配置

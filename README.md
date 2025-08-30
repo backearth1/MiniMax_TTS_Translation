@@ -124,9 +124,9 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
 
 ### 高级功能
 
-#### 字幕编辑器
-- 访问 `/subtitle-editor` 进入字幕编辑模式
-- 支持字幕内容修改和时间调整
+#### 字幕编辑功能
+- 主页面支持字幕内容修改和时间调整
+- 支持在指定位置插入新段落
 - 实时预览和批量操作
 
 #### API接口使用
@@ -165,7 +165,6 @@ fastapi-voice-generator/
 │   └── logger.py         # WebSocket日志系统
 ├── static/               # 前端静态文件
 │   ├── index.html       # 主页面
-│   ├── subtitle-editor.html  # 字幕编辑器
 │   ├── css/
 │   │   └── style.css    # 样式文件
 │   └── js/
