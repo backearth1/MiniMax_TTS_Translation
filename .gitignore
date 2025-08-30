@@ -70,10 +70,14 @@ ehthumbs.db
 Desktop.ini
 
 # 项目特定文件
-uploads/
-outputs/
-audio_files/
-temp_audio/
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+audio_files/*
+!audio_files/.gitkeep
+temp_audio/*
+!temp_audio/.gitkeep
 *.mp3
 *.wav
 *.mp4
