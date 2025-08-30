@@ -89,27 +89,9 @@ brew install ffmpeg
    ```python
    # config.py 中的主要配置项
    HOST = "0.0.0.0"          # 服务器地址
-   PORT = 8000               # 服务器端口
+   PORT = 5215               # 服务器端口
    MAX_FILE_SIZE = 10485760  # 最大文件大小（10MB）
    ```
-
-### 启动服务
-
-```bash
-# 方法1：使用start.py
-python start.py
-
-# 方法2：直接使用uvicorn
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-# 生产环境部署
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
-```
-
-服务启动后访问：
-- **主页面**：http://localhost:8000
-- **API文档**：http://localhost:8000/docs
-- **管理面板**：http://localhost:8000/admin/dashboard
 
 ## 📖 使用指南
 
@@ -159,7 +141,7 @@ data = {
     'clientId': 'your_client_id'
 }
 
-response = requests.post('http://localhost:8000/api/generate-audio', 
+response = requests.post('http://localhost:5215/api/generate-audio', 
                         files=files, data=data)
 ```
 
@@ -170,7 +152,6 @@ response = requests.post('http://localhost:8000/api/generate-audio',
 fastapi-voice-generator/
 ├── main.py                 # FastAPI主应用
 ├── config.py              # 配置文件
-├── start.py               # 启动脚本
 ├── requirements.txt       # 依赖列表
 ├── README.md             # 项目文档
 ├── audio_processor.py    # 音频处理核心
@@ -211,7 +192,7 @@ fastapi-voice-generator/
 | `/admin/dashboard` | GET | 管理员面板 |
 | `/ws/{client_id}` | WebSocket | 实时日志连接 |
 
-详细API文档请访问：http://localhost:8000/docs
+详细API文档请访问：http://localhost:5215/docs
 
 ## ⚙️ 配置说明
 
@@ -271,10 +252,10 @@ WORKDIR /app
 RUN pip install -r requirements.txt
 
 # 暴露端口
-EXPOSE 8000
+EXPOSE 5215
 
 # 启动服务
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5215"]
 ```
 
 ### Nginx配置
@@ -284,13 +265,13 @@ server {
     server_name your-domain.com;
     
     location / {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:5215;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
     
     location /ws/ {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:5215;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
