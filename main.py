@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional, Dict
 
 import aiofiles
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -23,6 +23,10 @@ from subtitle_manager import subtitle_manager
 from admin import admin_router, record_user_activity, start_cleanup_task
 
 from contextlib import asynccontextmanager
+
+# 全局变量用于跟踪正在运行的任务
+running_tasks = {}
+task_cancellation_flags = {}
 
 def get_api_endpoint(api_type: str, endpoint_type: str = "domestic") -> str:
     """
@@ -531,7 +535,12 @@ async def add_subtitle_segment(
             speed=segment_data.get("speed", 1.0)
         )
         
-        project.add_segment(new_segment)
+        # 获取插入位置参数
+        insert_after_index = segment_data.get("insert_after_index")
+        print(f"🔥 DEBUG: 接收到的段落数据: {segment_data}")
+        print(f"🔥 DEBUG: insert_after_index = {insert_after_index}")
+        print(f"🔥 DEBUG: 当前项目段落数: {len(project.segments)}")
+        project.add_segment(new_segment, insert_after_index)
         
         return {
             "success": True,
@@ -816,6 +825,10 @@ async def batch_generate_tts_for_project(
         # 使用传入的clientId或生成新的
         log_client_id = clientId if clientId else f"batch_tts_{project_id}"
         logger = get_process_logger(log_client_id)
+        
+        # 清除之前的中断标志
+        task_cancellation_flags[log_client_id] = False
+        
         tts_service = TTSService(logger, api_endpoint=apiEndpoint)
         await tts_service.initialize(groupId, apiKey)
         
@@ -838,6 +851,36 @@ async def batch_generate_tts_for_project(
         
         # 为每个段落生成TTS
         for i, segment in enumerate(project.segments):
+            # 检查中断标志
+            if task_cancellation_flags.get(log_client_id, False):
+                await logger.warning("任务被中断", f"已处理 {i}/{len(project.segments)} 个段落，正在保存进度...")
+                
+                # 保存当前进度
+                try:
+                    subtitle_manager.save_project(project)
+                    await logger.success("进度保存成功", f"已生成 {len(updated_segments)} 个音频文件")
+                except Exception as save_error:
+                    await logger.error("进度保存失败", f"错误: {str(save_error)}")
+                
+                # 返回中断状态
+                return {
+                    "success": True,
+                    "message": f"任务已中断，成功处理 {len(updated_segments)}/{i} 个段落",
+                    "updated_segments": updated_segments,
+                    "speed_adjustments": speed_adjustments,
+                    "interrupted": True,
+                    "statistics": {
+                        "total_segments": len(project.segments),
+                        "successful_segments": len(updated_segments),
+                        "failed_segments": i - len(updated_segments),
+                        "accelerated_segments": len([seg for seg in updated_segments if seg.get('final_speed', 1.0) > 1.0]),
+                        "max_speed_segments": len([seg for seg in updated_segments if seg.get('final_speed', 1.0) >= 2.0]),
+                        "translation_optimized_segments": len(translation_optimized_segments),
+                        "speed_optimized_segments": len(speed_optimized_segments),
+                        "failed_silent_segments": len(failed_silent_segments),
+                        "normal_segments": len(normal_segments)
+                    }
+                }
             try:
                 # 计算字幕时间长度 T_srt (毫秒)
                 from audio_processor import SubtitleParser
@@ -1264,10 +1307,63 @@ async def get_logs(client_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取日志失败: {str(e)}")
 
-@app.get("/subtitle-editor")
-async def subtitle_editor():
-    """字幕编辑器页面"""
-    return FileResponse("static/subtitle-editor.html")
+@app.post("/api/interrupt/{client_id}")
+async def interrupt_task(client_id: str):
+    """中断指定客户端的当前任务"""
+    try:
+        # 设置中断标志
+        task_cancellation_flags[client_id] = True
+        
+        # 记录中断日志
+        from utils.logger import get_process_logger
+        logger = get_process_logger(client_id)
+        await logger.warning("用户请求中断", "正在尝试中断当前任务...")
+        
+        # 如果有正在运行的任务，尝试取消
+        if client_id in running_tasks:
+            task = running_tasks[client_id]
+            if not task.done():
+                task.cancel()
+                await logger.info("任务中断", "已发送任务取消信号")
+            else:
+                await logger.info("任务状态", "任务已完成，无需中断")
+        else:
+            await logger.info("任务状态", "没有找到正在运行的任务")
+        
+        return {
+            "success": True,
+            "message": "中断请求已发送",
+            "client_id": client_id
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"中断失败: {str(e)}",
+            "client_id": client_id
+        }
+
+@app.get("/api/task-status/{client_id}")
+async def get_task_status(client_id: str):
+    """获取指定客户端的任务状态"""
+    try:
+        is_running = client_id in running_tasks and not running_tasks[client_id].done()
+        is_cancelled = task_cancellation_flags.get(client_id, False)
+        
+        return {
+            "success": True,
+            "client_id": client_id,
+            "is_running": is_running,
+            "is_cancelled": is_cancelled
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"获取任务状态失败: {str(e)}",
+            "client_id": client_id
+        }
+
 
 @app.get("/test-logs")
 async def test_logs():
@@ -1366,6 +1462,9 @@ async def batch_translate_project(
         log_client_id = clientId if clientId else f"batch_translate_{project_id}"
         logger = get_process_logger(log_client_id)
         
+        # 清除之前的中断标志
+        task_cancellation_flags[log_client_id] = False
+        
         await logger.info("开始批量翻译", f"项目: {project.filename}, 目标语言: {target_language}")
         
         total_segments = len(project.segments)
@@ -1373,6 +1472,31 @@ async def batch_translate_project(
         failed_translations = 0
         
         for i, segment in enumerate(project.segments, 1):
+            # 检查中断标志
+            if task_cancellation_flags.get(log_client_id, False):
+                await logger.warning("任务被中断", f"已处理 {i-1}/{total_segments} 个段落，正在保存进度...")
+                # 保存当前进度
+                try:
+                    subtitle_manager.save_project(project)
+                    await logger.success("进度保存成功", f"已保存 {successful_translations} 个翻译结果")
+                except Exception as save_error:
+                    await logger.error("进度保存失败", f"错误: {str(save_error)}")
+                
+                return {
+                    "success": True,
+                    "message": f"任务已中断，成功翻译 {successful_translations}/{i-1} 个段落",
+                    "total_segments": total_segments,
+                    "successful_translations": successful_translations,
+                    "failed_translations": failed_translations,
+                    "target_language": target_language,
+                    "updated_segments": [{"id": seg.id, "translated_text": seg.translated_text} for seg in project.segments if seg.translated_text],
+                    "interrupted": True,
+                    "statistics": {
+                        "total_segments": total_segments,
+                        "successful_segments": successful_translations,
+                        "failed_segments": failed_translations
+                    }
+                }
             # 显示完整的文本内容，不截断
             display_text = segment.text if len(segment.text) <= 100 else segment.text[:100] + "..."
             await logger.info(f"翻译进度", f"处理段落 {i}/{total_segments}: {display_text}")
@@ -1464,6 +1588,60 @@ async def batch_translate_project(
                 "failed_segments": 0
             }
         }
+
+@app.post("/api/subtitle/{project_id}/batch-update-speaker")
+async def batch_update_speaker(
+    project_id: str,
+    request: Request
+):
+    """批量修改字幕段落的说话人"""
+    try:
+        # 获取项目
+        project = subtitle_manager.get_project(project_id)
+        if not project:
+            raise HTTPException(status_code=404, detail="项目不存在")
+        
+        # 解析请求数据
+        request_data = await request.json()
+        segment_ids = request_data.get("segment_ids", [])
+        new_speaker = request_data.get("speaker", "")
+        
+        if not segment_ids:
+            raise HTTPException(status_code=400, detail="缺少要修改的段落ID列表")
+        
+        if not new_speaker:
+            raise HTTPException(status_code=400, detail="缺少新的说话人信息")
+        
+        # 验证说话人是否有效
+        valid_speakers = ["SPEAKER_00", "SPEAKER_01", "SPEAKER_02", "SPEAKER_03", "SPEAKER_04", "SPEAKER_05"]
+        if new_speaker not in valid_speakers:
+            raise HTTPException(status_code=400, detail=f"无效的说话人: {new_speaker}")
+        
+        # 执行批量修改
+        updated_count = 0
+        for segment in project.segments:
+            if segment.id in segment_ids:
+                segment.speaker = new_speaker
+                updated_count += 1
+        
+        if updated_count == 0:
+            raise HTTPException(status_code=404, detail="没有找到要修改的段落")
+        
+        # 保存项目
+        subtitle_manager.save_project(project)
+        
+        return {
+            "success": True,
+            "message": f"成功修改 {updated_count} 个段落的说话人",
+            "updated_count": updated_count,
+            "new_speaker": new_speaker,
+            "segment_ids": segment_ids
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"批量修改说话人失败: {str(e)}")
 
 async def translate_text_with_minimax(text: str, target_language: str, group_id: str, api_key: str, logger=None, api_endpoint: str = "domestic") -> str:
     """使用MiniMax API翻译文本"""

@@ -476,6 +476,29 @@
                             </button>
                         </div>
 
+                        <!-- 批量操作区域 -->
+                        <div class="d-flex gap-2 justify-content-center mb-3" id="batchOperationSection" style="display: none;">
+                            <button class="btn btn-sm btn-outline-primary" onclick="selectAllSegments()" id="selectAllBtn">
+                                <i class="bi bi-check-all me-1"></i>全选
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="clearAllSelections()" id="clearAllBtn">
+                                <i class="bi bi-x-square me-1"></i>清除选择
+                            </button>
+                            <select class="form-select form-select-sm" id="batchSpeakerSelect" style="width: auto;">
+                                <option value="">选择说话人</option>
+                                <option value="SPEAKER_00">SPEAKER_00</option>
+                                <option value="SPEAKER_01">SPEAKER_01</option>
+                                <option value="SPEAKER_02">SPEAKER_02</option>
+                                <option value="SPEAKER_03">SPEAKER_03</option>
+                                <option value="SPEAKER_04">SPEAKER_04</option>
+                                <option value="SPEAKER_05">SPEAKER_05</option>
+                            </select>
+                            <button class="btn btn-sm btn-warning" onclick="batchUpdateSpeaker()" id="batchUpdateBtn" disabled>
+                                <i class="bi bi-person-lines-fill me-1"></i>批量修改说话人
+                            </button>
+                            <span class="badge bg-info" id="selectedCount">已选择: 0</span>
+                        </div>
+
                         <!-- 翻译功能区域 -->
                         <div class="d-flex gap-2 justify-content-center mb-3" id="translationSection" style="display: none;">
                         </div>
@@ -738,6 +761,9 @@
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="bi bi-terminal me-2"></i>日志排查</h5>
                                 <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-warning" id="interruptBtn" onclick="interruptCurrentTask()">
+                                        <i class="bi bi-stop-circle"></i> 中断
+                                    </button>
                                     <button class="btn btn-sm btn-outline-light" id="downloadLogsBtn">
                                         <i class="bi bi-download"></i> 下载日志
                                     </button>
@@ -1031,6 +1057,13 @@
                     if (exportSrtBtn) {
                         exportSrtBtn.style.display = 'inline-block';
                     }
+                    
+                    // 确保批量操作区域已初始化但隐藏
+                    const batchOperationSection = document.getElementById('batchOperationSection');
+                    if (batchOperationSection && segments.length > 0) {
+                        // 不要自动显示，等用户选择时再显示
+                        updateSelectedCount();
+                    }
                 }
             } catch (error) {
                 console.error('加载段落失败:', error);
@@ -1076,6 +1109,10 @@
                 <div class="segment-item">
                     <div class="d-flex flex-column">
                         <div class="d-flex align-items-center gap-2 mb-1">
+                            <input type="checkbox" class="form-check-input segment-checkbox" 
+                                   data-segment-id="${segment.id}" 
+                                   onchange="updateSelectedCount()"
+                                   style="margin-right: 8px;">
                             <span class="badge" style="background: var(--pink-400);">${segment.index}</span>
                             <small style="color: var(--pink-600);">${segment.start_time} → ${segment.end_time}</small>
                             <span class="speaker-simple">${segment.speaker}</span>
@@ -1365,7 +1402,8 @@
                 audio_duration: 0,
                 audio_url: '',
                 trace_id: '',
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
+                insert_after_index: afterIndex + 1  // 添加插入位置参数，afterIndex是数组索引，需要+1转为段落序号
             };
 
             try {
@@ -1530,6 +1568,7 @@
             
             // 开始实时日志更新
             const clientId = generateClientId();
+            currentOperationClientId = clientId;
             let logUpdateInterval;
             
             try {
@@ -1566,37 +1605,45 @@
                     const accelerated = stats.accelerated_segments || 0;
                     const maxSpeed = stats.max_speed_segments || 0;
                     
-                    let message = `批量TTS生成完成！成功处理 ${successful}/${total} 个段落`;
-                    if (failed > 0) {
-                        message += `，失败 ${failed} 个`;
-                    }
-                    if (accelerated > 0) {
-                        message += `，加速 ${accelerated} 个`;
-                    }
-                    if (maxSpeed > 0) {
-                        message += `，最大加速 ${maxSpeed} 个`;
+                    let message;
+                    if (result.interrupted) {
+                        message = `批量TTS被中断！已处理 ${successful}/${total} 个段落`;
+                        addLog(`批量TTS生成被中断: ${successful}/${total}个段落, 已保存进度`);
+                        showToast(message);
+                    } else {
+                        message = `批量TTS生成完成！成功处理 ${successful}/${total} 个段落`;
+                        if (failed > 0) {
+                            message += `，失败 ${failed} 个`;
+                        }
+                        if (accelerated > 0) {
+                            message += `，加速 ${accelerated} 个`;
+                        }
+                        if (maxSpeed > 0) {
+                            message += `，最大加速 ${maxSpeed} 个`;
+                        }
+                        
+                        addLog(`批量TTS生成成功: ${successful}/${total}个段落`);
+                        if (failed > 0) {
+                            addLog(`失败段落: ${failed}个`);
+                        }
+                        if (accelerated > 0) {
+                            addLog(`加速段落: ${accelerated}个`);
+                        }
+                        if (maxSpeed > 0) {
+                            addLog(`最大加速段落: ${maxSpeed}个`);
+                        }
+                        
+                        // 显示速度调整详情
+                        if (result.speed_adjustments && result.speed_adjustments.length > 0) {
+                            addLog(`速度调整详情:`);
+                            result.speed_adjustments.forEach(adjustment => {
+                                addLog(`  ${adjustment}`);
+                            });
+                        }
+                        
+                        showToast(message);
                     }
                     
-                    addLog(`批量TTS生成成功: ${successful}/${total}个段落`);
-                    if (failed > 0) {
-                        addLog(`失败段落: ${failed}个`);
-                    }
-                    if (accelerated > 0) {
-                        addLog(`加速段落: ${accelerated}个`);
-                    }
-                    if (maxSpeed > 0) {
-                        addLog(`最大加速段落: ${maxSpeed}个`);
-                    }
-                    
-                    // 显示速度调整详情
-                    if (result.speed_adjustments && result.speed_adjustments.length > 0) {
-                        addLog(`速度调整详情:`);
-                        result.speed_adjustments.forEach(adjustment => {
-                            addLog(`  ${adjustment}`);
-                        });
-                    }
-                    
-                    showToast(message);
                     // 重新加载字幕段落以更新播放按钮和trace_id
                     loadSubtitleSegments();
                 } else {
@@ -1610,9 +1657,10 @@
             } finally {
                 // 停止实时日志更新
                 stopRealTimeLogUpdates();
-                // 恢复按钮
+                // 恢复按钮，清除客户端ID
                 batchTTSBtn.disabled = false;
                 batchTTSBtn.innerHTML = originalText;
+                currentOperationClientId = null;
             }
         }
         
@@ -1703,7 +1751,9 @@
                 showToast('开始拼接音频...');
                 
                 const formData = new FormData();
-                formData.append('clientId', generateClientId());
+                const clientId = generateClientId();
+                currentOperationClientId = clientId;
+                formData.append('clientId', clientId);
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/merge-audio`, {
                     method: 'POST',
@@ -1728,9 +1778,10 @@
                 addLog(`音频拼接失败: ${error.message}`);
                 showToast('音频拼接失败: ' + error.message);
             } finally {
-                // 恢复按钮
+                // 恢复按钮，清除客户端ID
                 mergeBtn.disabled = false;
                 mergeBtn.innerHTML = originalText;
+                currentOperationClientId = null;
             }
         }
 
@@ -2177,6 +2228,7 @@
                 
                 // 生成客户端ID用于日志
                 const clientId = generateClientId();
+                currentOperationClientId = clientId;
                 
                 // 开始实时日志更新
                 startRealTimeLogUpdates(clientId);
@@ -2208,12 +2260,17 @@
                     const successful = stats.successful_segments || result.successful_translations || updatedSegments.length || 0;
                     const failed = stats.failed_segments || result.failed_translations || 0;
                     
-                    addLog(`批量翻译成功: ${successful}/${total}个段落`);
-                    if (failed > 0) {
-                        addLog(`失败段落: ${failed}个`);
+                    if (result.interrupted) {
+                        addLog(`批量翻译被中断: ${successful}/${total}个段落, 已保存进度`);
+                        showToast(`批量翻译已中断！已完成 ${successful}/${total} 个段落`);
+                    } else {
+                        addLog(`批量翻译成功: ${successful}/${total}个段落`);
+                        if (failed > 0) {
+                            addLog(`失败段落: ${failed}个`);
+                        }
+                        showToast(`批量翻译完成！成功处理 ${successful}/${total} 个段落`);
                     }
                     
-                    showToast(`批量翻译完成！成功处理 ${successful}/${total} 个段落`);
                     // 重新加载字幕段落以显示翻译结果
                     loadSubtitleSegments();
                 } else {
@@ -2240,13 +2297,131 @@
             } finally {
                 // 停止实时日志更新
                 stopRealTimeLogUpdates();
-                // 恢复按钮
+                // 恢复按钮，清除客户端ID
                 batchTranslateBtn.disabled = false;
                 batchTranslateBtn.innerHTML = originalText;
+                currentOperationClientId = null;
             }
         }
 
         // 开始实时日志更新
+        
+        // 批量选择功能
+        let selectedSegmentIds = new Set();
+
+        // 更新选中数量显示
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.segment-checkbox:checked');
+            const count = checkboxes.length;
+            const selectedCountBadge = document.getElementById('selectedCount');
+            const batchOperationSection = document.getElementById('batchOperationSection');
+            const batchUpdateBtn = document.getElementById('batchUpdateBtn');
+            
+            // 更新选中的段落ID集合
+            selectedSegmentIds.clear();
+            checkboxes.forEach(checkbox => {
+                selectedSegmentIds.add(checkbox.getAttribute('data-segment-id'));
+            });
+            
+            // 更新显示
+            if (selectedCountBadge) {
+                selectedCountBadge.textContent = `已选择: ${count}`;
+            }
+            
+            // 显示或隐藏批量操作区域
+            if (batchOperationSection) {
+                batchOperationSection.style.display = count > 0 ? 'flex' : 'none';
+            }
+            
+            // 启用或禁用批量更新按钮
+            if (batchUpdateBtn) {
+                batchUpdateBtn.disabled = count === 0;
+            }
+        }
+
+        // 全选功能
+        function selectAllSegments() {
+            const checkboxes = document.querySelectorAll('.segment-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSelectedCount();
+        }
+
+        // 清除所有选择
+        function clearAllSelections() {
+            const checkboxes = document.querySelectorAll('.segment-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelectedCount();
+        }
+
+        // 批量修改说话人
+        async function batchUpdateSpeaker() {
+            if (selectedSegmentIds.size === 0) {
+                showToast('请先选择要修改的段落');
+                return;
+            }
+            
+            const newSpeaker = document.getElementById('batchSpeakerSelect').value;
+            if (!newSpeaker) {
+                showToast('请选择要设置的说话人');
+                return;
+            }
+            
+            if (!currentSubtitleProject) {
+                showToast('请先上传SRT文件');
+                return;
+            }
+            
+            // 确认操作
+            if (!confirm(`确定要将选中的 ${selectedSegmentIds.size} 个段落的说话人修改为 ${newSpeaker} 吗？`)) {
+                return;
+            }
+            
+            const batchUpdateBtn = document.getElementById('batchUpdateBtn');
+            const originalText = batchUpdateBtn.innerHTML;
+            batchUpdateBtn.disabled = true;
+            batchUpdateBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>正在修改...';
+            
+            try {
+                addLog(`开始批量修改说话人: ${selectedSegmentIds.size}个段落 → ${newSpeaker}`);
+                
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-update-speaker`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        segment_ids: Array.from(selectedSegmentIds),
+                        speaker: newSpeaker
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const updatedCount = result.updated_count || selectedSegmentIds.size;
+                    addLog(`批量修改说话人成功: ${updatedCount}个段落已更新`);
+                    showToast(`成功修改 ${updatedCount} 个段落的说话人为 ${newSpeaker}`);
+                    
+                    // 清除选择并重新加载段落
+                    clearAllSelections();
+                    await loadSubtitleSegments();
+                } else {
+                    addLog(`批量修改说话人失败: ${result.message}`);
+                    showToast('批量修改失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('批量修改说话人失败:', error);
+                addLog(`批量修改说话人失败: ${error.message}`);
+                showToast('批量修改失败: ' + error.message);
+            } finally {
+                batchUpdateBtn.disabled = false;
+                batchUpdateBtn.innerHTML = originalText;
+            }
+        }
     </script>
     <script>
         // 停止进度更新
@@ -2566,6 +2741,41 @@
         });
     </script>
     <script>
+        // 存储当前操作的客户端ID
+        let currentOperationClientId = null;
+        
+        // 中断当前任务函数
+        async function interruptCurrentTask() {
+            if (!currentSubtitleProject || !currentOperationClientId) {
+                showToast('没有正在运行的任务');
+                return;
+            }
+            
+            try {
+                addLog('用户请求中断任务...');
+                showToast('正在中断任务...');
+                
+                const response = await fetch(`/api/interrupt/${currentOperationClientId}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog('中断请求已发送');
+                    showToast('任务中断请求已发送');
+                } else {
+                    addLog(`中断失败: ${result.message}`);
+                    showToast('任务中断失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('中断任务失败:', error);
+                addLog(`中断任务失败: ${error.message}`);
+                showToast('中断任务失败: ' + error.message);
+            }
+        }
+        
+
         // 一键翻译函数 - 自动按顺序执行翻译、TTS、合并
         async function oneClickTranslate() {
             if (!currentSubtitleProject) {
@@ -2595,6 +2805,9 @@
             const originalText = oneClickBtn.innerHTML;
             oneClickBtn.disabled = true;
             oneClickBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>正在处理...';
+            
+            // 生成客户端ID用于一键翻译
+            currentOperationClientId = generateClientId();
             
             try {
                 addLog('=== 开始一键翻译流程 ===');
@@ -2632,16 +2845,16 @@
                 addLog(`一键翻译失败: ${error.message}`);
                 showToast('一键翻译失败: ' + error.message);
             } finally {
-                // 恢复按钮状态
+                // 恢复按钮状态，清除客户端ID
                 oneClickBtn.disabled = false;
                 oneClickBtn.innerHTML = originalText;
+                currentOperationClientId = null;
             }
         }
 
         // 执行批量翻译的辅助函数
         async function executeBatchTranslate(targetLanguage, groupId, apiKey) {
-            const clientId = generateClientId();
-            startRealTimeLogUpdates(clientId);
+            startRealTimeLogUpdates(currentOperationClientId);
             
             try {
                 const formData = new FormData();
@@ -2649,7 +2862,7 @@
                 formData.append('apiKey', apiKey);
                 formData.append('apiEndpoint', document.getElementById('apiEndpoint').value);
                 formData.append('target_language', targetLanguage);
-                formData.append('clientId', clientId);
+                formData.append('clientId', currentOperationClientId);
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-translate`, {
                     method: 'POST',
@@ -2672,8 +2885,7 @@
 
         // 执行批量TTS的辅助函数
         async function executeBatchTTS(groupId, apiKey) {
-            const clientId = generateClientId();
-            startRealTimeLogUpdates(clientId);
+            startRealTimeLogUpdates(currentOperationClientId);
             
             try {
                 const formData = new FormData();
@@ -2683,7 +2895,7 @@
                 formData.append('model', document.getElementById('voiceModel').value);
                 formData.append('language', document.getElementById('language').value);
                 formData.append('voiceMapping', JSON.stringify(getVoiceMapping()));
-                formData.append('clientId', clientId);
+                formData.append('clientId', currentOperationClientId);
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-generate-tts`, {
                     method: 'POST',
@@ -2706,12 +2918,11 @@
 
         // 执行拼接音频的辅助函数
         async function executeMergeAudio() {
-            const clientId = generateClientId();
-            startRealTimeLogUpdates(clientId);
+            startRealTimeLogUpdates(currentOperationClientId);
             
             try {
                 const formData = new FormData();
-                formData.append('clientId', clientId);
+                formData.append('clientId', currentOperationClientId);
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/merge-audio`, {
                     method: 'POST',
