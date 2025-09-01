@@ -1002,7 +1002,7 @@ async def batch_generate_tts_for_project(
                                 optimized_text = await optimize_translation_for_audio_length(
                                     original_text=segment.text,
                                     current_translation=segment.translated_text,
-                                    target_language="中文",
+                                    target_language=language,
                                     current_audio_length=t_tts_ms / 1000.0,
                                     target_audio_length=t_srt_ms / 1000.0,
                                     group_id=groupId,
