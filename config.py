@@ -80,7 +80,23 @@ class Config:
             "Greek",
             "Czech",
             "Finnish",
-            "Hindi"
+            "Hindi",
+            "Bulgarian",
+            "Danish",
+            "Hebrew",
+            "Malay",
+            "Persian",
+            "Slovak",
+            "Swedish",
+            "Croatian",
+            "Filipino",
+            "Hungarian",
+            "Norwegian",
+            "Slovenian",
+            "Catalan",
+            "Nynorsk",
+            "Tamil",
+            "Afrikaans"
         ]
     }
     
@@ -116,7 +132,23 @@ class Config:
             "Greek",
             "Czech",
             "Finnish",
-            "Hindi"
+            "Hindi",
+            "Bulgarian",
+            "Danish",
+            "Hebrew",
+            "Malay",
+            "Persian",
+            "Slovak",
+            "Swedish",
+            "Croatian",
+            "Filipino",
+            "Hungarian",
+            "Norwegian",
+            "Slovenian",
+            "Catalan",
+            "Nynorsk",
+            "Tamil",
+            "Afrikaans"
         ]
     }
     
