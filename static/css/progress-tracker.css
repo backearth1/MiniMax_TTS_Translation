@@ -3,8 +3,19 @@
     background: linear-gradient(135deg, var(--blue-50) 0%, var(--blue-100) 100%);
     border-bottom: 1px solid var(--blue-200);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    padding: 12px 0;
+    padding: 16px 0;
     margin-bottom: 0;
+}
+
+.progress-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.progress-item {
+    flex: 1;
+    min-width: 0;
 }
 
 .progress-header {
@@ -16,16 +27,25 @@
 
 .progress-title {
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--blue-700);
     display: flex;
     align-items: center;
+    white-space: nowrap;
 }
 
 .progress-text {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--blue-600);
     font-weight: 500;
+    margin-left: 8px;
+}
+
+.progress-button {
+    margin-top: 8px;
+    width: 100%;
+    font-size: 0.8rem;
+    padding: 6px 8px;
 }
 
 /* 翻译进度条特殊样式 */
@@ -36,6 +56,11 @@
 /* TTS进度条特殊样式 */
 #ttsProgressBar {
     background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%) !important;
+}
+
+/* 拼接音频进度条特殊样式 */
+#mergeProgressBar {
+    background: linear-gradient(135deg, var(--blue-600) 0%, var(--blue-700) 100%) !important;
 }
 
 /* 进度条动画效果 */
@@ -55,11 +80,12 @@
 /* 响应式设计 */
 @media (max-width: 768px) {
     .progress-tracker {
-        padding: 8px 0;
+        padding: 12px 0;
     }
     
-    .progress-container {
-        padding: 6px 12px;
+    .progress-row {
+        flex-direction: column;
+        gap: 12px;
     }
     
     .progress-title {
@@ -67,25 +93,15 @@
     }
     
     .progress-text {
+        font-size: 0.7rem;
+    }
+    
+    .progress-button {
         font-size: 0.75rem;
+        padding: 5px 6px;
     }
     
     .progress-header {
         margin-bottom: 6px;
     }
-}
-
-/* 进度条容器的显示/隐藏效果 */
-.progress-container {
-    transition: all 0.3s ease;
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    padding: 6px 0;
-}
-
-.progress-container.show {
-    max-height: 70px;
-    opacity: 1;
-    padding: 8px 0;
 }

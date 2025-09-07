@@ -17,6 +17,12 @@ class ProgressTracker {
             active: false
         };
         
+        this.mergeProgress = {
+            current: 0,
+            total: 0,
+            active: false
+        };
+        
         this.init();
     }
 
@@ -32,38 +38,66 @@ class ProgressTracker {
         // 创建进度条HTML
         const progressHTML = `
             <div id="progressTracker" class="progress-tracker">
-                <!-- 翻译进度条 -->
-                <div id="translationProgressContainer" class="progress-container">
-                    <div class="container-fluid">
-                        <div class="progress-header">
-                            <span class="progress-title">
+                <div class="container-fluid">
+                    <div class="progress-row">
+                        <!-- 批量翻译 -->
+                        <div class="progress-item">
+                            <div class="progress-header">
+                                <span class="progress-title">
+                                    <i class="bi bi-translate me-1"></i>批量翻译
+                                </span>
+                                <span class="progress-text" id="translationProgressText">准备就绪</span>
+                            </div>
+                            <div class="progress mb-2" style="height: 8px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     id="translationProgressBar" 
+                                     role="progressbar" 
+                                     style="width: 0%"></div>
+                            </div>
+                            <button class="btn btn-secondary btn-sm progress-button" 
+                                    onclick="batchTranslate()" id="batchTranslateBtn">
                                 <i class="bi bi-translate me-1"></i>批量翻译
-                            </span>
-                            <span class="progress-text" id="translationProgressText">准备就绪</span>
+                            </button>
                         </div>
-                        <div class="progress mb-2">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                 id="translationProgressBar" 
-                                 role="progressbar" 
-                                 style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- TTS进度条 -->
-                <div id="ttsProgressContainer" class="progress-container">
-                    <div class="container-fluid">
-                        <div class="progress-header">
-                            <span class="progress-title">
+                        <!-- 批量TTS -->
+                        <div class="progress-item">
+                            <div class="progress-header">
+                                <span class="progress-title">
+                                    <i class="bi bi-music-note-list me-1"></i>批量TTS
+                                </span>
+                                <span class="progress-text" id="ttsProgressText">准备就绪</span>
+                            </div>
+                            <div class="progress mb-2" style="height: 8px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     id="ttsProgressBar" 
+                                     role="progressbar" 
+                                     style="width: 0%"></div>
+                            </div>
+                            <button class="btn btn-info btn-sm progress-button" 
+                                    onclick="batchGenerateTTS()" id="batchTTSBtn">
                                 <i class="bi bi-music-note-list me-1"></i>批量TTS
-                            </span>
-                            <span class="progress-text" id="ttsProgressText">准备就绪</span>
+                            </button>
                         </div>
-                        <div class="progress mb-2">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                 id="ttsProgressBar" 
-                                 role="progressbar" 
-                                 style="width: 0%"></div>
+
+                        <!-- 拼接音频 -->
+                        <div class="progress-item">
+                            <div class="progress-header">
+                                <span class="progress-title">
+                                    <i class="bi bi-soundwave me-1"></i>拼接音频
+                                </span>
+                                <span class="progress-text" id="mergeProgressText">准备就绪</span>
+                            </div>
+                            <div class="progress mb-2" style="height: 8px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     id="mergeProgressBar" 
+                                     role="progressbar" 
+                                     style="width: 0%"></div>
+                            </div>
+                            <button class="btn btn-success btn-sm progress-button" 
+                                    onclick="mergeAudio()" id="mergeBtn">
+                                <i class="bi bi-soundwave me-1"></i>拼接音频
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -174,6 +208,23 @@ class ProgressTracker {
         }
     }
 
+    parseMergeProgress(message) {
+        // 匹配开始拼接消息
+        if (message.includes('开始拼接音频') || 
+            message.includes('步骤3: 开始拼接音频')) {
+            this.showMergeProgress();
+            this.updateMergeProgress(0, 1);
+            return;
+        }
+
+        // 匹配拼接进度消息
+        if (message.includes('正在拼接音频') || 
+            message.includes('拼接音频中')) {
+            this.updateMergeProgress(1, 1);
+            return;
+        }
+    }
+
     checkTaskCompletion(message) {
         // 检查翻译完成
         if (message.includes('批量翻译完成') || 
@@ -187,8 +238,13 @@ class ProgressTracker {
             this.hideTTSProgress();
         }
 
+        // 检查拼接音频进度
+        this.parseMergeProgress(message);
+
         // 检查整个流程完成
-        if (message.includes('步骤3: 拼接音频完成')) {
+        if (message.includes('步骤3: 拼接音频完成') || 
+            message.includes('音频拼接完成')) {
+            this.hideMergeProgress();
             this.hideAllProgress();
         }
     }
@@ -281,16 +337,77 @@ class ProgressTracker {
         }, 2000);
     }
 
+    showMergeProgress() {
+        this.mergeProgress.active = true;
+        this.mergeProgress.current = 0;
+        this.mergeProgress.total = 1;
+        
+        this.updateMergeProgress(0, 1);
+    }
+
+    updateMergeProgress(current, total) {
+        this.mergeProgress.current = current;
+        if (total > 0) this.mergeProgress.total = total;
+        
+        const progressBar = document.getElementById('mergeProgressBar');
+        const progressText = document.getElementById('mergeProgressText');
+        
+        if (progressBar && this.mergeProgress.total > 0) {
+            const percentage = (current / this.mergeProgress.total) * 100;
+            progressBar.style.width = percentage + '%';
+            progressBar.setAttribute('aria-valuenow', percentage);
+        }
+        
+        if (progressText) {
+            if (current === 0) {
+                progressText.textContent = '准备中...';
+            } else if (current === total) {
+                progressText.textContent = '拼接完成';
+            } else {
+                progressText.textContent = '正在拼接...';
+            }
+        }
+    }
+
+    hideMergeProgress() {
+        this.mergeProgress.active = false;
+        
+        // 延迟隐藏，让用户看到100%完成状态
+        setTimeout(() => {
+            const progressText = document.getElementById('mergeProgressText');
+            if (progressText) {
+                progressText.textContent = '准备就绪';
+            }
+            
+            const progressBar = document.getElementById('mergeProgressBar');
+            if (progressBar) {
+                progressBar.style.width = '0%';
+            }
+        }, 2000);
+    }
+
     hideAllProgress() {
         this.translationProgress.active = false;
         this.ttsProgress.active = false;
+        this.mergeProgress.active = false;
         
         setTimeout(() => {
-            const translationContainer = document.getElementById('translationProgressContainer');
-            const ttsContainer = document.getElementById('ttsProgressContainer');
+            // 重置所有进度条到初始状态
+            const translationText = document.getElementById('translationProgressText');
+            const ttsText = document.getElementById('ttsProgressText'); 
+            const mergeText = document.getElementById('mergeProgressText');
             
-            if (translationContainer) translationContainer.classList.remove('show');
-            if (ttsContainer) ttsContainer.classList.remove('show');
+            if (translationText) translationText.textContent = '准备就绪';
+            if (ttsText) ttsText.textContent = '准备就绪';
+            if (mergeText) mergeText.textContent = '准备就绪';
+            
+            const translationBar = document.getElementById('translationProgressBar');
+            const ttsBar = document.getElementById('ttsProgressBar');
+            const mergeBar = document.getElementById('mergeProgressBar');
+            
+            if (translationBar) translationBar.style.width = '0%';
+            if (ttsBar) ttsBar.style.width = '0%';
+            if (mergeBar) mergeBar.style.width = '0%';
         }, 2000);
     }
 
@@ -320,17 +437,25 @@ class ProgressTracker {
     // 测试函数 - 手动显示进度条
     testProgress() {
         console.log('测试进度条显示...');
-        this.showTranslationProgress();
+        
+        // 测试翻译进度
         this.updateTranslationProgress(2, 5);
         
         setTimeout(() => {
-            this.showTTSProgress();
+            // 测试TTS进度
             this.updateTTSProgress(1, 3);
-        }, 1000);
+        }, 1500);
         
         setTimeout(() => {
+            // 测试拼接进度
+            this.showMergeProgress();
+            this.updateMergeProgress(1, 1);
+        }, 3000);
+        
+        setTimeout(() => {
+            // 重置所有进度
             this.hideAllProgress();
-        }, 5000);
+        }, 6000);
     }
 }
 
