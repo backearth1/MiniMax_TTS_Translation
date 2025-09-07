@@ -74,23 +74,43 @@ async def adjust_text_length(
     # 处理原文为空的情况
     original_context = f"\n\n原文参考：{original_text}" if original_text.strip() else ""
     
-    # 基于学习的翻译优化提示词
+    # 精确的文本长度调整提示词
     if adjustment_type == "shorten":
-        # 缩短文本的专用提示词（参考老版本的简洁设计）
-        system_prompt = "你是一个翻译优化专家，擅长根据需求调整翻译文本的长度和表达方式。"
-        user_prompt = f"""你的任务是翻译优化，原文："{original_text}"，当前{target_language}翻译："{current_text}"。
+        # 缩短文本的专用提示词 - 严格限制字符数
+        system_prompt = "你是一个专业的文本优化专家。你必须严格按照指定的字符数要求进行文本缩短，不能超出范围。"
+        user_prompt = f"""【任务】：缩短翻译文本，严格控制字符数
 
-缩短翻译的文字，同时保持意思完整和口语化表达，当前字符数是{current_char_count}个字，需要精简成约{target_char_count}个字（减少20%）
+【原文】：{original_text}
+【当前{target_language}翻译】：{current_text}
+【当前字符数】：{current_char_count}字
+【目标字符数】：{target_char_count}字（必须控制在{target_char_count-2}到{target_char_count+2}字之间）
 
-请直接输出优化后的{target_language}翻译："""
+【要求】：
+1. 保持原意不变
+2. 使用更简洁的表达
+3. 删除冗余词汇
+4. 输出字符数必须在{target_char_count-2}-{target_char_count+2}字范围内
+5. 只输出优化后的{target_language}翻译文本，不要其他说明
+
+【输出】："""
     else:  # lengthen
-        # 加长文本的专用提示词（参考老版本的简洁设计）  
-        system_prompt = "你是一个翻译优化专家，擅长根据需求调整翻译文本的长度和表达方式。"
-        user_prompt = f"""你的任务是翻译优化，原文："{original_text}"，当前{target_language}翻译："{current_text}"。
+        # 加长文本的专用提示词 - 严格限制字符数
+        system_prompt = "你是一个专业的文本优化专家。你必须严格按照指定的字符数要求进行文本扩展，不能超出范围。"
+        user_prompt = f"""【任务】：扩展翻译文本，严格控制字符数
 
-丰富翻译的文字，增加适当的语气词、连接词或描述性词汇，保持口语化表达，当前字符数是{current_char_count}个字，需要扩展成约{target_char_count}个字（增加20%）
+【原文】：{original_text}
+【当前{target_language}翻译】：{current_text}
+【当前字符数】：{current_char_count}字
+【目标字符数】：{target_char_count}字（必须控制在{target_char_count-2}到{target_char_count+2}字之间）
 
-请直接输出优化后的{target_language}翻译："""
+【要求】：
+1. 保持原意不变
+2. 增加适当的修饰词、语气词
+3. 使表达更生动自然
+4. 输出字符数必须在{target_char_count-2}-{target_char_count+2}字范围内
+5. 只输出优化后的{target_language}翻译文本，不要其他说明
+
+【输出】："""
     
     payload = {
         "model": Config.TRANSLATION_CONFIG["model"],
@@ -122,10 +142,8 @@ async def adjust_text_length(
         # 获取代理设置
         proxy_settings = get_proxy_settings()
         
-        # 创建连接器，支持代理
-        connector = aiohttp.TCPConnector()
-        
-        async with aiohttp.ClientSession(connector=connector, trust_env=True) as session:
+        # 简化连接器设置，避免代理冲突
+        async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, json=payload,
                                   timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"])) as response:
                 response_data = await response.json()
