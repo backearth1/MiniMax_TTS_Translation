@@ -2826,6 +2826,7 @@
 
         // 一键翻译函数 - 自动按顺序执行翻译、TTS、合并
         async function oneClickTranslate() {
+            console.log('一键翻译按钮被点击');
             if (!currentSubtitleProject) {
                 showToast('请先上传SRT文件');
                 return;
