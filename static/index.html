@@ -2156,7 +2156,7 @@
             
             try {
                 localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-                console.log('配置已自动保存');
+                console.log('配置已自动保存, 语言:', config.language);
             } catch (error) {
                 console.error('保存配置失败:', error);
             }
@@ -2177,6 +2177,7 @@
                     // 恢复语言选择
                     if (config.language) {
                         document.getElementById('language').value = config.language;
+                        console.log('已恢复语言设置为:', config.language);
                     }
                     
                     // 恢复说话人语音配置
@@ -2214,6 +2215,19 @@
             return false;
         }
 
+        // 测试函数 - 手动检查配置
+        function testConfig() {
+            console.log('=== 配置测试 ===');
+            const saved = localStorage.getItem(CONFIG_KEY);
+            console.log('localStorage中的配置:', saved);
+            if (saved) {
+                const config = JSON.parse(saved);
+                console.log('解析后的配置:', config);
+                console.log('保存的语言:', config.language);
+            }
+            console.log('当前页面语言选择器的值:', document.getElementById('language').value);
+        }
+
         // 页面加载完成后自动加载示例文件
         document.addEventListener('DOMContentLoaded', () => {
             // 角色配置现在在HTML中静态定义，无需动态加载
@@ -2238,15 +2252,21 @@
                 console.error('加载凭据失败:', error);
             }
             
-            // 自动加载保存的配置参数
-            const configLoaded = loadAllConfig();
+            // 自动加载保存的配置参数 - 延迟执行确保DOM完全加载
+            setTimeout(() => {
+                const configLoaded = loadAllConfig();
+                addLog('配置加载完成，当前语言: ' + document.getElementById('language').value);
+                if (configLoaded) {
+                    addLog('已自动加载保存的配置参数');
+                }
+            }, 100);
+            
+            // 初始化音频播放器状态
+            initAudioPlayerState();
             
             // 添加初始日志
             addLog('系统初始化完成');
             addLog('角色语音配置已加载');
-            if (configLoaded) {
-                addLog('已自动加载保存的配置参数');
-            }
             
             
             // 自动保存功能 - 在输入框失去焦点时自动保存
@@ -2707,13 +2727,6 @@
         }
     </script>
     <script>
-        // 页面加载完成后的初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 初始化播放器状态
-            initAudioPlayerState();
-            
-            // 其他初始化代码...
-        });
         
         // 初始化音频播放器状态
         function initAudioPlayerState() {
