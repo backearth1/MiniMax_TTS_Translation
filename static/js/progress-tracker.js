@@ -39,63 +39,66 @@ class ProgressTracker {
         const progressHTML = `
             <div id="progressTracker" class="progress-tracker">
                 <div class="container-fluid">
-                    <!-- 一键翻译按钮 -->
-                    <div class="text-center mb-3">
-                        <button class="btn btn-danger btn-sm" onclick="oneClickTranslate()" id="oneClickTranslateBtn">
-                            <i class="bi bi-magic me-1"></i>一键翻译
-                        </button>
-                    </div>
-                    
-                    <div class="progress-row">
-                        <!-- 批量翻译 -->
-                        <div class="progress-item">
-                            <div class="progress-header">
-                                <span class="progress-text" id="translationProgressText">准备就绪</span>
-                            </div>
-                            <div class="progress mb-2" style="height: 8px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                     id="translationProgressBar" 
-                                     role="progressbar" 
-                                     style="width: 0%"></div>
-                            </div>
-                            <button class="btn btn-secondary btn-sm progress-button" 
-                                    onclick="batchTranslate()" id="batchTranslateBtn">
-                                <i class="bi bi-translate me-1"></i>批量翻译
+                    <div class="progress-main-row">
+                        <!-- 一键翻译按钮 -->
+                        <div class="one-click-section">
+                            <button class="btn btn-danger btn-sm one-click-btn" onclick="oneClickTranslate()" id="oneClickTranslateBtn">
+                                <i class="bi bi-magic me-1"></i>一键翻译
                             </button>
                         </div>
+                        
+                        <!-- 进度条区域 -->
+                        <div class="progress-row">
+                            <!-- 批量翻译 -->
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-text" id="translationProgressText">准备就绪</span>
+                                </div>
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         id="translationProgressBar" 
+                                         role="progressbar" 
+                                         style="width: 0%"></div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm progress-button" 
+                                        onclick="batchTranslate()" id="batchTranslateBtn">
+                                    <i class="bi bi-translate me-1"></i>批量翻译
+                                </button>
+                            </div>
 
-                        <!-- 批量TTS -->
-                        <div class="progress-item">
-                            <div class="progress-header">
-                                <span class="progress-text" id="ttsProgressText">准备就绪</span>
+                            <!-- 批量TTS -->
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-text" id="ttsProgressText">准备就绪</span>
+                                </div>
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         id="ttsProgressBar" 
+                                         role="progressbar" 
+                                         style="width: 0%"></div>
+                                </div>
+                                <button class="btn btn-info btn-sm progress-button" 
+                                        onclick="batchGenerateTTS()" id="batchTTSBtn">
+                                    <i class="bi bi-music-note-list me-1"></i>批量TTS
+                                </button>
                             </div>
-                            <div class="progress mb-2" style="height: 8px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                     id="ttsProgressBar" 
-                                     role="progressbar" 
-                                     style="width: 0%"></div>
-                            </div>
-                            <button class="btn btn-info btn-sm progress-button" 
-                                    onclick="batchGenerateTTS()" id="batchTTSBtn">
-                                <i class="bi bi-music-note-list me-1"></i>批量TTS
-                            </button>
-                        </div>
 
-                        <!-- 拼接音频 -->
-                        <div class="progress-item">
-                            <div class="progress-header">
-                                <span class="progress-text" id="mergeProgressText">准备就绪</span>
+                            <!-- 拼接音频 -->
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-text" id="mergeProgressText">准备就绪</span>
+                                </div>
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         id="mergeProgressBar" 
+                                         role="progressbar" 
+                                         style="width: 0%"></div>
+                                </div>
+                                <button class="btn btn-success btn-sm progress-button" 
+                                        onclick="mergeAudio()" id="mergeBtn">
+                                    <i class="bi bi-soundwave me-1"></i>拼接音频
+                                </button>
                             </div>
-                            <div class="progress mb-2" style="height: 8px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                     id="mergeProgressBar" 
-                                     role="progressbar" 
-                                     style="width: 0%"></div>
-                            </div>
-                            <button class="btn btn-success btn-sm progress-button" 
-                                    onclick="mergeAudio()" id="mergeBtn">
-                                <i class="bi bi-soundwave me-1"></i>拼接音频
-                            </button>
                         </div>
                     </div>
                 </div>
