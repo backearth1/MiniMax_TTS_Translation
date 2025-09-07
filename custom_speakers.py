@@ -18,9 +18,8 @@ CUSTOM_SPEAKERS_FILE = Path("custom_speakers.json")
 class CustomSpeaker(BaseModel):
     """自定义角色模型"""
     id: str
-    name: str  # 显示名称，如 "SPEAKER_06", "Mary", "John"
+    name: str  # 固定格式：SPEAKER_XX
     voice_id: str  # 语音ID，如 "ai_her_04"
-    description: str = ""  # 描述
     created_at: str
     updated_at: str
 
@@ -61,14 +60,36 @@ class CustomSpeakersManager:
             return CustomSpeaker(**speakers_data[speaker_id])
         return None
     
-    def add_speaker(self, name: str, voice_id: str, description: str = "") -> CustomSpeaker:
-        """添加新角色"""
+    def add_speaker(self, voice_id: str) -> CustomSpeaker:
+        """添加新角色，自动分配SPEAKER_XX名称"""
         speakers_data = self._load_speakers()
         
-        # 检查名称是否已存在
+        # 获取下一个可用的SPEAKER_XX编号
+        existing_numbers = set()
+        
+        # 检查默认角色编号 (00-05)
+        for i in range(6):
+            existing_numbers.add(f"{i:02d}")
+        
+        # 检查已有自定义角色编号
         for existing_speaker in speakers_data.values():
-            if existing_speaker['name'] == name:
-                raise ValueError(f"角色名称 '{name}' 已存在")
+            speaker_name = existing_speaker['name']
+            if speaker_name.startswith('SPEAKER_'):
+                try:
+                    number = speaker_name.split('_')[1]
+                    existing_numbers.add(number)
+                except (IndexError, ValueError):
+                    continue
+        
+        # 找到下一个可用编号
+        next_number = 6
+        while f"{next_number:02d}" in existing_numbers:
+            next_number += 1
+        
+        if next_number > 99:
+            raise ValueError("已达到最大角色数量限制 (SPEAKER_99)")
+        
+        name = f"SPEAKER_{next_number:02d}"
         
         # 生成新角色
         speaker_id = str(uuid.uuid4())
@@ -79,7 +100,6 @@ class CustomSpeakersManager:
             id=speaker_id,
             name=name,
             voice_id=voice_id,
-            description=description,
             created_at=now,
             updated_at=now
         )
@@ -89,26 +109,15 @@ class CustomSpeakersManager:
         
         return new_speaker
     
-    def update_speaker(self, speaker_id: str, name: str = None, voice_id: str = None, description: str = None) -> Optional[CustomSpeaker]:
-        """更新角色"""
+    def update_speaker(self, speaker_id: str, voice_id: str) -> Optional[CustomSpeaker]:
+        """更新角色语音ID"""
         speakers_data = self._load_speakers()
         
         if speaker_id not in speakers_data:
             return None
         
-        # 检查名称冲突（如果更新名称）
-        if name and name != speakers_data[speaker_id]['name']:
-            for existing_id, existing_speaker in speakers_data.items():
-                if existing_id != speaker_id and existing_speaker['name'] == name:
-                    raise ValueError(f"角色名称 '{name}' 已存在")
-        
-        # 更新字段
-        if name is not None:
-            speakers_data[speaker_id]['name'] = name
-        if voice_id is not None:
-            speakers_data[speaker_id]['voice_id'] = voice_id
-        if description is not None:
-            speakers_data[speaker_id]['description'] = description
+        # 更新语音ID
+        speakers_data[speaker_id]['voice_id'] = voice_id
         
         from datetime import datetime
         speakers_data[speaker_id]['updated_at'] = datetime.now().isoformat()
@@ -169,36 +178,21 @@ async def get_custom_speakers():
 
 @router.post("/api/custom-speakers")
 async def add_custom_speaker(
-    name: str = Form(...),
-    voice_id: str = Form(...),
-    description: str = Form("")
+    voice_id: str = Form(...)
 ):
-    """添加新的自定义角色"""
+    """添加新的自定义角色，自动分配SPEAKER_XX名称"""
     try:
         # 验证输入
-        name = name.strip()
         voice_id = voice_id.strip()
         
-        if not name:
-            raise HTTPException(status_code=400, detail="角色名称不能为空")
         if not voice_id:
             raise HTTPException(status_code=400, detail="语音ID不能为空")
         
-        # 检查名称格式（可以是SPEAKER_XX格式或自定义名称）
-        if name.startswith("SPEAKER_") and len(name) > 10:
-            # 提取序号部分
-            try:
-                speaker_num = name.split("_")[1]
-                if not speaker_num.isdigit():
-                    raise ValueError("无效的SPEAKER格式")
-            except (IndexError, ValueError):
-                raise HTTPException(status_code=400, detail="SPEAKER格式应为: SPEAKER_XX（XX为数字）")
-        
-        speaker = custom_speakers_manager.add_speaker(name, voice_id, description)
+        speaker = custom_speakers_manager.add_speaker(voice_id)
         
         return {
             "success": True,
-            "message": f"成功添加自定义角色: {name}",
+            "message": f"成功添加自定义角色: {speaker.name}",
             "speaker": speaker.dict()
         }
         
@@ -210,15 +204,15 @@ async def add_custom_speaker(
 @router.put("/api/custom-speakers/{speaker_id}")
 async def update_custom_speaker(
     speaker_id: str,
-    name: str = Form(None),
-    voice_id: str = Form(None),
-    description: str = Form(None)
+    voice_id: str = Form(...)
 ):
-    """更新自定义角色"""
+    """更新自定义角色语音ID"""
     try:
-        speaker = custom_speakers_manager.update_speaker(
-            speaker_id, name, voice_id, description
-        )
+        voice_id = voice_id.strip()
+        if not voice_id:
+            raise HTTPException(status_code=400, detail="语音ID不能为空")
+            
+        speaker = custom_speakers_manager.update_speaker(speaker_id, voice_id)
         
         if not speaker:
             raise HTTPException(status_code=404, detail="角色不存在")
@@ -262,8 +256,7 @@ async def get_all_speakers():
             default_speakers.append({
                 "name": speaker_name,
                 "voice_id": voice_id,
-                "is_custom": False,
-                "description": "系统默认角色"
+                "is_custom": False
             })
         
         # 自定义角色信息
@@ -273,7 +266,6 @@ async def get_all_speakers():
                 "name": speaker.name,
                 "voice_id": speaker.voice_id,
                 "is_custom": True,
-                "description": speaker.description,
                 "id": speaker.id
             })
         

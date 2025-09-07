@@ -962,18 +962,9 @@
                 <div class="modal-body">
                     <form id="addSpeakerForm">
                         <div class="mb-3">
-                            <label for="speakerName" class="form-label">角色名称</label>
-                            <input type="text" class="form-control" id="speakerName" placeholder="如: SPEAKER_06, Mary, John" required>
-                            <div class="form-text">可以使用SPEAKER_XX格式或自定义名称</div>
-                        </div>
-                        <div class="mb-3">
                             <label for="speakerVoiceId" class="form-label">语音ID</label>
                             <input type="text" class="form-control" id="speakerVoiceId" placeholder="如: ai_her_04, wumei_yujie" required>
-                            <div class="form-text">请输入MiniMax支持的语音ID</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="speakerDescription" class="form-label">描述 (可选)</label>
-                            <input type="text" class="form-control" id="speakerDescription" placeholder="角色描述">
+                            <div class="form-text">请输入MiniMax支持的语音ID，系统将自动分配SPEAKER_XX角色名称</div>
                         </div>
                     </form>
                 </div>
@@ -3333,9 +3324,7 @@
         // 显示添加角色模态框
         function showAddSpeakerModal() {
             // 清空表单
-            document.getElementById('speakerName').value = '';
             document.getElementById('speakerVoiceId').value = '';
-            document.getElementById('speakerDescription').value = '';
             
             // 显示模态框
             const modal = new bootstrap.Modal(document.getElementById('addSpeakerModal'));
@@ -3344,20 +3333,16 @@
 
         // 添加自定义角色
         async function addCustomSpeaker() {
-            const name = document.getElementById('speakerName').value.trim();
             const voiceId = document.getElementById('speakerVoiceId').value.trim();
-            const description = document.getElementById('speakerDescription').value.trim();
 
-            if (!name || !voiceId) {
-                addLog('请填写角色名称和语音ID', 'error');
+            if (!voiceId) {
+                addLog('请填写语音ID', 'error');
                 return;
             }
 
             try {
                 const formData = new FormData();
-                formData.append('name', name);
                 formData.append('voice_id', voiceId);
-                formData.append('description', description);
 
                 const response = await fetch('/api/custom-speakers', {
                     method: 'POST',
@@ -3367,7 +3352,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    addLog(`✅ 成功添加自定义角色: ${name}`, 'success');
+                    addLog(`✅ 成功添加自定义角色: ${result.speaker.name}`, 'success');
                     
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addSpeakerModal'));
@@ -3431,7 +3416,6 @@
                                        data-speaker-id="${speaker.id}"
                                        data-speaker-name="${speaker.name}"
                                        onchange="updateCustomSpeakerVoice('${speaker.id}', this.value)">
-                                ${speaker.description ? `<small class="text-muted">${speaker.description}</small>` : ''}
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-danger ms-2" 
                                     onclick="deleteCustomSpeaker('${speaker.id}', '${speaker.name}')"
