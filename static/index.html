@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/project-manager.css" rel="stylesheet">
     <style>
         :root {
             --blue-50: #f0f9ff;
@@ -531,10 +532,35 @@
                 <div class="row g-4 mb-5">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>配置参数</h5>
+                                <button class="btn btn-sm btn-outline-primary" onclick="toggleProjectManager()" id="projectManagerToggle">
+                                    <i class="bi bi-folder2-open me-1"></i>项目管理
+                                </button>
                             </div>
                             <div class="card-body config-section">
+                                <!-- 项目管理面板 -->
+                                <div id="projectManagerPanel" style="display: none;" class="mb-4 p-3 border rounded bg-light">
+                                    <h6 class="mb-3">
+                                        <i class="bi bi-collection me-2"></i>我的项目 
+                                        <span class="badge bg-primary ms-2" id="projectCountBadge">0/5</span>
+                                    </h6>
+                                    <div id="projectList" class="mb-3">
+                                        <div class="text-center text-muted py-2">
+                                            <i class="bi bi-hourglass-split"></i>
+                                            正在加载项目列表...
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2 justify-content-between">
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="cleanupOldProjects()">
+                                            <i class="bi bi-trash me-1"></i>清理旧项目
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-secondary" onclick="refreshProjectList()">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>刷新列表
+                                        </button>
+                                    </div>
+                                </div>
+                                
                                 <form id="configForm">
                                     <!-- API配置 -->
                                     <div class="row g-3 mb-3">
@@ -943,6 +969,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/app.js"></script>
+    <script src="/static/js/project-manager.js"></script>
     <script>
         // 导出SRT文件函数
         async function exportSrtFile() {

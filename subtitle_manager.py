@@ -352,10 +352,39 @@ class SubtitleManager:
                 project.to_dict() for project in self.projects.values()
                 if getattr(project, 'session_id', None) == session_id
             ]
+            # 按更新时间降序排序
+            session_projects.sort(key=lambda x: x['updated_at'], reverse=True)
             return session_projects
         else:
             # 兼容性：如果没有session_id，返回所有项目
             return [project.to_dict() for project in self.projects.values()]
+    
+    def count_projects_by_session(self, session_id: str) -> int:
+        """统计指定会话的项目数量"""
+        return len([
+            project for project in self.projects.values()
+            if getattr(project, 'session_id', None) == session_id
+        ])
+    
+    async def check_project_limit(self, session_id: str, max_projects: int = 5) -> bool:
+        """检查项目数量是否超过限制"""
+        return self.count_projects_by_session(session_id) < max_projects
+    
+    async def cleanup_old_projects_if_needed(self, session_id: str, max_projects: int = 5):
+        """如果超过限制，删除最旧的项目"""
+        session_projects = [
+            project for project in self.projects.values()
+            if getattr(project, 'session_id', None) == session_id
+        ]
+        
+        if len(session_projects) >= max_projects:
+            # 按更新时间排序，删除最旧的项目
+            session_projects.sort(key=lambda x: x.updated_at)
+            projects_to_delete = session_projects[:len(session_projects) - max_projects + 1]
+            
+            for project in projects_to_delete:
+                await self.delete_project_from_disk(project.id)
+                print(f"🗑️ 自动删除旧项目: {project.filename} ({project.id[:8]}...)")
     
     def save_project(self, project: SubtitleProject):
         """保存项目到内存"""

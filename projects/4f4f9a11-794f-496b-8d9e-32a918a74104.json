@@ -1,0 +1,62 @@
+{
+  "id": "4f4f9a11-794f-496b-8d9e-32a918a74104",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "parse_double_life_English.srt_edited (7句话).srt_edited.srt",
+  "session_id": "tuZLMbvLHTkuUAkCw3dssLGT8G6o1Bc2bPJ8Y8b1R58",
+  "total_segments": 3,
+  "created_at": "2025-09-07T21:09:10.250266",
+  "updated_at": "2025-09-07T21:09:38.578020",
+  "segments": [
+    {
+      "id": "f5472fc5-adad-4f68-b731-149eb28e54b8",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 3680,
+      "audio_url": "/audio/segment_f5472fc5-adad-4f68-b731-149eb28e54b8_1757250579_0.mp3",
+      "trace_id": "",
+      "translated_text": "Привіт, тату, можна позичити 50 тисяч доларів?",
+      "created_at": "2025-09-07T21:09:10.250284",
+      "updated_at": "2025-09-07T21:09:39.187413"
+    },
+    {
+      "id": "246b80b2-e118-4f2a-8e35-5c638bc83aab",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 2.0,
+      "has_audio": true,
+      "audio_duration": 2403,
+      "audio_url": "/audio/segment_246b80b2-e118-4f2a-8e35-5c638bc83aab_1757250615_1.mp3",
+      "trace_id": "050cb726500e4150cac1e5fa07fbc020",
+      "translated_text": "Мамі потрібен діаліз, але в нас немає грошей.",
+      "created_at": "2025-09-07T21:09:10.250336",
+      "updated_at": "2025-09-07T21:10:15.036970"
+    },
+    {
+      "id": "f0c37dad-57f6-4c27-9069-8b9f50d122e2",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.6,
+      "has_audio": true,
+      "audio_duration": 1395,
+      "audio_url": "/audio/segment_f0c37dad-57f6-4c27-9069-8b9f50d122e2_1757250630_2.mp3",
+      "trace_id": "050cb735770bf353c0006c1570786804",
+      "translated_text": "Наталі, справа в тому...",
+      "created_at": "2025-09-07T21:09:10.250373",
+      "updated_at": "2025-09-07T21:10:30.160269"
+    }
+  ]
+}

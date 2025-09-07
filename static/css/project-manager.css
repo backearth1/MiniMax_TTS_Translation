@@ -1,0 +1,142 @@
+/* 项目管理模块样式 */
+
+#projectManagerPanel {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+#projectManagerPanel h6 {
+    color: #495057 !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 8px;
+    margin-bottom: 16px !important;
+}
+
+/* 项目卡片样式 */
+.project-card {
+    transition: all 0.2s ease !important;
+    background: white !important;
+    cursor: pointer;
+}
+
+.project-card:hover {
+    border-color: #6c757d !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    transform: translateY(-1px);
+}
+
+.project-card.border-primary {
+    border-color: #0d6efd !important;
+    background: rgba(13, 110, 253, 0.05) !important;
+}
+
+.project-card .text-truncate {
+    max-width: 200px;
+}
+
+/* 项目数量徽章 */
+#projectCountBadge {
+    font-size: 0.75em !important;
+    padding: 0.4em 0.6em !important;
+}
+
+/* 项目管理按钮组 */
+#projectManagerPanel .btn-group {
+    width: 100%;
+}
+
+#projectManagerPanel .btn-sm {
+    font-size: 0.75rem !important;
+    padding: 0.375rem 0.75rem !important;
+}
+
+/* 下拉菜单样式 */
+.project-card .dropdown-menu {
+    min-width: 160px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    border: 1px solid #dee2e6 !important;
+}
+
+.project-card .dropdown-item {
+    font-size: 0.875rem !important;
+    padding: 0.5rem 1rem !important;
+}
+
+.project-card .dropdown-item:hover {
+    background-color: #f8f9fa !important;
+}
+
+.project-card .dropdown-item.text-danger:hover {
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
+}
+
+/* 空状态样式 */
+#projectList .text-center {
+    padding: 2rem 1rem !important;
+}
+
+#projectList .text-center .fs-1 {
+    font-size: 3rem !important;
+    opacity: 0.5;
+}
+
+/* 项目管理切换按钮 */
+#projectManagerToggle {
+    border-color: #6c757d !important;
+    color: #6c757d !important;
+    background: white !important;
+}
+
+#projectManagerToggle:hover {
+    border-color: #495057 !important;
+    color: white !important;
+    background: #6c757d !important;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .project-card .text-truncate {
+        max-width: 150px;
+    }
+    
+    #projectManagerPanel {
+        margin: 0 -0.5rem !important;
+    }
+    
+    .project-card .small {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* 加载状态 */
+.project-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.project-loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 成功/错误状态指示 */
+.project-status-success {
+    border-left: 4px solid #28a745 !important;
+    background: rgba(40, 167, 69, 0.1) !important;
+}
+
+.project-status-error {
+    border-left: 4px solid #dc3545 !important;
+    background: rgba(220, 53, 69, 0.1) !important;
+}

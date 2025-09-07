@@ -22,6 +22,7 @@ from audio_processor import AudioProcessor
 from utils.logger import websocket_logger, get_process_logger
 from subtitle_manager import subtitle_manager
 from admin import admin_router, record_user_activity, start_cleanup_task
+from project_manager import router as project_manager_router
 
 from contextlib import asynccontextmanager
 
@@ -157,6 +158,9 @@ app.mount("/audio", StaticFiles(directory="audio_files"), name="audio")
 
 # 注册管理员路由
 app.include_router(admin_router)
+
+# 注册项目管理路由
+app.include_router(project_manager_router)
 
 @app.get("/")
 async def read_root():
@@ -461,6 +465,12 @@ async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None
     
     # 获取或创建会话ID
     session_id = get_or_create_session_id(request, response)
+    
+    # 检查项目数量限制（每个用户最多5个项目）
+    can_create = await subtitle_manager.check_project_limit(session_id, max_projects=5)
+    if not can_create:
+        # 自动清理旧项目
+        await subtitle_manager.cleanup_old_projects_if_needed(session_id, max_projects=5)
     
     # 记录用户活动（使用文件名作为临时clientId）
     temp_client_id = f"parse_{file.filename}"
