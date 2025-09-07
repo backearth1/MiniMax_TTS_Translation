@@ -142,10 +142,15 @@ async def adjust_text_length(
         # 获取代理设置
         proxy_settings = get_proxy_settings()
         
-        # 简化连接器设置，避免代理冲突
-        async with aiohttp.ClientSession() as session:
+        # 创建连接器，支持代理
+        connector = None
+        if proxy_settings:
+            connector = aiohttp.TCPConnector()
+        
+        async with aiohttp.ClientSession(connector=connector) as session:
             async with session.post(url, headers=headers, json=payload,
-                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"])) as response:
+                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
+                                  proxy=proxy_settings.get('https') if proxy_settings else None) as response:
                 response_data = await response.json()
                 
                 # 尝试从响应头或响应体中获取trace_id
