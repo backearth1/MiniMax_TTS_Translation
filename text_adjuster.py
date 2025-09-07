@@ -67,20 +67,30 @@ async def adjust_text_length(
     current_char_count = len(current_text)
     target_char_count = int(current_char_count * adjustment_ratio)
     
-    # 构建提示词
-    if adjustment_type == "shorten":
-        task_description = f"缩短文本，保持核心意思，使用更简洁的表达方式"
-        length_instruction = f"需要从当前{current_char_count}个字精简到约{target_char_count}个字（减少约{int((1-adjustment_ratio)*100)}%）"
-    else:  # lengthen
-        task_description = f"扩展文本，保持原意的基础上增加细节或使用更丰富的表达"
-        length_instruction = f"需要从当前{current_char_count}个字扩展到约{target_char_count}个字（增加约{int((adjustment_ratio-1)*100)}%）"
-    
     # 使用配置的翻译API端点
     base_url = get_api_endpoint("translation", api_endpoint)
     url = f"{base_url}?GroupId={group_id}"
     
     # 处理原文为空的情况
-    original_context = f"，原文参考：\"{original_text}\"" if original_text.strip() else ""
+    original_context = f"\n\n原文参考：{original_text}" if original_text.strip() else ""
+    
+    # 基于学习的翻译优化提示词
+    if adjustment_type == "shorten":
+        # 缩短文本的专用提示词（参考老版本的简洁设计）
+        system_prompt = "你是一个翻译优化专家，擅长根据需求调整翻译文本的长度和表达方式。"
+        user_prompt = f"""你的任务是翻译优化，原文："{original_text}"，当前{target_language}翻译："{current_text}"。
+
+缩短翻译的文字，同时保持意思完整和口语化表达，当前字符数是{current_char_count}个字，需要精简成约{target_char_count}个字（减少20%）
+
+请直接输出优化后的{target_language}翻译："""
+    else:  # lengthen
+        # 加长文本的专用提示词（参考老版本的简洁设计）  
+        system_prompt = "你是一个翻译优化专家，擅长根据需求调整翻译文本的长度和表达方式。"
+        user_prompt = f"""你的任务是翻译优化，原文："{original_text}"，当前{target_language}翻译："{current_text}"。
+
+丰富翻译的文字，增加适当的语气词、连接词或描述性词汇，保持口语化表达，当前字符数是{current_char_count}个字，需要扩展成约{target_char_count}个字（增加20%）
+
+请直接输出优化后的{target_language}翻译："""
     
     payload = {
         "model": Config.TRANSLATION_CONFIG["model"],
@@ -89,11 +99,11 @@ async def adjust_text_length(
         "messages": [
             {
                 "role": "system",
-                "content": "你是一个专业的文本调整专家，擅长在保持原意的基础上调整文本长度。请确保调整后的文本自然流畅，适合口语表达。"
+                "content": system_prompt
             },
             {
                 "role": "user", 
-                "content": f"请{task_description}。当前{target_language}文本：\"{current_text}\"{original_context}。{length_instruction}。请直接输出调整后的{target_language}文本："
+                "content": user_prompt
             }
         ],
     }
@@ -112,14 +122,11 @@ async def adjust_text_length(
         proxy_settings = get_proxy_settings()
         
         # 创建连接器，支持代理
-        connector = None
-        if proxy_settings:
-            connector = aiohttp.TCPConnector()
+        connector = aiohttp.TCPConnector()
         
-        async with aiohttp.ClientSession(connector=connector) as session:
+        async with aiohttp.ClientSession(connector=connector, trust_env=True) as session:
             async with session.post(url, headers=headers, json=payload,
-                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
-                                  proxy=proxy_settings.get('https') if proxy_settings else None) as response:
+                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"])) as response:
                 response_data = await response.json()
                 
                 # 尝试从响应头或响应体中获取trace_id

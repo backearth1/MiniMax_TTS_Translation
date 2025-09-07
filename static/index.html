@@ -3152,15 +3152,10 @@
 
         // 文本长度调整函数
         async function adjustSegmentText(segmentId, adjustmentType) {
-            console.log(`调整文本长度: segmentId=${segmentId}, type=${adjustmentType}`);
-            
             if (!currentSubtitleProject) {
-                console.log('错误: 没有当前项目');
                 showToast('请先上传SRT文件');
                 return;
             }
-            
-            console.log(`当前项目: ${currentSubtitleProject.id}`);
 
             // 获取当前配置
             const groupId = document.getElementById('groupId')?.value;
@@ -3168,32 +3163,23 @@
             const targetLanguage = document.getElementById('language')?.value;
             const apiEndpoint = document.getElementById('apiEndpoint')?.value || 'domestic';
 
-            console.log(`配置检查: groupId=${groupId}, apiKey=${apiKey ? '已设置' : '未设置'}, language=${targetLanguage}, endpoint=${apiEndpoint}`);
-
             if (!groupId || !apiKey) {
-                console.log('错误: API配置信息不完整');
                 showToast('请先填写API配置信息');
                 return;
             }
 
             if (!targetLanguage) {
-                console.log('错误: 未选择目标语言');
                 showToast('请先选择目标语言');
                 return;
             }
 
             // 查找按钮并设置加载状态
             const buttons = document.querySelectorAll(`[data-segment-id="${segmentId}"].text-adjust-btn`);
-            console.log(`找到 ${buttons.length} 个调整按钮`);
-            
             const targetButton = Array.from(buttons).find(btn => btn.dataset.adjustmentType === adjustmentType);
             
             if (!targetButton) {
-                console.log(`错误: 找不到${adjustmentType}按钮`);
                 return;
             }
-            
-            console.log(`找到目标按钮，开始处理...`);
 
             const originalText = targetButton.innerHTML;
             const actionText = adjustmentType === 'shorten' ? '缩短' : '加长';
@@ -3213,16 +3199,12 @@
 
                 // 发送调整请求
                 const url = `/api/subtitle/${currentSubtitleProject.id}/segment/${segmentId}/adjust-text`;
-                console.log(`发送请求到: ${url}`);
-                
                 const response = await fetch(url, {
                     method: 'POST',
                     body: formData
                 });
 
-                console.log(`响应状态: ${response.status}`);
                 const result = await response.json();
-                console.log(`响应结果:`, result);
 
                 if (result.success) {
                     // 显示成功消息
@@ -3256,6 +3238,9 @@
                     if (segmentIndex !== -1) {
                         segments[segmentIndex].translated_text = result.adjusted_text;
                     }
+                    
+                    // 重新加载段落数据以确保项目中的数据也是最新的
+                    await loadSubtitleSegments();
                     
                     // 记录到日志
                     addLog(`段落 ${segmentId} 文本${actionText}成功：${changeInfo.original_length} → ${changeInfo.new_length} 字`, 'success');
