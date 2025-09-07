@@ -10,6 +10,8 @@ from typing import List, Dict, Optional, Tuple
 from datetime import datetime
 from pathlib import Path
 import asyncio
+import aiofiles
+import shutil
 
 class EmotionDetector:
     """情绪识别器"""
@@ -213,6 +215,34 @@ class SubtitleProject:
             "created_at": self.created_at,
             "updated_at": self.updated_at
         }
+    
+    def to_full_dict(self) -> Dict:
+        """转换为完整字典格式（包含所有段落数据）"""
+        return {
+            "id": self.id,
+            "filename": self.filename,
+            "client_id": self.client_id,
+            "total_segments": self.total_segments,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "segments": [segment.to_dict() for segment in self.segments]
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'SubtitleProject':
+        """从字典创建项目实例"""
+        project = cls(data["filename"], data.get("client_id"))
+        project.id = data["id"]
+        project.total_segments = data.get("total_segments", 0)
+        project.created_at = data.get("created_at", datetime.now().isoformat())
+        project.updated_at = data.get("updated_at", datetime.now().isoformat())
+        
+        # 恢复段落数据
+        if "segments" in data:
+            project.segments = [SubtitleSegment.from_dict(seg_data) for seg_data in data["segments"]]
+            project.total_segments = len(project.segments)
+        
+        return project
 
 
 class SubtitleManager:
@@ -220,6 +250,8 @@ class SubtitleManager:
     
     def __init__(self):
         self.projects: Dict[str, SubtitleProject] = {}
+        self.projects_dir = Path("projects")
+        self.projects_dir.mkdir(exist_ok=True)
     
     async def parse_srt_file(self, file_content: str, filename: str, client_id: str = None) -> Tuple[bool, str, Optional[SubtitleProject]]:
         """
@@ -317,6 +349,80 @@ class SubtitleManager:
         if project and project.id:
             self.projects[project.id] = project
             project.updated_at = datetime.now().isoformat()
+    
+    async def save_project_to_disk(self, project: SubtitleProject):
+        """保存项目到磁盘"""
+        if not project or not project.id:
+            return False
+        
+        try:
+            project_file = self.projects_dir / f"{project.id}.json"
+            project_data = project.to_full_dict()
+            
+            async with aiofiles.open(project_file, 'w', encoding='utf-8') as f:
+                await f.write(json.dumps(project_data, ensure_ascii=False, indent=2))
+            
+            # 同时保存到内存
+            self.save_project(project)
+            return True
+        except Exception as e:
+            print(f"保存项目到磁盘失败: {e}")
+            return False
+    
+    async def load_project_from_disk(self, project_id: str) -> Optional[SubtitleProject]:
+        """从磁盘加载项目"""
+        try:
+            project_file = self.projects_dir / f"{project_id}.json"
+            if not project_file.exists():
+                return None
+            
+            async with aiofiles.open(project_file, 'r', encoding='utf-8') as f:
+                project_data = json.loads(await f.read())
+            
+            project = SubtitleProject.from_dict(project_data)
+            # 加载到内存
+            self.projects[project.id] = project
+            return project
+        except Exception as e:
+            print(f"从磁盘加载项目失败: {e}")
+            return None
+    
+    async def load_all_projects_from_disk(self):
+        """从磁盘加载所有项目"""
+        try:
+            project_files = list(self.projects_dir.glob("*.json"))
+            loaded_count = 0
+            
+            for project_file in project_files:
+                try:
+                    project_id = project_file.stem
+                    project = await self.load_project_from_disk(project_id)
+                    if project:
+                        loaded_count += 1
+                except Exception as e:
+                    print(f"加载项目文件 {project_file} 失败: {e}")
+            
+            print(f"从磁盘加载了 {loaded_count} 个项目")
+            return loaded_count
+        except Exception as e:
+            print(f"加载项目列表失败: {e}")
+            return 0
+    
+    async def delete_project_from_disk(self, project_id: str) -> bool:
+        """从磁盘删除项目"""
+        try:
+            project_file = self.projects_dir / f"{project_id}.json"
+            if project_file.exists():
+                project_file.unlink()
+            
+            # 同时从内存删除
+            if project_id in self.projects:
+                del self.projects[project_id]
+            
+            return True
+        except Exception as e:
+            print(f"删除项目文件失败: {e}")
+            return False
 
 
 # 全局字幕管理器实例

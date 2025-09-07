@@ -74,6 +74,13 @@ async def lifespan(app: FastAPI):
     # 创建必要目录
     create_directories()
     
+    # 加载已保存的项目
+    try:
+        loaded_count = await subtitle_manager.load_all_projects_from_disk()
+        print(f"📂 已加载 {loaded_count} 个保存的项目")
+    except Exception as e:
+        print(f"⚠️ 加载项目失败: {e}")
+    
     # 启动管理员清理任务
     start_cleanup_task()
     
@@ -441,6 +448,9 @@ async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None
         if not success:
             raise HTTPException(status_code=400, detail=error_msg)
         
+        # 自动保存项目到磁盘
+        await subtitle_manager.save_project_to_disk(project)
+        
         return {
             "success": True,
             "project": project.to_dict(),
@@ -606,7 +616,8 @@ async def delete_subtitle_segment(project_id: str, segment_id: str):
 async def delete_project(project_id: str):
     """删除整个字幕项目"""
     try:
-        success = subtitle_manager.delete_project(project_id)
+        # 删除磁盘文件和内存数据
+        success = await subtitle_manager.delete_project_from_disk(project_id)
         if not success:
             raise HTTPException(status_code=404, detail="项目未找到")
         
@@ -882,7 +893,7 @@ async def batch_generate_tts_for_project(
                 
                 # 保存当前进度
                 try:
-                    subtitle_manager.save_project(project)
+                    await subtitle_manager.save_project_to_disk(project)
                     await logger.success("进度保存成功", f"已生成 {len(updated_segments)} 个音频文件")
                 except Exception as save_error:
                     await logger.error("进度保存失败", f"错误: {str(save_error)}")
@@ -1214,7 +1225,7 @@ async def batch_generate_tts_for_project(
         
         # 保存项目，确保翻译优化能够持久化
         try:
-            subtitle_manager.save_project(project)
+            await subtitle_manager.save_project_to_disk(project)
             await logger.info("批量TTS项目保存", "项目保存成功: 翻译优化已持久化")
         except Exception as e:
             await logger.error("批量TTS项目保存失败", f"错误: {str(e)}")
@@ -1432,7 +1443,7 @@ async def translate_segment(
         if translated_text:
             # 更新段落的翻译文本
             segment.translated_text = translated_text
-            subtitle_manager.save_project(project)
+            await subtitle_manager.save_project_to_disk(project)
             
             return {
                 "success": True,
@@ -1502,7 +1513,7 @@ async def batch_translate_project(
                 await logger.warning("任务被中断", f"已处理 {i-1}/{total_segments} 个段落，正在保存进度...")
                 # 保存当前进度
                 try:
-                    subtitle_manager.save_project(project)
+                    await subtitle_manager.save_project_to_disk(project)
                     await logger.success("进度保存成功", f"已保存 {successful_translations} 个翻译结果")
                 except Exception as save_error:
                     await logger.error("进度保存失败", f"错误: {str(save_error)}")
@@ -1558,7 +1569,7 @@ async def batch_translate_project(
         
         # 保存项目
         try:
-            subtitle_manager.save_project(project)
+            await subtitle_manager.save_project_to_disk(project)
             await logger.info("项目保存成功", f"项目ID: {project_id}")
         except Exception as save_error:
             await logger.error("项目保存失败", f"错误: {str(save_error)}")
@@ -1653,7 +1664,7 @@ async def batch_update_speaker(
             raise HTTPException(status_code=404, detail="没有找到要修改的段落")
         
         # 保存项目
-        subtitle_manager.save_project(project)
+        await subtitle_manager.save_project_to_disk(project)
         
         return {
             "success": True,
