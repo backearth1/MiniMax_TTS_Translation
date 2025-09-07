@@ -2051,6 +2051,20 @@
             };
         }
 
+        // 检查是否有已保存的项目
+        async function checkForSavedProjects() {
+            try {
+                const response = await fetch('/api/projects');
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.projects && data.projects.length > 0;
+                }
+            } catch (error) {
+                console.log('检查已保存项目失败:', error);
+            }
+            return false;
+        }
+
         // 自动加载示例SRT文件
         async function loadSampleSrt() {
             try {
@@ -2229,10 +2243,25 @@
         }
 
         // 页面加载完成后自动加载示例文件
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // 角色配置现在在HTML中静态定义，无需动态加载
-            // 加载示例文件
-            loadSampleSrt();
+            
+            // 检查是否有已保存的项目，只有在没有项目时才加载示例文件
+            const hasSavedProjects = await checkForSavedProjects();
+            if (!hasSavedProjects) {
+                // 只有在没有保存项目时才加载示例文件
+                loadSampleSrt();
+            } else {
+                // 如果有保存的项目，显示提示用户选择项目
+                const container = document.getElementById('subtitleEditor');
+                container.innerHTML = `
+                    <div class="text-center py-5" style="color: var(--blue-600);">
+                        <i class="bi bi-folder2-open fs-1"></i>
+                        <p class="mt-2">检测到已保存的项目</p>
+                        <p class="text-muted">请从API端点 /api/projects 获取项目列表，或上传新的SRT文件</p>
+                    </div>
+                `;
+            }
             
             // 隐藏翻译功能区域
             const translationSection = document.getElementById('translationSection');
