@@ -1,24 +1,10 @@
 /* 进度跟踪器样式 */
 .progress-tracker {
-    position: fixed;
-    top: 56px; /* 导航栏高度 */
-    left: 0;
-    right: 0;
-    z-index: 1040;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, var(--blue-50) 0%, var(--blue-100) 100%);
     border-bottom: 1px solid var(--blue-200);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 10px 0;
-}
-
-.progress-container {
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--blue-100);
-}
-
-.progress-container:last-child {
-    border-bottom: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 12px 0;
+    margin-bottom: 0;
 }
 
 .progress-header {
@@ -89,23 +75,17 @@
     }
 }
 
-/* 确保主内容区域不被进度条遮挡 */
-body.progress-active {
-    padding-top: 140px;
-}
-
-body.progress-active .container-fluid {
-    transition: padding-top 0.3s ease;
-}
-
-/* 进度条淡入淡出效果 */
-.progress-tracker {
+/* 进度条容器的显示/隐藏效果 */
+.progress-container {
     transition: all 0.3s ease;
+    max-height: 0;
+    overflow: hidden;
     opacity: 0;
-    transform: translateY(-100%);
+    padding: 6px 0;
 }
 
-.progress-tracker.show {
+.progress-container.show {
+    max-height: 70px;
     opacity: 1;
-    transform: translateY(0);
+    padding: 8px 0;
 }

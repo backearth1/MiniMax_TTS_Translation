@@ -31,36 +31,40 @@ class ProgressTracker {
     createProgressBars() {
         // 创建进度条HTML
         const progressHTML = `
-            <div id="progressTracker" class="progress-tracker" style="display: none;">
+            <div id="progressTracker" class="progress-tracker">
                 <!-- 翻译进度条 -->
-                <div id="translationProgressContainer" class="progress-container" style="display: none;">
-                    <div class="progress-header">
-                        <span class="progress-title">
-                            <i class="bi bi-translate me-1"></i>批量翻译
-                        </span>
-                        <span class="progress-text" id="translationProgressText">正在处理 0/0</span>
-                    </div>
-                    <div class="progress mb-2">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                             id="translationProgressBar" 
-                             role="progressbar" 
-                             style="width: 0%"></div>
+                <div id="translationProgressContainer" class="progress-container">
+                    <div class="container-fluid">
+                        <div class="progress-header">
+                            <span class="progress-title">
+                                <i class="bi bi-translate me-1"></i>批量翻译
+                            </span>
+                            <span class="progress-text" id="translationProgressText">准备就绪</span>
+                        </div>
+                        <div class="progress mb-2">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 id="translationProgressBar" 
+                                 role="progressbar" 
+                                 style="width: 0%"></div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- TTS进度条 -->
-                <div id="ttsProgressContainer" class="progress-container" style="display: none;">
-                    <div class="progress-header">
-                        <span class="progress-title">
-                            <i class="bi bi-music-note-list me-1"></i>批量TTS
-                        </span>
-                        <span class="progress-text" id="ttsProgressText">正在处理 0/0</span>
-                    </div>
-                    <div class="progress mb-2">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                             id="ttsProgressBar" 
-                             role="progressbar" 
-                             style="width: 0%"></div>
+                <div id="ttsProgressContainer" class="progress-container">
+                    <div class="container-fluid">
+                        <div class="progress-header">
+                            <span class="progress-title">
+                                <i class="bi bi-music-note-list me-1"></i>批量TTS
+                            </span>
+                            <span class="progress-text" id="ttsProgressText">准备就绪</span>
+                        </div>
+                        <div class="progress mb-2">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 id="ttsProgressBar" 
+                                 role="progressbar" 
+                                 style="width: 0%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -195,12 +199,9 @@ class ProgressTracker {
         this.translationProgress.total = 0;
         
         const container = document.getElementById('translationProgressContainer');
-        const tracker = document.getElementById('progressTracker');
         
-        if (container) container.style.display = 'block';
-        if (tracker) {
-            tracker.style.display = 'block';
-            tracker.classList.add('show');
+        if (container) {
+            container.classList.add('show');
         }
         
         this.updateTranslationProgress(0, 0);
@@ -212,12 +213,9 @@ class ProgressTracker {
         this.ttsProgress.total = 0;
         
         const container = document.getElementById('ttsProgressContainer');
-        const tracker = document.getElementById('progressTracker');
         
-        if (container) container.style.display = 'block';
-        if (tracker) {
-            tracker.style.display = 'block';
-            tracker.classList.add('show');
+        if (container) {
+            container.classList.add('show');
         }
         
         this.updateTTSProgress(0, 0);
@@ -265,9 +263,9 @@ class ProgressTracker {
         // 延迟隐藏，让用户看到100%完成状态
         setTimeout(() => {
             const container = document.getElementById('translationProgressContainer');
-            if (container) container.style.display = 'none';
-            
-            this.checkIfAllHidden();
+            if (container) {
+                container.classList.remove('show');
+            }
         }, 2000);
     }
 
@@ -277,9 +275,9 @@ class ProgressTracker {
         // 延迟隐藏，让用户看到100%完成状态
         setTimeout(() => {
             const container = document.getElementById('ttsProgressContainer');
-            if (container) container.style.display = 'none';
-            
-            this.checkIfAllHidden();
+            if (container) {
+                container.classList.remove('show');
+            }
         }, 2000);
     }
 
@@ -288,31 +286,17 @@ class ProgressTracker {
         this.ttsProgress.active = false;
         
         setTimeout(() => {
-            const tracker = document.getElementById('progressTracker');
             const translationContainer = document.getElementById('translationProgressContainer');
             const ttsContainer = document.getElementById('ttsProgressContainer');
             
-            if (tracker) {
-                tracker.classList.remove('show');
-                setTimeout(() => {
-                    tracker.style.display = 'none';
-                }, 300); // 等待CSS动画完成
-            }
-            if (translationContainer) translationContainer.style.display = 'none';
-            if (ttsContainer) ttsContainer.style.display = 'none';
+            if (translationContainer) translationContainer.classList.remove('show');
+            if (ttsContainer) ttsContainer.classList.remove('show');
         }, 2000);
     }
 
     checkIfAllHidden() {
-        if (!this.translationProgress.active && !this.ttsProgress.active) {
-            const tracker = document.getElementById('progressTracker');
-            if (tracker) {
-                tracker.classList.remove('show');
-                setTimeout(() => {
-                    tracker.style.display = 'none';
-                }, 300);
-            }
-        }
+        // 由于进度条现在固定显示，不需要隐藏整个tracker
+        // 只需要确保各个进度容器正确隐藏即可
     }
 
     // 手动控制进度（供外部调用）
