@@ -577,7 +577,7 @@
                                         <div class="col-4">
                                             <label for="language" class="form-label">语言</label>
                                             <select class="form-select" id="language">
-                                                <option value="Chinese" selected>中文</option>
+                                                <option value="Chinese">中文</option>
                                                 <option value="Chinese,Yue">粤语</option>
                                                 <option value="English">英语</option>
                                                 <option value="Arabic">阿拉伯语</option>
@@ -2201,9 +2201,15 @@
                     
                     console.log('配置已自动加载');
                     return true;
+                } else {
+                    // 没有保存的配置时，设置默认语言为中文
+                    document.getElementById('language').value = 'Chinese';
+                    console.log('设置默认语言为中文');
                 }
             } catch (error) {
                 console.error('加载配置失败:', error);
+                // 出错时也设置默认语言
+                document.getElementById('language').value = 'Chinese';
             }
             return false;
         }
