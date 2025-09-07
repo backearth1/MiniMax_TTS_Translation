@@ -1,0 +1,62 @@
+{
+  "id": "bdd7c1f1-32fe-4ea6-83c4-cc0a34b7463b",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "parse_double_life_English.srt_edited (7句话).srt_edited.srt",
+  "session_id": "NB5XHkqR622A8gyz-lNKA_3k1psN71rocQn1yyNUhUI",
+  "total_segments": 3,
+  "created_at": "2025-09-07T22:34:08.770914",
+  "updated_at": "2025-09-07T22:34:32.289559",
+  "segments": [
+    {
+      "id": "5c4b688d-828e-4390-931b-e6146cadbfd4",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 2400,
+      "audio_url": "/audio/segment_5c4b688d-828e-4390-931b-e6146cadbfd4_1757255672_0.mp3",
+      "trace_id": "",
+      "translated_text": "Hey Dad, can I borrow $50,000?",
+      "created_at": "2025-09-07T22:34:08.770931",
+      "updated_at": "2025-09-07T22:34:32.870389"
+    },
+    {
+      "id": "7a70b9d7-aac3-43ca-b01d-41e691408944",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.6,
+      "has_audio": true,
+      "audio_duration": 1703,
+      "audio_url": "/audio/segment_7a70b9d7-aac3-43ca-b01d-41e691408944_1757255701_1.mp3",
+      "trace_id": "050ccb01cea05acee3ced4c7aeb13641",
+      "translated_text": "Mom needs dialysis but we can't afford it.",
+      "created_at": "2025-09-07T22:34:08.770974",
+      "updated_at": "2025-09-07T22:35:01.636097"
+    },
+    {
+      "id": "08a66331-e52e-4ba8-b072-8f71c1672eba",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 2.0,
+      "has_audio": true,
+      "audio_duration": 1383,
+      "audio_url": "/audio/segment_08a66331-e52e-4ba8-b072-8f71c1672eba_1757255719_2.mp3",
+      "trace_id": "050ccb12df8c25bd052ea5d23a192364",
+      "translated_text": null,
+      "created_at": "2025-09-07T22:34:08.771008",
+      "updated_at": "2025-09-07T22:35:19.801495"
+    }
+  ]
+}

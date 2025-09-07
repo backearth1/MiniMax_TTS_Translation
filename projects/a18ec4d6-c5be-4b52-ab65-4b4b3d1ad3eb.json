@@ -1,0 +1,62 @@
+{
+  "id": "a18ec4d6-c5be-4b52-ab65-4b4b3d1ad3eb",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "parse_double_life_English.srt_edited (7句话).srt_edited.srt",
+  "session_id": "JZJCjC7tZximOq6UU7FqtYJEwac3rYBjc3I1eJwSWL0",
+  "total_segments": 3,
+  "created_at": "2025-09-07T21:38:22.669813",
+  "updated_at": "2025-09-07T21:38:41.366220",
+  "segments": [
+    {
+      "id": "87dbfdeb-640b-4b65-bc40-2121ebf17331",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.3,
+      "has_audio": true,
+      "audio_duration": 3766,
+      "audio_url": "/audio/segment_87dbfdeb-640b-4b65-bc40-2121ebf17331_1757252344_0.mp3",
+      "trace_id": "050cbde2c07191da578c6aa6f05d6e3c",
+      "translated_text": "Oye, papá, ¿puedo pedir prestados 50,000 dólares?",
+      "created_at": "2025-09-07T21:38:22.669829",
+      "updated_at": "2025-09-07T21:39:04.595553"
+    },
+    {
+      "id": "c13014cf-3fb4-4f4a-90b2-0b785ac6e7f1",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 3062,
+      "audio_url": "/audio/segment_c13014cf-3fb4-4f4a-90b2-0b785ac6e7f1_1757252368_1.mp3",
+      "trace_id": "050cbdfef5fe2d01aa88e52e4840fd6e",
+      "translated_text": "Mi mamá necesita diálisis y no tenemos dinero.",
+      "created_at": "2025-09-07T21:38:22.669876",
+      "updated_at": "2025-09-07T21:39:28.121028"
+    },
+    {
+      "id": "a44bdfb7-39d8-4340-ae54-cc7b2312b813",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 784,
+      "audio_url": "/audio/segment_a44bdfb7-39d8-4340-ae54-cc7b2312b813_1757252381_2.mp3",
+      "trace_id": "050cbe0cb1ae1875614c0ff854e3bccb",
+      "translated_text": "Natalie, mira...",
+      "created_at": "2025-09-07T21:38:22.669910",
+      "updated_at": "2025-09-07T21:39:41.328330"
+    }
+  ]
+}

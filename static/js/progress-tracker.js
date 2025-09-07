@@ -234,40 +234,31 @@ class ProgressTracker {
 
         // 匹配一键翻译完成
         if (message.includes('一键翻译流程完成')) {
-            // 延迟一秒后隐藏所有进度条
-            setTimeout(() => {
-                this.hideAllProgress();
-            }, 1500);
+            // 一键翻译完成后，保持所有进度条在完成状态，不重置
             return;
         }
     }
 
     checkTaskCompletion(message) {
-        // 检查翻译完成
+        // 检查翻译完成 - 保持完成状态，不重置
         if (message.includes('批量翻译完成') || 
             message.includes('步骤1: 批量翻译完成')) {
-            this.hideTranslationProgress();
+            this.completeTranslationProgress();
         }
 
-        // 检查TTS完成
+        // 检查TTS完成 - 保持完成状态，不重置
         if (message.includes('步骤2: 批量TTS完成') || 
             message.includes('批量TTS完成')) {
-            this.hideTTSProgress();
+            this.completeTTSProgress();
         }
 
         // 检查拼接音频进度
         this.parseMergeProgress(message);
 
-        // 检查拼接音频完成（单独操作）
+        // 检查拼接音频完成 - 保持完成状态，不重置
         if (message.includes('步骤3: 拼接音频完成') || 
             message.includes('音频拼接完成')) {
-            this.hideMergeProgress();
-            // 如果不是一键翻译流程，只隐藏拼接进度
-            if (!message.includes('一键翻译')) {
-                setTimeout(() => {
-                    this.hideMergeProgress();
-                }, 2000);
-            }
+            this.completeMergeProgress();
         }
     }
 
@@ -276,11 +267,8 @@ class ProgressTracker {
         this.translationProgress.current = 0;
         this.translationProgress.total = 0;
         
-        const container = document.getElementById('translationProgressContainer');
-        
-        if (container) {
-            container.classList.add('show');
-        }
+        // 重置进度条到初始状态
+        this.resetTranslationProgress();
         
         this.updateTranslationProgress(0, 0);
     }
@@ -290,11 +278,8 @@ class ProgressTracker {
         this.ttsProgress.current = 0;
         this.ttsProgress.total = 0;
         
-        const container = document.getElementById('ttsProgressContainer');
-        
-        if (container) {
-            container.classList.add('show');
-        }
+        // 重置进度条到初始状态
+        this.resetTTSProgress();
         
         this.updateTTSProgress(0, 0);
     }
@@ -364,6 +349,9 @@ class ProgressTracker {
         this.mergeProgress.current = 0;
         this.mergeProgress.total = 3;
         
+        // 重置进度条到初始状态
+        this.resetMergeProgress();
+        
         this.updateMergeProgress(0, 3);
     }
 
@@ -412,6 +400,68 @@ class ProgressTracker {
         }, 2000);
     }
 
+    // 完成状态函数 - 保持100%状态，不重置
+    completeTranslationProgress() {
+        this.translationProgress.active = false;
+        const progressText = document.getElementById('translationProgressText');
+        if (progressText) {
+            progressText.textContent = '翻译完成';
+        }
+    }
+
+    completeTTSProgress() {
+        this.ttsProgress.active = false;
+        const progressText = document.getElementById('ttsProgressText');
+        if (progressText) {
+            progressText.textContent = 'TTS完成';
+        }
+    }
+
+    completeMergeProgress() {
+        this.mergeProgress.active = false;
+        const progressText = document.getElementById('mergeProgressText');
+        if (progressText) {
+            progressText.textContent = '拼接完成';
+        }
+    }
+
+    // 重置函数 - 新任务开始时调用
+    resetTranslationProgress() {
+        const progressText = document.getElementById('translationProgressText');
+        const progressBar = document.getElementById('translationProgressBar');
+        
+        if (progressText) {
+            progressText.textContent = '准备就绪';
+        }
+        if (progressBar) {
+            progressBar.style.width = '0%';
+        }
+    }
+
+    resetTTSProgress() {
+        const progressText = document.getElementById('ttsProgressText');
+        const progressBar = document.getElementById('ttsProgressBar');
+        
+        if (progressText) {
+            progressText.textContent = '准备就绪';
+        }
+        if (progressBar) {
+            progressBar.style.width = '0%';
+        }
+    }
+
+    resetMergeProgress() {
+        const progressText = document.getElementById('mergeProgressText');
+        const progressBar = document.getElementById('mergeProgressBar');
+        
+        if (progressText) {
+            progressText.textContent = '准备就绪';
+        }
+        if (progressBar) {
+            progressBar.style.width = '0%';
+        }
+    }
+
     hideAllProgress() {
         this.translationProgress.active = false;
         this.ttsProgress.active = false;
@@ -455,9 +505,19 @@ class ProgressTracker {
 
     // 重置所有进度
     reset() {
-        this.hideAllProgress();
+        this.translationProgress.active = false;
+        this.ttsProgress.active = false;
+        this.mergeProgress.active = false;
+        
+        // 调用各个重置函数
+        this.resetTranslationProgress();
+        this.resetTTSProgress();
+        this.resetMergeProgress();
+        
+        // 重置内部状态
         this.translationProgress = { current: 0, total: 0, active: false };
         this.ttsProgress = { current: 0, total: 0, active: false };
+        this.mergeProgress = { current: 0, total: 0, active: false };
     }
 
     // 测试函数 - 手动显示进度条
@@ -481,12 +541,14 @@ class ProgressTracker {
         setTimeout(() => {
             // 拼接完成
             this.updateMergeProgress(3, 3);
+            this.completeMergeProgress();
         }, 4500);
         
         setTimeout(() => {
-            // 重置所有进度
-            this.hideAllProgress();
-        }, 7000);
+            // 完成所有任务，保持完成状态，不重置
+            this.completeTranslationProgress();
+            this.completeTTSProgress();
+        }, 6000);
     }
 }
 
