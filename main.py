@@ -162,6 +162,10 @@ app.include_router(admin_router)
 # 注册项目管理路由
 app.include_router(project_manager_router)
 
+# 注册文本调整路由
+from text_adjuster import router as text_adjuster_router
+app.include_router(text_adjuster_router)
+
 @app.get("/")
 async def read_root():
     """主页重定向到静态文件"""

@@ -324,6 +324,44 @@
             box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
             border-color: var(--blue-300);
         }
+
+        /* 文本调整按钮样式 */
+        .text-adjustment-buttons {
+            flex-wrap: nowrap;
+        }
+        
+        .text-adjust-btn {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .text-adjust-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .text-adjust-btn:disabled {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .text-adjustment-buttons .btn {
+            min-width: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .text-adjust-btn {
+                font-size: 0.65rem;
+                padding: 0.15rem 0.3rem;
+            }
+            
+            .text-adjust-btn i {
+                display: none;
+            }
+        }
         
         .upload-zone {
             border-color: var(--blue-300) !important;
@@ -982,6 +1020,7 @@
     <script src="/static/js/app.js"></script>
     <script src="/static/js/project-manager.js"></script>
     <script src="/static/js/progress-tracker.js"></script>
+    <script src="/static/js/text-adjuster.js"></script>
     <script>
         // 导出SRT文件函数
         async function exportSrtFile() {
@@ -1194,11 +1233,32 @@
                                     <small style="color: var(--pink-700); font-weight: 500;">原文: ${segment.text}</small>
                                 </div>
                                 ${segment.translated_text ? 
-                                    `<div class="mb-1">
-                                        <small style="color: var(--blue-600); font-weight: 500;">译文: ${segment.translated_text}</small>
+                                    `<div class="mb-1 d-flex align-items-center">
+                                        <small style="color: var(--blue-600); font-weight: 500;" class="translation-text">译文: ${segment.translated_text}</small>
+                                        <div class="text-adjustment-buttons d-inline-flex gap-1 ms-2">
+                                            <button type="button" class="btn btn-outline-primary btn-sm text-adjust-btn" 
+                                                    data-segment-id="${segment.id}" 
+                                                    data-project-id="${currentSubtitleProject.id}"
+                                                    data-adjustment-type="shorten"
+                                                    title="缩短译文约20%"
+                                                    onclick="adjustSegmentText('${segment.id}', 'shorten')">
+                                                <i class="bi bi-arrow-down-circle me-1"></i>缩短
+                                            </button>
+                                            <button type="button" class="btn btn-outline-success btn-sm text-adjust-btn"
+                                                    data-segment-id="${segment.id}"
+                                                    data-project-id="${currentSubtitleProject.id}" 
+                                                    data-adjustment-type="lengthen"
+                                                    title="加长译文约20%"
+                                                    onclick="adjustSegmentText('${segment.id}', 'lengthen')">
+                                                <i class="bi bi-arrow-up-circle me-1"></i>加长
+                                            </button>
+                                        </div>
                                     </div>` : 
-                                    `<div class="mb-1">
+                                    `<div class="mb-1 d-flex align-items-center">
                                         <small style="color: var(--gray-500); font-style: italic;">译文: 未翻译</small>
+                                        <div class="text-adjustment-buttons d-inline-flex gap-1 ms-2">
+                                            <small class="text-muted fst-italic">需要先翻译</small>
+                                        </div>
                                     </div>`
                                 }
                             </div>
@@ -3090,6 +3150,116 @@
                 stopRealTimeLogUpdates();
                 return { success: false, message: error.message };
             }
+        }
+
+        // 文本长度调整函数
+        async function adjustSegmentText(segmentId, adjustmentType) {
+            if (!currentSubtitleProject) {
+                showAlert('请先上传SRT文件', 'warning');
+                return;
+            }
+
+            // 获取当前配置
+            const groupId = document.getElementById('groupId')?.value;
+            const apiKey = document.getElementById('apiKey')?.value;
+            const targetLanguage = document.getElementById('languageSelect')?.value;
+            const apiEndpoint = document.getElementById('apiEndpoint')?.value || 'domestic';
+
+            if (!groupId || !apiKey) {
+                showAlert('请先填写API配置信息', 'warning');
+                return;
+            }
+
+            if (!targetLanguage) {
+                showAlert('请先选择目标语言', 'warning');
+                return;
+            }
+
+            // 查找按钮并设置加载状态
+            const buttons = document.querySelectorAll(`[data-segment-id="${segmentId}"].text-adjust-btn`);
+            const targetButton = Array.from(buttons).find(btn => btn.dataset.adjustmentType === adjustmentType);
+            
+            if (!targetButton) return;
+
+            const originalText = targetButton.innerHTML;
+            const actionText = adjustmentType === 'shorten' ? '缩短' : '加长';
+            
+            // 禁用所有调整按钮
+            buttons.forEach(btn => btn.disabled = true);
+            targetButton.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>${actionText}中...`;
+
+            try {
+                // 准备表单数据
+                const formData = new FormData();
+                formData.append('adjustment_type', adjustmentType);
+                formData.append('groupId', groupId);
+                formData.append('apiKey', apiKey);
+                formData.append('target_language', targetLanguage);
+                formData.append('apiEndpoint', apiEndpoint);
+
+                // 发送调整请求
+                const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/segment/${segmentId}/adjust-text`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 显示成功消息
+                    const changeInfo = result.length_change;
+                    const changeText = changeInfo.change_percentage > 0 ? 
+                        `增加${changeInfo.change_percentage}%` : 
+                        `减少${Math.abs(changeInfo.change_percentage)}%`;
+                    
+                    showAlert(
+                        `文本${actionText}成功！长度变化：${changeInfo.original_length} → ${changeInfo.new_length} 字 (${changeText})`,
+                        'success'
+                    );
+
+                    // 更新段落显示中的译文
+                    const translationElement = document.querySelector(`[data-segment-id="${segmentId}"] .translation-text`);
+                    if (translationElement) {
+                        translationElement.textContent = `译文: ${result.adjusted_text}`;
+                        
+                        // 添加更新动画效果
+                        translationElement.style.backgroundColor = '#d4edda';
+                        translationElement.style.border = '1px solid #c3e6cb';
+                        translationElement.style.borderRadius = '0.25rem';
+                        translationElement.style.padding = '0.25rem';
+                        setTimeout(() => {
+                            translationElement.style.backgroundColor = '';
+                            translationElement.style.border = '';
+                            translationElement.style.borderRadius = '';
+                            translationElement.style.padding = '';
+                        }, 2000);
+                    }
+
+                    // 更新segments数组中的数据
+                    const segmentIndex = segments.findIndex(s => s.id === segmentId);
+                    if (segmentIndex !== -1) {
+                        segments[segmentIndex].translated_text = result.adjusted_text;
+                    }
+                    
+                    // 记录到日志
+                    addLog(`段落 ${segmentId} 文本${actionText}成功：${changeInfo.original_length} → ${changeInfo.new_length} 字`, 'success');
+                } else {
+                    throw new Error(result.message || `文本${actionText}失败`);
+                }
+
+            } catch (error) {
+                console.error(`文本${actionText}失败:`, error);
+                showAlert(`文本${actionText}失败：${error.message}`, 'danger');
+            } finally {
+                // 恢复按钮状态
+                buttons.forEach(btn => btn.disabled = false);
+                targetButton.innerHTML = originalText;
+            }
+        }
+
+        // 获取当前项目ID的辅助函数
+        function getCurrentProjectId() {
+            return currentSubtitleProject ? currentSubtitleProject.id : null;
         }
     </script>
 </body>
