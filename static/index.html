@@ -455,38 +455,104 @@
                         <h5 class="mb-0"><i class="bi bi-gear-wide-connected me-2"></i>SRT处理</h5>
                     </div>
                     <div class="card-body">
-                        <!-- 简化上传区域 -->
-                        <div class="d-flex gap-2 justify-content-center mb-3">
-                            <input type="file" id="quickSrtUpload" accept=".srt" style="display: none;">
-                            <button class="btn btn-primary btn-sm" onclick="document.getElementById('quickSrtUpload').click()">
-                                <i class="bi bi-upload me-1"></i>上传SRT
-                            </button>
-                            <button class="btn btn-warning btn-sm" id="exportSrtBtn" onclick="exportSrtFile()" style="display: none;">
-                                <i class="bi bi-download me-1"></i>导出SRT
-                            </button>
+                        <!-- 三组按钮布局 -->
+                        <div class="row g-3 mb-4">
+                            <!-- 第一组：SRT上传下载 -->
+                            <div class="col-md-4">
+                                <h6 class="text-muted mb-2"><i class="bi bi-file-earmark-text me-1"></i>SRT文件</h6>
+                                <div class="d-grid gap-2">
+                                    <input type="file" id="quickSrtUpload" accept=".srt" style="display: none;">
+                                    <button class="btn btn-primary btn-sm" onclick="document.getElementById('quickSrtUpload').click()">
+                                        <i class="bi bi-upload me-1"></i>上传SRT
+                                    </button>
+                                    <button class="btn btn-warning btn-sm" id="exportSrtBtn" onclick="exportSrtFile()" style="display: none;">
+                                        <i class="bi bi-download me-1"></i>导出SRT
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 第二组：项目管理 -->
+                            <div class="col-md-4">
+                                <h6 class="text-muted mb-2"><i class="bi bi-folder2-open me-1"></i>项目管理</h6>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-info btn-sm" onclick="toggleProjectManager()" id="projectManagerToggle">
+                                        <i class="bi bi-collection me-1"></i>我的项目
+                                        <span class="badge bg-light text-dark ms-1" id="projectCountBadge">0/5</span>
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="refreshProjectList()">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>刷新项目
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 第三组：批量修改说话人 -->
+                            <div class="col-md-4">
+                                <h6 class="text-muted mb-2"><i class="bi bi-people me-1"></i>批量操作</h6>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="toggleBatchSpeakerPanel()" id="batchSpeakerToggle">
+                                        <i class="bi bi-people-fill me-1"></i>批量改说话人
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm" onclick="selectAllSegments()" id="selectAllBtn">
+                                        <i class="bi bi-check-all me-1"></i>全选段落
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- 批量操作区域 -->
-                        <div class="d-flex gap-2 justify-content-center mb-3" id="batchOperationSection" style="display: none;">
-                            <button class="btn btn-sm btn-outline-primary" onclick="selectAllSegments()" id="selectAllBtn">
-                                <i class="bi bi-check-all me-1"></i>全选
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="clearAllSelections()" id="clearAllBtn">
-                                <i class="bi bi-x-square me-1"></i>清除选择
-                            </button>
-                            <select class="form-select form-select-sm" id="batchSpeakerSelect" style="width: auto;">
-                                <option value="">选择说话人</option>
-                                <option value="SPEAKER_00">SPEAKER_00</option>
-                                <option value="SPEAKER_01">SPEAKER_01</option>
-                                <option value="SPEAKER_02">SPEAKER_02</option>
-                                <option value="SPEAKER_03">SPEAKER_03</option>
-                                <option value="SPEAKER_04">SPEAKER_04</option>
-                                <option value="SPEAKER_05">SPEAKER_05</option>
-                            </select>
-                            <button class="btn btn-sm btn-warning" onclick="batchUpdateSpeaker()" id="batchUpdateBtn" disabled>
-                                <i class="bi bi-person-lines-fill me-1"></i>批量修改说话人
-                            </button>
-                            <span class="badge bg-info" id="selectedCount">已选择: 0</span>
+                        <!-- 项目管理面板 -->
+                        <div id="projectManagerPanel" style="display: none;" class="mb-4 p-3 border rounded bg-light">
+                            <h6 class="mb-3">
+                                <i class="bi bi-collection me-2"></i>项目列表
+                            </h6>
+                            <div id="projectList" class="mb-3">
+                                <div class="text-center text-muted py-2">
+                                    <i class="bi bi-hourglass-split"></i>
+                                    正在加载项目列表...
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 justify-content-between">
+                                <button type="button" class="btn btn-sm btn-danger" onclick="cleanupOldProjects()">
+                                    <i class="bi bi-trash me-1"></i>清理旧项目
+                                </button>
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleProjectManager()">
+                                    <i class="bi bi-x-lg me-1"></i>关闭面板
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 批量说话人选择面板 -->
+                        <div id="batchSpeakerPanel" style="display: none;" class="mb-4 p-3 border rounded bg-light">
+                            <h6 class="mb-3">
+                                <i class="bi bi-people me-2"></i>批量修改说话人
+                            </h6>
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-6">
+                                    <label class="form-label small">选择新的说话人</label>
+                                    <select class="form-select form-select-sm" id="batchSpeakerSelect">
+                                        <option value="">选择说话人</option>
+                                        <option value="SPEAKER_00">SPEAKER_00</option>
+                                        <option value="SPEAKER_01">SPEAKER_01</option>
+                                        <option value="SPEAKER_02">SPEAKER_02</option>
+                                        <option value="SPEAKER_03">SPEAKER_03</option>
+                                        <option value="SPEAKER_04">SPEAKER_04</option>
+                                        <option value="SPEAKER_05">SPEAKER_05</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-warning btn-sm w-100" onclick="batchUpdateSpeaker()" id="batchUpdateBtn" disabled>
+                                        <i class="bi bi-person-lines-fill me-1"></i>应用修改
+                                    </button>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-secondary btn-sm w-100" onclick="toggleBatchSpeakerPanel()">
+                                        <i class="bi bi-x-lg me-1"></i>关闭
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-info" id="selectedCount">已选择: 0</span>
+                                <small class="text-muted ms-2">请先选择要修改的段落</small>
+                            </div>
                         </div>
 
                         <!-- 翻译功能区域 -->
@@ -521,35 +587,10 @@
                 <div class="row g-4 mb-5">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="card-header">
                                 <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>配置参数</h5>
-                                <button class="btn btn-sm btn-outline-primary" onclick="toggleProjectManager()" id="projectManagerToggle">
-                                    <i class="bi bi-folder2-open me-1"></i>项目管理
-                                </button>
                             </div>
                             <div class="card-body config-section">
-                                <!-- 项目管理面板 -->
-                                <div id="projectManagerPanel" style="display: none;" class="mb-4 p-3 border rounded bg-light">
-                                    <h6 class="mb-3">
-                                        <i class="bi bi-collection me-2"></i>我的项目 
-                                        <span class="badge bg-primary ms-2" id="projectCountBadge">0/5</span>
-                                    </h6>
-                                    <div id="projectList" class="mb-3">
-                                        <div class="text-center text-muted py-2">
-                                            <i class="bi bi-hourglass-split"></i>
-                                            正在加载项目列表...
-                                        </div>
-                                    </div>
-                                    <div class="d-flex gap-2 justify-content-between">
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="cleanupOldProjects()">
-                                            <i class="bi bi-trash me-1"></i>清理旧项目
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-secondary" onclick="refreshProjectList()">
-                                            <i class="bi bi-arrow-clockwise me-1"></i>刷新列表
-                                        </button>
-                                    </div>
-                                </div>
-                                
                                 <form id="configForm">
                                     <!-- API配置 -->
                                     <div class="row g-3 mb-3">
@@ -2659,6 +2700,24 @@
             } finally {
                 batchUpdateBtn.disabled = false;
                 batchUpdateBtn.innerHTML = originalText;
+            }
+        }
+
+        // 切换批量说话人面板显示
+        function toggleBatchSpeakerPanel() {
+            const panel = document.getElementById('batchSpeakerPanel');
+            const toggle = document.getElementById('batchSpeakerToggle');
+            
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                toggle.classList.remove('btn-outline-primary');
+                toggle.classList.add('btn-primary');
+                toggle.innerHTML = '<i class="bi bi-people-fill me-1"></i>关闭面板';
+            } else {
+                panel.style.display = 'none';
+                toggle.classList.remove('btn-primary');
+                toggle.classList.add('btn-outline-primary');
+                toggle.innerHTML = '<i class="bi bi-people-fill me-1"></i>批量改说话人';
             }
         }
     </script>
