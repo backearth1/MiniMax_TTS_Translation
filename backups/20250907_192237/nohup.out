@@ -1,0 +1,24 @@
+INFO:     Will watch for changes in these directories: ['/home/devin/MiniMax_TTS_Translation']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [1968140] using WatchFiles
+INFO:     Started server process [1968215]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+🚀 启动 FastAPI 多人配音服务...
+📁 创建目录: /home/devin/MiniMax_TTS_Translation/uploads
+📁 创建目录: /home/devin/MiniMax_TTS_Translation/outputs
+📁 创建目录: /home/devin/MiniMax_TTS_Translation/samples
+📁 创建目录: /home/devin/MiniMax_TTS_Translation/static
+📁 创建目录: /home/devin/MiniMax_TTS_Translation/static/css
+📁 创建目录: /home/devin/MiniMax_TTS_Translation/static/js
+🌐 服务地址: http://0.0.0.0:8000
+📁 上传目录: /home/devin/MiniMax_TTS_Translation/uploads
+🎵 输出目录: /home/devin/MiniMax_TTS_Translation/outputs
+📄 API 文档: http://0.0.0.0:8000/docs
+👨‍💼 管理员面板: http://0.0.0.0:8000/admin/dashboard
+INFO:     218.17.154.162:57798 - "GET / HTTP/1.1" 200 OK
+INFO:     218.17.154.162:57798 - "POST /api/parse-subtitle HTTP/1.1" 200 OK
+INFO:     218.17.154.162:57798 - "GET /api/subtitle/b90c48a7-25d0-4374-a26e-b38bcc89a20e/segments?page=1&per_page=20 HTTP/1.1" 200 OK
+INFO:     218.17.154.162:57799 - "GET / HTTP/1.1" 200 OK
+INFO:     218.17.154.162:57799 - "POST /api/parse-subtitle HTTP/1.1" 200 OK
+INFO:     218.17.154.162:57799 - "GET /api/subtitle/187da8be-7af1-4c78-8dc7-c730d0f87817/segments?page=1&per_page=20 HTTP/1.1" 200 OK
