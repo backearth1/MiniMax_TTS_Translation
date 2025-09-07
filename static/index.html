@@ -2054,12 +2054,22 @@
         // 检查是否有已保存的项目，并返回项目列表
         async function checkForSavedProjects() {
             try {
+                console.log('正在检查已保存的项目...');
                 const response = await fetch('/api/projects');
+                console.log('项目API响应状态:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('项目API响应数据:', data);
+                    
                     if (data.projects && data.projects.length > 0) {
+                        console.log(`发现 ${data.projects.length} 个项目`);
                         return data.projects;
+                    } else {
+                        console.log('没有发现项目');
                     }
+                } else {
+                    console.log('项目API请求失败:', response.status);
                 }
             } catch (error) {
                 console.log('检查已保存项目失败:', error);
@@ -2070,18 +2080,17 @@
         // 加载指定项目的段落
         async function loadProjectSegments(projectId) {
             try {
-                const response = await fetch(`/api/subtitle/${projectId}/segments?page=1&per_page=50`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.segments) {
-                        displaySegments(data.segments, data.pagination);
-                        return true;
-                    }
-                }
+                // 设置当前项目信息
+                currentSubtitleProject = { id: projectId };
+                currentPage = 1;
+                
+                // 使用现有的加载函数
+                await loadSubtitleSegments();
+                return true;
             } catch (error) {
                 console.log('加载项目段落失败:', error);
+                return false;
             }
-            return false;
         }
 
         // 自动加载示例SRT文件

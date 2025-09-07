@@ -8,9 +8,10 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict
+import secrets
 
 import aiofiles
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, Query, Request
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, Query, Request, Cookie, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -27,6 +28,39 @@ from contextlib import asynccontextmanager
 # 全局变量用于跟踪正在运行的任务
 running_tasks = {}
 task_cancellation_flags = {}
+
+# 会话管理
+active_sessions = {}  # session_id -> session_info
+
+def get_or_create_session_id(request: Request, response: Response) -> str:
+    """获取或创建会话ID"""
+    session_id = request.cookies.get("session_id")
+    
+    if not session_id or session_id not in active_sessions:
+        # 生成新的会话ID
+        session_id = secrets.token_urlsafe(32)
+        active_sessions[session_id] = {
+            "created_at": datetime.now().isoformat(),
+            "last_active": datetime.now().isoformat(),
+            "ip_address": request.client.host if request.client else "unknown"
+        }
+        
+        # 设置cookie（1年有效期）
+        response.set_cookie(
+            key="session_id",
+            value=session_id,
+            max_age=365 * 24 * 60 * 60,  # 1年
+            httponly=True,
+            secure=False,  # 开发环境设为False，生产环境应设为True
+            samesite="lax"
+        )
+        
+        print(f"🆔 创建新会话: {session_id[:8]}...")
+    else:
+        # 更新最后活跃时间
+        active_sessions[session_id]["last_active"] = datetime.now().isoformat()
+    
+    return session_id
 
 # 确保必要目录存在
 def ensure_directories():
@@ -415,7 +449,7 @@ async def delete_output_file(filename: str):
 
 # 字幕解析与管理相关API
 @app.post("/api/parse-subtitle")
-async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None)):
+async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None), request: Request = None, response: Response = None):
     """解析字幕文件"""
     # 检查用户数量限制
     from admin import check_user_limit, record_user_activity
@@ -424,6 +458,9 @@ async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None
             status_code=503, 
             detail="当前在线用户数过多，请稍后再试。当前限制：10个用户"
         )
+    
+    # 获取或创建会话ID
+    session_id = get_or_create_session_id(request, response)
     
     # 记录用户活动（使用文件名作为临时clientId）
     temp_client_id = f"parse_{file.filename}"
@@ -440,9 +477,9 @@ async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None
         content = await file.read()
         file_content = content.decode('utf-8', errors='ignore')
         
-        # 解析字幕文件
+        # 解析字幕文件，传入session_id
         success, error_msg, project = await subtitle_manager.parse_srt_file(
-            file_content, file.filename, temp_client_id
+            file_content, file.filename, temp_client_id, session_id
         )
         
         if not success:
@@ -464,10 +501,11 @@ async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None
 
 
 @app.get("/api/projects")
-async def get_projects():
-    """获取所有字幕项目列表"""
+async def get_projects(request: Request, response: Response):
+    """获取当前会话的字幕项目列表"""
     try:
-        projects = subtitle_manager.list_projects()
+        session_id = get_or_create_session_id(request, response)
+        projects = subtitle_manager.list_projects(session_id)
         return {
             "success": True,
             "projects": projects

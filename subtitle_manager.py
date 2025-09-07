@@ -126,10 +126,11 @@ class SubtitleSegment:
 class SubtitleProject:
     """字幕项目类"""
     
-    def __init__(self, filename: str, client_id: str = None):
+    def __init__(self, filename: str, client_id: str = None, session_id: str = None):
         self.id = str(uuid.uuid4())
         self.filename = filename
         self.client_id = client_id  # 添加client_id字段
+        self.session_id = session_id  # 添加session_id字段用于用户隔离
         self.segments: List[SubtitleSegment] = []
         self.total_segments = 0
         self.created_at = datetime.now().isoformat()
@@ -211,6 +212,7 @@ class SubtitleProject:
             "id": self.id,
             "filename": self.filename,
             "client_id": self.client_id,
+            "session_id": self.session_id,
             "total_segments": self.total_segments,
             "created_at": self.created_at,
             "updated_at": self.updated_at
@@ -222,6 +224,7 @@ class SubtitleProject:
             "id": self.id,
             "filename": self.filename,
             "client_id": self.client_id,
+            "session_id": self.session_id,
             "total_segments": self.total_segments,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
@@ -231,7 +234,7 @@ class SubtitleProject:
     @classmethod
     def from_dict(cls, data: Dict) -> 'SubtitleProject':
         """从字典创建项目实例"""
-        project = cls(data["filename"], data.get("client_id"))
+        project = cls(data["filename"], data.get("client_id"), data.get("session_id"))
         project.id = data["id"]
         project.total_segments = data.get("total_segments", 0)
         project.created_at = data.get("created_at", datetime.now().isoformat())
@@ -253,7 +256,7 @@ class SubtitleManager:
         self.projects_dir = Path("projects")
         self.projects_dir.mkdir(exist_ok=True)
     
-    async def parse_srt_file(self, file_content: str, filename: str, client_id: str = None) -> Tuple[bool, str, Optional[SubtitleProject]]:
+    async def parse_srt_file(self, file_content: str, filename: str, client_id: str = None, session_id: str = None) -> Tuple[bool, str, Optional[SubtitleProject]]:
         """
         解析SRT文件
         
@@ -261,6 +264,7 @@ class SubtitleManager:
             file_content: SRT文件内容
             filename: 文件名
             client_id: 客户端ID
+            session_id: 会话ID（用于用户隔离）
             
         Returns:
             (是否成功, 错误信息, 项目对象)
@@ -285,8 +289,8 @@ class SubtitleManager:
                 if last_end_time > 1200:  # 20分钟限制
                     return False, f"字幕总时长过长({last_end_time:.1f}秒)，最多支持20分钟(1200秒)", None
             
-            # 创建新项目
-            project = SubtitleProject(filename, client_id)
+            # 创建新项目，传入session_id
+            project = SubtitleProject(filename, client_id, session_id)
             
             # 转换段落数据
             for i, seg_data in enumerate(segments_data, 1):
@@ -340,9 +344,18 @@ class SubtitleManager:
             
         return deleted_count
     
-    def list_projects(self) -> List[Dict]:
-        """列出所有项目"""
-        return [project.to_dict() for project in self.projects.values()]
+    def list_projects(self, session_id: str = None) -> List[Dict]:
+        """列出指定会话的项目"""
+        if session_id:
+            # 按会话过滤项目
+            session_projects = [
+                project.to_dict() for project in self.projects.values()
+                if getattr(project, 'session_id', None) == session_id
+            ]
+            return session_projects
+        else:
+            # 兼容性：如果没有session_id，返回所有项目
+            return [project.to_dict() for project in self.projects.values()]
     
     def save_project(self, project: SubtitleProject):
         """保存项目到内存"""
