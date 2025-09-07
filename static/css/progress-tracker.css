@@ -19,26 +19,14 @@
 }
 
 .progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    text-align: center;
     margin-bottom: 8px;
 }
 
-.progress-title {
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--blue-700);
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-}
-
 .progress-text {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--blue-600);
-    font-weight: 500;
-    margin-left: 8px;
+    font-weight: 600;
 }
 
 .progress-button {
