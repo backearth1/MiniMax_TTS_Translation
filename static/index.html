@@ -2112,8 +2112,9 @@
             }
         }
 
-        // 凭据管理功能
+        // 配置管理功能
         const CREDENTIALS_KEY = 'minimax_tts_credentials';
+        const CONFIG_KEY = 'minimax_tts_config';
         
         
         function autoSaveCredentials() {
@@ -2133,6 +2134,78 @@
                     console.error('保存凭据失败:', error);
                 }
             }
+        }
+
+        // 保存所有配置参数
+        function saveAllConfig() {
+            const config = {
+                // 语音模型
+                voiceModel: document.getElementById('voiceModel').value,
+                // 语言选择
+                language: document.getElementById('language').value,
+                // 说话人语音配置
+                speaker00Voice: document.getElementById('speaker00Voice').value,
+                speaker01Voice: document.getElementById('speaker01Voice').value,
+                speaker02Voice: document.getElementById('speaker02Voice').value,
+                speaker03Voice: document.getElementById('speaker03Voice').value,
+                speaker04Voice: document.getElementById('speaker04Voice').value,
+                speaker05Voice: document.getElementById('speaker05Voice').value,
+                // 保存时间戳
+                savedAt: new Date().toISOString()
+            };
+            
+            try {
+                localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+                console.log('配置已自动保存');
+            } catch (error) {
+                console.error('保存配置失败:', error);
+            }
+        }
+
+        // 加载所有配置参数
+        function loadAllConfig() {
+            try {
+                const saved = localStorage.getItem(CONFIG_KEY);
+                if (saved) {
+                    const config = JSON.parse(saved);
+                    
+                    // 恢复语音模型
+                    if (config.voiceModel) {
+                        document.getElementById('voiceModel').value = config.voiceModel;
+                    }
+                    
+                    // 恢复语言选择
+                    if (config.language) {
+                        document.getElementById('language').value = config.language;
+                    }
+                    
+                    // 恢复说话人语音配置
+                    if (config.speaker00Voice) {
+                        document.getElementById('speaker00Voice').value = config.speaker00Voice;
+                    }
+                    if (config.speaker01Voice) {
+                        document.getElementById('speaker01Voice').value = config.speaker01Voice;
+                    }
+                    if (config.speaker02Voice) {
+                        document.getElementById('speaker02Voice').value = config.speaker02Voice;
+                    }
+                    if (config.speaker03Voice) {
+                        document.getElementById('speaker03Voice').value = config.speaker03Voice;
+                    }
+                    if (config.speaker04Voice) {
+                        document.getElementById('speaker04Voice').value = config.speaker04Voice;
+                    }
+                    if (config.speaker05Voice) {
+                        document.getElementById('speaker05Voice').value = config.speaker05Voice;
+                    }
+                    
+                    console.log('配置已自动加载');
+                    return true;
+                }
+            } catch (error) {
+                console.error('加载配置失败:', error);
+            }
+            return false;
         }
 
         // 页面加载完成后自动加载示例文件
@@ -2159,9 +2232,15 @@
                 console.error('加载凭据失败:', error);
             }
             
+            // 自动加载保存的配置参数
+            const configLoaded = loadAllConfig();
+            
             // 添加初始日志
             addLog('系统初始化完成');
             addLog('角色语音配置已加载');
+            if (configLoaded) {
+                addLog('已自动加载保存的配置参数');
+            }
             
             
             // 自动保存功能 - 在输入框失去焦点时自动保存
@@ -2174,6 +2253,28 @@
             if (apiKeyInput) {
                 apiKeyInput.addEventListener('blur', autoSaveCredentials);
             }
+            
+            // 配置参数自动保存 - 监听所有配置输入框的变化
+            const configElements = [
+                'voiceModel',
+                'language', 
+                'speaker00Voice',
+                'speaker01Voice',
+                'speaker02Voice',
+                'speaker03Voice',
+                'speaker04Voice',
+                'speaker05Voice'
+            ];
+            
+            configElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    // 监听失去焦点事件（对input类型）
+                    element.addEventListener('blur', saveAllConfig);
+                    // 监听选择变化事件（对select类型）
+                    element.addEventListener('change', saveAllConfig);
+                }
+            });
 
             // 绑定清空日志按钮
             const clearLogsBtn = document.getElementById('clearLogsBtn');
