@@ -2051,16 +2051,35 @@
             };
         }
 
-        // 检查是否有已保存的项目
+        // 检查是否有已保存的项目，并返回项目列表
         async function checkForSavedProjects() {
             try {
                 const response = await fetch('/api/projects');
                 if (response.ok) {
                     const data = await response.json();
-                    return data.projects && data.projects.length > 0;
+                    if (data.projects && data.projects.length > 0) {
+                        return data.projects;
+                    }
                 }
             } catch (error) {
                 console.log('检查已保存项目失败:', error);
+            }
+            return null;
+        }
+
+        // 加载指定项目的段落
+        async function loadProjectSegments(projectId) {
+            try {
+                const response = await fetch(`/api/subtitle/${projectId}/segments?page=1&per_page=50`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.segments) {
+                        displaySegments(data.segments, data.pagination);
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.log('加载项目段落失败:', error);
             }
             return false;
         }
@@ -2246,21 +2265,36 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // 角色配置现在在HTML中静态定义，无需动态加载
             
-            // 检查是否有已保存的项目，只有在没有项目时才加载示例文件
-            const hasSavedProjects = await checkForSavedProjects();
-            if (!hasSavedProjects) {
+            // 检查是否有已保存的项目，如果有则自动加载最近的项目
+            const savedProjects = await checkForSavedProjects();
+            if (!savedProjects) {
                 // 只有在没有保存项目时才加载示例文件
+                addLog('未发现保存的项目，加载示例文件');
                 loadSampleSrt();
             } else {
-                // 如果有保存的项目，显示提示用户选择项目
-                const container = document.getElementById('subtitleEditor');
-                container.innerHTML = `
-                    <div class="text-center py-5" style="color: var(--blue-600);">
-                        <i class="bi bi-folder2-open fs-1"></i>
-                        <p class="mt-2">检测到已保存的项目</p>
-                        <p class="text-muted">请从API端点 /api/projects 获取项目列表，或上传新的SRT文件</p>
-                    </div>
-                `;
+                // 如果有保存的项目，自动加载最近的项目
+                addLog(`发现 ${savedProjects.length} 个保存的项目，正在加载最近的项目`);
+                
+                // 按更新时间排序，获取最近的项目
+                const latestProject = savedProjects.sort((a, b) => 
+                    new Date(b.updated_at) - new Date(a.updated_at)
+                )[0];
+                
+                addLog(`正在加载项目: ${latestProject.filename}`);
+                
+                // 加载最近项目的段落
+                const loadSuccess = await loadProjectSegments(latestProject.id);
+                if (loadSuccess) {
+                    addLog(`✅ 项目加载成功: ${latestProject.filename}`);
+                    
+                    // 设置全局当前项目ID（如果页面中有这个变量的话）
+                    if (typeof window !== 'undefined') {
+                        window.currentProjectId = latestProject.id;
+                    }
+                } else {
+                    addLog('❌ 项目加载失败，切换到示例文件');
+                    loadSampleSrt();
+                }
             }
             
             // 隐藏翻译功能区域
