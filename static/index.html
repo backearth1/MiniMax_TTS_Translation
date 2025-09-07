@@ -3156,7 +3156,7 @@
             
             if (!currentSubtitleProject) {
                 console.log('错误: 没有当前项目');
-                showAlert('请先上传SRT文件', 'warning');
+                showToast('请先上传SRT文件');
                 return;
             }
             
@@ -3165,20 +3165,20 @@
             // 获取当前配置
             const groupId = document.getElementById('groupId')?.value;
             const apiKey = document.getElementById('apiKey')?.value;
-            const targetLanguage = document.getElementById('languageSelect')?.value;
+            const targetLanguage = document.getElementById('language')?.value;
             const apiEndpoint = document.getElementById('apiEndpoint')?.value || 'domestic';
 
             console.log(`配置检查: groupId=${groupId}, apiKey=${apiKey ? '已设置' : '未设置'}, language=${targetLanguage}, endpoint=${apiEndpoint}`);
 
             if (!groupId || !apiKey) {
                 console.log('错误: API配置信息不完整');
-                showAlert('请先填写API配置信息', 'warning');
+                showToast('请先填写API配置信息');
                 return;
             }
 
             if (!targetLanguage) {
                 console.log('错误: 未选择目标语言');
-                showAlert('请先选择目标语言', 'warning');
+                showToast('请先选择目标语言');
                 return;
             }
 
@@ -3231,10 +3231,7 @@
                         `增加${changeInfo.change_percentage}%` : 
                         `减少${Math.abs(changeInfo.change_percentage)}%`;
                     
-                    showAlert(
-                        `文本${actionText}成功！长度变化：${changeInfo.original_length} → ${changeInfo.new_length} 字 (${changeText})`,
-                        'success'
-                    );
+                    showToast(`文本${actionText}成功！长度变化：${changeInfo.original_length} → ${changeInfo.new_length} 字 (${changeText})`);
 
                     // 更新段落显示中的译文
                     const translationElement = document.querySelector(`[data-segment-id="${segmentId}"] .translation-text`);
@@ -3268,7 +3265,7 @@
 
             } catch (error) {
                 console.error(`文本${actionText}失败:`, error);
-                showAlert(`文本${actionText}失败：${error.message}`, 'danger');
+                showToast(`文本${actionText}失败：${error.message}`);
             } finally {
                 // 恢复按钮状态
                 buttons.forEach(btn => btn.disabled = false);
