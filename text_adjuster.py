@@ -115,8 +115,9 @@ async def adjust_text_length(
     
     try:
         if logger:
-            await logger.info(f"调用文本{adjustment_type}API", f"目标语言: {target_language}, 调整比例: {adjustment_ratio}, Trace: {trace_id}")
-            await logger.info("发送API请求", f"当前长度: {current_char_count}字 → 目标长度: {target_char_count}字")
+            action_text = "缩短" if adjustment_type == "shorten" else "加长"
+            await logger.info(f"调用{action_text}API", f"目标语言: {target_language}, Trace: {trace_id}")
+            await logger.info("文本调整详情", f"当前长度: {current_char_count}字 → 目标长度: {target_char_count}字 ({action_text}20%)")
         
         # 获取代理设置
         proxy_settings = get_proxy_settings()
@@ -138,8 +139,9 @@ async def adjust_text_length(
                 elif isinstance(response_data, dict) and 'traceId' in response_data:
                     api_trace_id = response_data['traceId']
                 
+                action_text = "缩短" if adjustment_type == "shorten" else "加长"
                 if logger:
-                    await logger.info(f"文本{adjustment_type}API调用成功", f"Trace: {api_trace_id}")
+                    await logger.info(f"{action_text}API调用成功", f"Trace: {api_trace_id}")
                 
                 if 'choices' in response_data and len(response_data['choices']) > 0:
                     adjusted_text = response_data['choices'][0]['message']['content'].strip()
@@ -147,16 +149,19 @@ async def adjust_text_length(
                     # 验证调整结果
                     adjusted_length = len(adjusted_text)
                     actual_ratio = adjusted_length / current_char_count
+                    change_percentage = (actual_ratio - 1) * 100
                     
                     if logger:
-                        await logger.success(f"文本{adjustment_type}成功", 
-                                           f"长度变化: {current_char_count} → {adjusted_length} 字 (比例: {actual_ratio:.2f})")
-                        await logger.info("调整结果", f"新文本: {adjusted_text}")
+                        await logger.success(f"文本{action_text}成功", 
+                                           f"长度变化: {current_char_count} → {adjusted_length} 字 (变化: {change_percentage:+.1f}%)")
+                        # 显示调整后的文本预览
+                        preview_text = adjusted_text if len(adjusted_text) <= 50 else adjusted_text[:50] + "..."
+                        await logger.info("调整结果预览", f"{action_text}后文本: {preview_text}")
                     
                     return adjusted_text
                 else:
                     if logger:
-                        await logger.error(f"文本{adjustment_type}API响应格式异常", f"响应: {response_data}, Trace: {api_trace_id}")
+                        await logger.error(f"{action_text}API响应异常", f"响应: {response_data}, Trace: {api_trace_id}")
                     return None
                     
     except Exception as e:

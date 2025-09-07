@@ -3153,7 +3153,7 @@
         // 文本长度调整函数
         async function adjustSegmentText(segmentId, adjustmentType) {
             if (!currentSubtitleProject) {
-                showToast('请先上传SRT文件');
+                addLog('操作错误: 请先上传SRT文件', 'error');
                 return;
             }
 
@@ -3164,12 +3164,12 @@
             const apiEndpoint = document.getElementById('apiEndpoint')?.value || 'domestic';
 
             if (!groupId || !apiKey) {
-                showToast('请先填写API配置信息');
+                addLog('配置错误: 请先填写API配置信息', 'error');
                 return;
             }
 
             if (!targetLanguage) {
-                showToast('请先选择目标语言');
+                addLog('配置错误: 请先选择目标语言', 'error');
                 return;
             }
 
@@ -3207,13 +3207,13 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // 显示成功消息
+                    // 记录成功信息到日志，不显示弹窗
                     const changeInfo = result.length_change;
                     const changeText = changeInfo.change_percentage > 0 ? 
                         `增加${changeInfo.change_percentage}%` : 
                         `减少${Math.abs(changeInfo.change_percentage)}%`;
                     
-                    showToast(`文本${actionText}成功！长度变化：${changeInfo.original_length} → ${changeInfo.new_length} 字 (${changeText})`);
+                    addLog(`文本${actionText}成功: ${changeInfo.original_length} → ${changeInfo.new_length} 字 (${changeText})`, 'success');
 
                     // 更新段落显示中的译文
                     const translationElement = document.querySelector(`[data-segment-id="${segmentId}"] .translation-text`);
@@ -3250,7 +3250,7 @@
 
             } catch (error) {
                 console.error(`文本${actionText}失败:`, error);
-                showToast(`文本${actionText}失败：${error.message}`);
+                addLog(`文本${actionText}失败: ${error.message}`, 'error');
             } finally {
                 // 恢复按钮状态
                 buttons.forEach(btn => btn.disabled = false);
