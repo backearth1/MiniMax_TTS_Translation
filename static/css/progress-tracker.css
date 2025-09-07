@@ -1,0 +1,111 @@
+/* 进度跟踪器样式 */
+.progress-tracker {
+    position: fixed;
+    top: 56px; /* 导航栏高度 */
+    left: 0;
+    right: 0;
+    z-index: 1040;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--blue-200);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+}
+
+.progress-container {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--blue-100);
+}
+
+.progress-container:last-child {
+    border-bottom: none;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.progress-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--blue-700);
+    display: flex;
+    align-items: center;
+}
+
+.progress-text {
+    font-size: 0.85rem;
+    color: var(--blue-600);
+    font-weight: 500;
+}
+
+/* 翻译进度条特殊样式 */
+#translationProgressBar {
+    background: linear-gradient(135deg, var(--blue-400) 0%, var(--blue-500) 100%) !important;
+}
+
+/* TTS进度条特殊样式 */
+#ttsProgressBar {
+    background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%) !important;
+}
+
+/* 进度条动画效果 */
+.progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 40px 0;
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .progress-tracker {
+        padding: 8px 0;
+    }
+    
+    .progress-container {
+        padding: 6px 12px;
+    }
+    
+    .progress-title {
+        font-size: 0.8rem;
+    }
+    
+    .progress-text {
+        font-size: 0.75rem;
+    }
+    
+    .progress-header {
+        margin-bottom: 6px;
+    }
+}
+
+/* 确保主内容区域不被进度条遮挡 */
+body.progress-active {
+    padding-top: 140px;
+}
+
+body.progress-active .container-fluid {
+    transition: padding-top 0.3s ease;
+}
+
+/* 进度条淡入淡出效果 */
+.progress-tracker {
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(-100%);
+}
+
+.progress-tracker.show {
+    opacity: 1;
+    transform: translateY(0);
+}

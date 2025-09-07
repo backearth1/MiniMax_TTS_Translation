@@ -1,0 +1,371 @@
+/**
+ * 进度跟踪器
+ * 解析WebSocket日志并显示批量翻译、TTS进度
+ */
+
+class ProgressTracker {
+    constructor() {
+        this.translationProgress = {
+            current: 0,
+            total: 0,
+            active: false
+        };
+        
+        this.ttsProgress = {
+            current: 0,
+            total: 0,
+            active: false
+        };
+        
+        this.init();
+    }
+
+    init() {
+        // 创建进度条容器
+        this.createProgressBars();
+        
+        // 监听日志消息
+        this.attachLogListener();
+    }
+
+    createProgressBars() {
+        // 创建进度条HTML
+        const progressHTML = `
+            <div id="progressTracker" class="progress-tracker" style="display: none;">
+                <!-- 翻译进度条 -->
+                <div id="translationProgressContainer" class="progress-container" style="display: none;">
+                    <div class="progress-header">
+                        <span class="progress-title">
+                            <i class="bi bi-translate me-1"></i>批量翻译
+                        </span>
+                        <span class="progress-text" id="translationProgressText">正在处理 0/0</span>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             id="translationProgressBar" 
+                             role="progressbar" 
+                             style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- TTS进度条 -->
+                <div id="ttsProgressContainer" class="progress-container" style="display: none;">
+                    <div class="progress-header">
+                        <span class="progress-title">
+                            <i class="bi bi-music-note-list me-1"></i>批量TTS
+                        </span>
+                        <span class="progress-text" id="ttsProgressText">正在处理 0/0</span>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             id="ttsProgressBar" 
+                             role="progressbar" 
+                             style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 插入到页面顶部（导航栏下方）
+        const navbar = document.querySelector('.navbar');
+        if (navbar) {
+            navbar.insertAdjacentHTML('afterend', progressHTML);
+        }
+    }
+
+    attachLogListener() {
+        // 监听日志消息
+        if (typeof addLog === 'function') {
+            // 保存原始的addLog函数
+            const originalAddLog = window.addLog;
+            
+            // 重写addLog函数，添加进度解析
+            window.addLog = (message, type = 'info') => {
+                // 调用原始函数
+                originalAddLog(message, type);
+                
+                // 解析进度信息
+                this.parseLogMessage(message);
+            };
+        }
+    }
+
+    parseLogMessage(message) {
+        try {
+            // 解析翻译进度
+            this.parseTranslationProgress(message);
+            
+            // 解析TTS进度
+            this.parseTTSProgress(message);
+            
+            // 检查任务完成状态
+            this.checkTaskCompletion(message);
+            
+        } catch (error) {
+            console.error('解析日志消息失败:', error);
+        }
+    }
+
+    parseTranslationProgress(message) {
+        // 匹配开始翻译消息
+        if (message.includes('=== 开始一键翻译流程 ===') || 
+            message.includes('开始批量翻译:')) {
+            this.showTranslationProgress();
+            return;
+        }
+
+        // 匹配翻译进度: "翻译进度: 处理段落 1/3"
+        const progressMatch = message.match(/翻译进度[：:]\s*处理段落\s*(\d+)\/(\d+)/);
+        if (progressMatch) {
+            const current = parseInt(progressMatch[1]);
+            const total = parseInt(progressMatch[2]);
+            
+            this.updateTranslationProgress(current, total);
+            return;
+        }
+
+        // 匹配成功消息: "段落 1 翻译成功"
+        const successMatch = message.match(/段落\s*(\d+)\s*翻译成功/);
+        if (successMatch) {
+            const current = parseInt(successMatch[1]);
+            this.updateTranslationProgress(current, this.translationProgress.total);
+            return;
+        }
+    }
+
+    parseTTSProgress(message) {
+        // 匹配开始TTS消息
+        if (message.includes('开始批量TTS生成') || 
+            message.includes('步骤2: 开始批量TTS')) {
+            this.showTTSProgress();
+            return;
+        }
+
+        // 匹配TTS总数: "开始批量TTS生成: 共 3 个段落"
+        const totalMatch = message.match(/开始批量TTS生成[：:]\s*共\s*(\d+)\s*个段落/);
+        if (totalMatch) {
+            const total = parseInt(totalMatch[1]);
+            this.updateTTSProgress(0, total);
+            return;
+        }
+
+        // 匹配TTS进度: "处理段落 1/3"
+        const progressMatch = message.match(/处理段落\s*(\d+)\/(\d+)/);
+        if (progressMatch && this.ttsProgress.active) {
+            const current = parseInt(progressMatch[1]);
+            const total = parseInt(progressMatch[2]);
+            
+            this.updateTTSProgress(current - 1, total); // 显示正在处理的
+            return;
+        }
+
+        // 匹配完成消息: "段落 1/3 完成"
+        const completeMatch = message.match(/段落\s*(\d+)\/(\d+)\s*完成/);
+        if (completeMatch) {
+            const current = parseInt(completeMatch[1]);
+            const total = parseInt(completeMatch[2]);
+            
+            this.updateTTSProgress(current, total);
+            return;
+        }
+    }
+
+    checkTaskCompletion(message) {
+        // 检查翻译完成
+        if (message.includes('批量翻译完成') || 
+            message.includes('步骤1: 批量翻译完成')) {
+            this.hideTranslationProgress();
+        }
+
+        // 检查TTS完成
+        if (message.includes('步骤2: 批量TTS完成') || 
+            message.includes('批量TTS完成')) {
+            this.hideTTSProgress();
+        }
+
+        // 检查整个流程完成
+        if (message.includes('步骤3: 拼接音频完成')) {
+            this.hideAllProgress();
+        }
+    }
+
+    showTranslationProgress() {
+        this.translationProgress.active = true;
+        this.translationProgress.current = 0;
+        this.translationProgress.total = 0;
+        
+        const container = document.getElementById('translationProgressContainer');
+        const tracker = document.getElementById('progressTracker');
+        
+        if (container) container.style.display = 'block';
+        if (tracker) {
+            tracker.style.display = 'block';
+            tracker.classList.add('show');
+        }
+        
+        this.updateTranslationProgress(0, 0);
+    }
+
+    showTTSProgress() {
+        this.ttsProgress.active = true;
+        this.ttsProgress.current = 0;
+        this.ttsProgress.total = 0;
+        
+        const container = document.getElementById('ttsProgressContainer');
+        const tracker = document.getElementById('progressTracker');
+        
+        if (container) container.style.display = 'block';
+        if (tracker) {
+            tracker.style.display = 'block';
+            tracker.classList.add('show');
+        }
+        
+        this.updateTTSProgress(0, 0);
+    }
+
+    updateTranslationProgress(current, total) {
+        this.translationProgress.current = current;
+        if (total > 0) this.translationProgress.total = total;
+        
+        const progressBar = document.getElementById('translationProgressBar');
+        const progressText = document.getElementById('translationProgressText');
+        
+        if (progressBar && this.translationProgress.total > 0) {
+            const percentage = (current / this.translationProgress.total) * 100;
+            progressBar.style.width = percentage + '%';
+            progressBar.setAttribute('aria-valuenow', percentage);
+        }
+        
+        if (progressText) {
+            progressText.textContent = `正在处理 ${current}/${this.translationProgress.total}`;
+        }
+    }
+
+    updateTTSProgress(current, total) {
+        this.ttsProgress.current = current;
+        if (total > 0) this.ttsProgress.total = total;
+        
+        const progressBar = document.getElementById('ttsProgressBar');
+        const progressText = document.getElementById('ttsProgressText');
+        
+        if (progressBar && this.ttsProgress.total > 0) {
+            const percentage = (current / this.ttsProgress.total) * 100;
+            progressBar.style.width = percentage + '%';
+            progressBar.setAttribute('aria-valuenow', percentage);
+        }
+        
+        if (progressText) {
+            progressText.textContent = `正在处理 ${current}/${this.ttsProgress.total}`;
+        }
+    }
+
+    hideTranslationProgress() {
+        this.translationProgress.active = false;
+        
+        // 延迟隐藏，让用户看到100%完成状态
+        setTimeout(() => {
+            const container = document.getElementById('translationProgressContainer');
+            if (container) container.style.display = 'none';
+            
+            this.checkIfAllHidden();
+        }, 2000);
+    }
+
+    hideTTSProgress() {
+        this.ttsProgress.active = false;
+        
+        // 延迟隐藏，让用户看到100%完成状态
+        setTimeout(() => {
+            const container = document.getElementById('ttsProgressContainer');
+            if (container) container.style.display = 'none';
+            
+            this.checkIfAllHidden();
+        }, 2000);
+    }
+
+    hideAllProgress() {
+        this.translationProgress.active = false;
+        this.ttsProgress.active = false;
+        
+        setTimeout(() => {
+            const tracker = document.getElementById('progressTracker');
+            const translationContainer = document.getElementById('translationProgressContainer');
+            const ttsContainer = document.getElementById('ttsProgressContainer');
+            
+            if (tracker) {
+                tracker.classList.remove('show');
+                setTimeout(() => {
+                    tracker.style.display = 'none';
+                }, 300); // 等待CSS动画完成
+            }
+            if (translationContainer) translationContainer.style.display = 'none';
+            if (ttsContainer) ttsContainer.style.display = 'none';
+        }, 2000);
+    }
+
+    checkIfAllHidden() {
+        if (!this.translationProgress.active && !this.ttsProgress.active) {
+            const tracker = document.getElementById('progressTracker');
+            if (tracker) {
+                tracker.classList.remove('show');
+                setTimeout(() => {
+                    tracker.style.display = 'none';
+                }, 300);
+            }
+        }
+    }
+
+    // 手动控制进度（供外部调用）
+    setTranslationProgress(current, total) {
+        this.showTranslationProgress();
+        this.updateTranslationProgress(current, total);
+    }
+
+    setTTSProgress(current, total) {
+        this.showTTSProgress();
+        this.updateTTSProgress(current, total);
+    }
+
+    // 重置所有进度
+    reset() {
+        this.hideAllProgress();
+        this.translationProgress = { current: 0, total: 0, active: false };
+        this.ttsProgress = { current: 0, total: 0, active: false };
+    }
+
+    // 测试函数 - 手动显示进度条
+    testProgress() {
+        console.log('测试进度条显示...');
+        this.showTranslationProgress();
+        this.updateTranslationProgress(2, 5);
+        
+        setTimeout(() => {
+            this.showTTSProgress();
+            this.updateTTSProgress(1, 3);
+        }, 1000);
+        
+        setTimeout(() => {
+            this.hideAllProgress();
+        }, 5000);
+    }
+}
+
+// 创建全局进度跟踪器实例
+let progressTracker = null;
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    progressTracker = new ProgressTracker();
+});
+
+// 导出给外部使用
+window.ProgressTracker = ProgressTracker;
+
+// 全局测试函数
+window.testProgressTracker = function() {
+    if (progressTracker) {
+        progressTracker.testProgress();
+    } else {
+        console.error('进度跟踪器未初始化');
+    }
+};
