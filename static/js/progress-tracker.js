@@ -214,14 +214,30 @@ class ProgressTracker {
         if (message.includes('开始拼接音频') || 
             message.includes('步骤3: 开始拼接音频')) {
             this.showMergeProgress();
-            this.updateMergeProgress(0, 1);
+            this.updateMergeProgress(0, 3);
             return;
         }
 
-        // 匹配拼接进度消息
-        if (message.includes('正在拼接音频') || 
-            message.includes('拼接音频中')) {
-            this.updateMergeProgress(1, 1);
+        // 匹配拼接API调用
+        if (message.includes('调用拼接音频API') || 
+            message.includes('正在拼接音频')) {
+            this.updateMergeProgress(1, 3);
+            return;
+        }
+
+        // 匹配拼接成功
+        if (message.includes('音频拼接成功') || 
+            message.includes('步骤3: 拼接音频完成')) {
+            this.updateMergeProgress(3, 3);
+            return;
+        }
+
+        // 匹配一键翻译完成
+        if (message.includes('一键翻译流程完成')) {
+            // 延迟一秒后隐藏所有进度条
+            setTimeout(() => {
+                this.hideAllProgress();
+            }, 1500);
             return;
         }
     }
@@ -242,11 +258,16 @@ class ProgressTracker {
         // 检查拼接音频进度
         this.parseMergeProgress(message);
 
-        // 检查整个流程完成
+        // 检查拼接音频完成（单独操作）
         if (message.includes('步骤3: 拼接音频完成') || 
             message.includes('音频拼接完成')) {
             this.hideMergeProgress();
-            this.hideAllProgress();
+            // 如果不是一键翻译流程，只隐藏拼接进度
+            if (!message.includes('一键翻译')) {
+                setTimeout(() => {
+                    this.hideMergeProgress();
+                }, 2000);
+            }
         }
     }
 
@@ -341,9 +362,9 @@ class ProgressTracker {
     showMergeProgress() {
         this.mergeProgress.active = true;
         this.mergeProgress.current = 0;
-        this.mergeProgress.total = 1;
+        this.mergeProgress.total = 3;
         
-        this.updateMergeProgress(0, 1);
+        this.updateMergeProgress(0, 3);
     }
 
     updateMergeProgress(current, total) {
@@ -361,7 +382,11 @@ class ProgressTracker {
         
         if (progressText) {
             if (current === 0) {
-                progressText.textContent = '准备中...';
+                progressText.textContent = '准备拼接...';
+            } else if (current === 1) {
+                progressText.textContent = '调用拼接API...';
+            } else if (current === 2) {
+                progressText.textContent = '处理音频中...';
             } else if (current === total) {
                 progressText.textContent = '拼接完成';
             } else {
@@ -450,13 +475,18 @@ class ProgressTracker {
         setTimeout(() => {
             // 测试拼接进度
             this.showMergeProgress();
-            this.updateMergeProgress(1, 1);
+            this.updateMergeProgress(1, 3);
         }, 3000);
+        
+        setTimeout(() => {
+            // 拼接完成
+            this.updateMergeProgress(3, 3);
+        }, 4500);
         
         setTimeout(() => {
             // 重置所有进度
             this.hideAllProgress();
-        }, 6000);
+        }, 7000);
     }
 }
 
