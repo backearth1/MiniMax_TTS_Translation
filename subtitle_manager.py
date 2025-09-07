@@ -172,6 +172,13 @@ class SubtitleProject:
             return True
         return False
     
+    def get_segment(self, segment_id: str) -> Optional['SubtitleSegment']:
+        """根据ID获取段落"""
+        for segment in self.segments:
+            if segment.id == segment_id:
+                return segment
+        return None
+    
     def update_segment(self, segment_id: str, updates: Dict) -> bool:
         """更新段落"""
         for segment in self.segments:
