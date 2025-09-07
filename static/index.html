@@ -550,34 +550,10 @@
                                                 API Key
                                                 <i class="bi bi-info-circle text-muted" title="将自动保存到本地存储"></i>
                                             </label>
-                                            <div class="input-group">
-                                                <input type="password" class="form-control" id="apiKey" required style="border-color: #2196f3;" placeholder="输入您的API Key">
-                                                <button class="btn btn-outline-secondary" type="button" id="toggleApiKey" title="显示/隐藏API Key">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </div>
+                                            <input type="password" class="form-control" id="apiKey" required style="border-color: #2196f3;" placeholder="输入您的API Key">
                                         </div>
                                     </div>
                                     
-                                    <!-- 凭据管理按钮 -->
-                                    <div class="row g-3 mb-3">
-                                        <div class="col-12">
-                                            <div class="d-flex gap-2 flex-wrap">
-                                                <button type="button" class="btn btn-outline-success btn-sm" id="saveCredentials" title="保存凭据到本地">
-                                                    <i class="bi bi-floppy"></i> 保存凭据
-                                                </button>
-                                                <button type="button" class="btn btn-outline-info btn-sm" id="loadCredentials" title="从本地加载凭据">
-                                                    <i class="bi bi-upload"></i> 加载凭据
-                                                </button>
-                                                <button type="button" class="btn btn-outline-danger btn-sm" id="clearCredentials" title="清除本地保存的凭据">
-                                                    <i class="bi bi-trash"></i> 清除凭据
-                                                </button>
-                                                <span class="text-muted small" id="credentialStatus">
-                                                    <i class="bi bi-shield-check"></i> 凭据将安全保存在浏览器本地
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
                                     
                                     <!-- API端点选择 -->
                                     <div class="row g-3 mb-3">
@@ -751,10 +727,6 @@
                                                 
                                                 <!-- 状态提示 -->
                                                 <div class="text-center mt-2" id="audioStatus">
-                                                    <small class="text-muted">
-                                                        <i class="bi bi-info-circle me-1"></i>
-                                                        请先生成TTS音频，然后拼接音频以启用播放功能
-                                                    </small>
                                                 </div>
                                             </div>
                                         </div>
@@ -2127,99 +2099,23 @@
         // 凭据管理功能
         const CREDENTIALS_KEY = 'minimax_tts_credentials';
         
-        function saveCredentials() {
-            const groupId = document.getElementById('groupId').value.trim();
-            const apiKey = document.getElementById('apiKey').value.trim();
-            
-            if (!groupId || !apiKey) {
-                showToast('请先输入完整的Group ID和API Key', 'warning');
-                return;
-            }
-            
-            const credentials = {
-                groupId: groupId,
-                apiKey: apiKey,
-                savedAt: new Date().toISOString()
-            };
-            
-            try {
-                localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(credentials));
-                showToast('凭据已保存到本地存储', 'success');
-                updateCredentialStatus(true);
-            } catch (error) {
-                showToast('保存凭据失败: ' + error.message, 'error');
-            }
-        }
-        
-        function loadCredentials() {
-            try {
-                const saved = localStorage.getItem(CREDENTIALS_KEY);
-                if (saved) {
-                    const credentials = JSON.parse(saved);
-                    document.getElementById('groupId').value = credentials.groupId || '';
-                    document.getElementById('apiKey').value = credentials.apiKey || '';
-                    showToast('凭据已从本地存储加载', 'success');
-                    updateCredentialStatus(true);
-                    return true;
-                } else {
-                    showToast('未找到保存的凭据', 'warning');
-                    updateCredentialStatus(false);
-                    return false;
-                }
-            } catch (error) {
-                showToast('加载凭据失败: ' + error.message, 'error');
-                updateCredentialStatus(false);
-                return false;
-            }
-        }
-        
-        function clearCredentials() {
-            if (confirm('确定要清除本地保存的凭据吗？')) {
-                try {
-                    localStorage.removeItem(CREDENTIALS_KEY);
-                    document.getElementById('groupId').value = '';
-                    document.getElementById('apiKey').value = '';
-                    showToast('凭据已清除', 'success');
-                    updateCredentialStatus(false);
-                } catch (error) {
-                    showToast('清除凭据失败: ' + error.message, 'error');
-                }
-            }
-        }
-        
-        function updateCredentialStatus(hasSaved) {
-            const statusElement = document.getElementById('credentialStatus');
-            if (hasSaved) {
-                statusElement.innerHTML = '<i class="bi bi-shield-check text-success"></i> 凭据已保存在本地';
-                statusElement.className = 'text-success small';
-            } else {
-                statusElement.innerHTML = '<i class="bi bi-shield-check text-muted"></i> 凭据将安全保存在浏览器本地';
-                statusElement.className = 'text-muted small';
-            }
-        }
-        
-        function toggleApiKeyVisibility() {
-            const apiKeyInput = document.getElementById('apiKey');
-            const toggleBtn = document.getElementById('toggleApiKey');
-            const icon = toggleBtn.querySelector('i');
-            
-            if (apiKeyInput.type === 'password') {
-                apiKeyInput.type = 'text';
-                icon.className = 'bi bi-eye-slash';
-                toggleBtn.title = '隐藏API Key';
-            } else {
-                apiKeyInput.type = 'password';
-                icon.className = 'bi bi-eye';
-                toggleBtn.title = '显示API Key';
-            }
-        }
         
         function autoSaveCredentials() {
             const groupId = document.getElementById('groupId').value.trim();
             const apiKey = document.getElementById('apiKey').value.trim();
             
             if (groupId && apiKey) {
-                saveCredentials();
+                const credentials = {
+                    groupId: groupId,
+                    apiKey: apiKey,
+                    savedAt: new Date().toISOString()
+                };
+                
+                try {
+                    localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(credentials));
+                } catch (error) {
+                    console.error('保存凭据失败:', error);
+                }
             }
         }
 
@@ -2236,33 +2132,21 @@
             }
             
             // 自动加载保存的凭据
-            const hasCredentials = loadCredentials();
+            try {
+                const saved = localStorage.getItem(CREDENTIALS_KEY);
+                if (saved) {
+                    const credentials = JSON.parse(saved);
+                    document.getElementById('groupId').value = credentials.groupId || '';
+                    document.getElementById('apiKey').value = credentials.apiKey || '';
+                }
+            } catch (error) {
+                console.error('加载凭据失败:', error);
+            }
             
             // 添加初始日志
             addLog('系统初始化完成');
             addLog('角色语音配置已加载');
-            if (hasCredentials) {
-                addLog('已自动加载保存的API凭据');
-            }
             
-            // 绑定凭据管理按钮
-            const saveCredentialsBtn = document.getElementById('saveCredentials');
-            const loadCredentialsBtn = document.getElementById('loadCredentials');
-            const clearCredentialsBtn = document.getElementById('clearCredentials');
-            const toggleApiKeyBtn = document.getElementById('toggleApiKey');
-            
-            if (saveCredentialsBtn) {
-                saveCredentialsBtn.addEventListener('click', saveCredentials);
-            }
-            if (loadCredentialsBtn) {
-                loadCredentialsBtn.addEventListener('click', loadCredentials);
-            }
-            if (clearCredentialsBtn) {
-                clearCredentialsBtn.addEventListener('click', clearCredentials);
-            }
-            if (toggleApiKeyBtn) {
-                toggleApiKeyBtn.addEventListener('click', toggleApiKeyVisibility);
-            }
             
             // 自动保存功能 - 在输入框失去焦点时自动保存
             const groupIdInput = document.getElementById('groupId');
