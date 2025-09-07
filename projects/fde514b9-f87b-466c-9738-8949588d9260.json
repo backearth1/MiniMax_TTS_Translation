@@ -1,0 +1,62 @@
+{
+  "id": "fde514b9-f87b-466c-9738-8949588d9260",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "parse_double_life_English.srt_edited (7句话).srt_edited.srt",
+  "session_id": "Sg5M3hNp6X3XS9UCS2heYc3ObreriUxyA6huSJ_PG_E",
+  "total_segments": 3,
+  "created_at": "2025-09-07T23:26:53.395915",
+  "updated_at": "2025-09-07T23:30:33.262932",
+  "segments": [
+    {
+      "id": "f06fe242-e32a-4d50-a1f1-56e742aaf4f0",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": "Hey Dad,\n\nI hope you're doing well. I wanted to discuss something important that just came up. I've found an incredible investment opportunity that I believe could be very beneficial in the long run. I've been researching it for a while, and it seems like a solid chance to significantly grow my finances.\n\nThe thing is, I need to act quickly, and it requires some upfront capital. I was wondering if I could borrow $50,000 from you. I understand it's a significant amount, but I truly believe this is a rare opportunity that could pay off well. Of course, I would make sure to pay you back as soon as possible.\n\nI'm more than happy to discuss any terms or conditions you might have in mind. Your support and guidance mean a lot to me, and I hope we can talk about this soon.\n\nThanks for considering this, Dad.",
+      "created_at": "2025-09-07T23:26:53.395931",
+      "updated_at": "2025-09-07T23:27:50.584709"
+    },
+    {
+      "id": "66246942-203a-4c28-99b4-ba263709a52c",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": "Mom's health is deteriorating, and she urgently needs kidney dialysis to survive. The harsh reality is that we can't afford the costly treatments, no matter how much we wish we could.",
+      "created_at": "2025-09-07T23:26:53.395978",
+      "updated_at": "2025-09-07T23:30:53.094834"
+    },
+    {
+      "id": "032185f2-d8d8-4a46-8846-230ae5ccb920",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": null,
+      "created_at": "2025-09-07T23:26:53.396012",
+      "updated_at": "2025-09-07T23:26:53.396013"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "id": "18187807-c907-40f4-930d-aeb7335ae7f9",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "parse_double_life_English.srt_edited (7句话).srt_edited.srt",
+  "session_id": "y-947PmNWdufuzXPV2Ju8G0EjBc59uG_JoGeSVHRhik",
+  "total_segments": 3,
+  "created_at": "2025-09-07T23:38:27.924506",
+  "updated_at": "2025-09-07T23:38:48.313770",
+  "segments": [
+    {
+      "id": "2a474c2d-b642-4d1e-9f32-c4850b5619e6",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": "\"Hey Dad, I know this is a big ask, but could I possibly borrow $50,000 for a really important opportunity that just came up?\"",
+      "created_at": "2025-09-07T23:38:27.924520",
+      "updated_at": "2025-09-07T23:39:00.420283"
+    },
+    {
+      "id": "3755a4b6-c9c8-44c2-b5b5-d8932299480a",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": "Mom needs to undergo kidney dialysis, and we really don't have the money.",
+      "created_at": "2025-09-07T23:38:27.924565",
+      "updated_at": "2025-09-07T23:38:27.924567"
+    },
+    {
+      "id": "18936b9b-0cbb-49bd-86b9-01cdfb547b72",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": "Natalie, here's the thing...",
+      "created_at": "2025-09-07T23:38:27.924598",
+      "updated_at": "2025-09-07T23:38:27.924600"
+    }
+  ]
+}

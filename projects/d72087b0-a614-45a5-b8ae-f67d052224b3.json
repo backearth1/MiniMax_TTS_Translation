@@ -1,0 +1,62 @@
+{
+  "id": "d72087b0-a614-45a5-b8ae-f67d052224b3",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "parse_double_life_English.srt_edited (7句话).srt_edited.srt",
+  "session_id": "YOb8KkpfwL6jdp9FPusiFNxAmJDOXhfDGZHlEpJjEFs",
+  "total_segments": 3,
+  "created_at": "2025-09-08T00:20:25.508850",
+  "updated_at": "2025-09-08T00:20:25.509576",
+  "segments": [
+    {
+      "id": "7b6e57c8-0087-47d4-ba66-58a9a7fe8d6c",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": "Hey Dad, can I borrow $50,000?",
+      "created_at": "2025-09-08T00:20:25.508867",
+      "updated_at": "2025-09-08T00:20:25.508869"
+    },
+    {
+      "id": "902f24fc-71bd-4f36-b45f-7e4e06c11fa7",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": "Mom needs to have kidney dialysis, and we really don't have the money.",
+      "created_at": "2025-09-08T00:20:25.508914",
+      "updated_at": "2025-09-08T00:20:25.508916"
+    },
+    {
+      "id": "40b4f93d-94b9-48c5-a7fe-f37716b0bf1d",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": "Natalie, here's the thing...",
+      "created_at": "2025-09-08T00:20:25.508949",
+      "updated_at": "2025-09-08T00:20:25.508951"
+    }
+  ]
+}

@@ -166,6 +166,10 @@ app.include_router(project_manager_router)
 from text_adjuster import router as text_adjuster_router
 app.include_router(text_adjuster_router)
 
+# 注册自定义角色路由
+from custom_speakers import router as custom_speakers_router
+app.include_router(custom_speakers_router)
+
 @app.get("/")
 async def read_root():
     """主页重定向到静态文件"""
@@ -1700,9 +1704,12 @@ async def batch_update_speaker(
         if not new_speaker:
             raise HTTPException(status_code=400, detail="缺少新的说话人信息")
         
-        # 验证说话人是否有效
+        # 验证说话人是否有效（包括自定义角色）
+        from custom_speakers import custom_speakers_manager
         valid_speakers = ["SPEAKER_00", "SPEAKER_01", "SPEAKER_02", "SPEAKER_03", "SPEAKER_04", "SPEAKER_05"]
-        if new_speaker not in valid_speakers:
+        all_valid_speakers = custom_speakers_manager.get_all_speaker_names()
+        
+        if new_speaker not in all_valid_speakers:
             raise HTTPException(status_code=400, detail=f"无效的说话人: {new_speaker}")
         
         # 执行批量修改

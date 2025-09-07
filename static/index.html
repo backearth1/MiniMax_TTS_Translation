@@ -747,6 +747,18 @@
                                         </div>
                                     </div>
                                     
+                                    <!-- 自定义角色区域 -->
+                                    <div id="customSpeakersContainer"></div>
+                                    
+                                    <!-- 增加角色按钮 -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-12">
+                                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="showAddSpeakerModal()">
+                                                <i class="bi bi-person-plus me-1"></i>增加自定义角色
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
                                     <!-- 隐藏的文件输入，用于兼容现有生成逻辑 -->
                                     <input type="file" id="subtitleFile" accept=".srt,.txt" style="display: none;">
                                 </form>
@@ -934,6 +946,44 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义角色模态框 -->
+    <div class="modal fade" id="addSpeakerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>添加自定义角色</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addSpeakerForm">
+                        <div class="mb-3">
+                            <label for="speakerName" class="form-label">角色名称</label>
+                            <input type="text" class="form-control" id="speakerName" placeholder="如: SPEAKER_06, Mary, John" required>
+                            <div class="form-text">可以使用SPEAKER_XX格式或自定义名称</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="speakerVoiceId" class="form-label">语音ID</label>
+                            <input type="text" class="form-control" id="speakerVoiceId" placeholder="如: ai_her_04, wumei_yujie" required>
+                            <div class="form-text">请输入MiniMax支持的语音ID</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="speakerDescription" class="form-label">描述 (可选)</label>
+                            <input type="text" class="form-control" id="speakerDescription" placeholder="角色描述">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>取消
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="addCustomSpeaker()">
+                        <i class="bi bi-check-circle me-2"></i>添加角色
+                    </button>
                 </div>
             </div>
         </div>
@@ -1589,7 +1639,7 @@
         function getVoiceMapping() {
             const mapping = {};
             
-            // 从新的HTML结构中获取语音配置
+            // 从新的HTML结构中获取默认语音配置
             const speakers = ['SPEAKER_00', 'SPEAKER_01', 'SPEAKER_02', 'SPEAKER_03', 'SPEAKER_04', 'SPEAKER_05'];
             
             speakers.forEach(speaker => {
@@ -1601,6 +1651,16 @@
                     if (voice) {
                         mapping[speaker] = voice;
                     }
+                }
+            });
+
+            // 添加自定义角色语音配置
+            const customInputs = document.querySelectorAll('[id^="customSpeaker_"]');
+            customInputs.forEach(input => {
+                const speakerName = input.dataset.speakerName;
+                const voiceId = input.value;
+                if (speakerName && voiceId) {
+                    mapping[speakerName] = voiceId;
                 }
             });
 
@@ -2433,6 +2493,11 @@
             // 初始化音频播放器状态
             initAudioPlayerState();
             
+            // 初始化自定义角色功能
+            await loadCustomSpeakers();
+            loadCustomSpeakersConfig();
+            await updateSpeakerSelectors();
+            
             // 添加初始日志
             addLog('系统初始化完成');
             addLog('角色语音配置已加载');
@@ -3261,6 +3326,255 @@
         // 获取当前项目ID的辅助函数
         function getCurrentProjectId() {
             return currentSubtitleProject ? currentSubtitleProject.id : null;
+        }
+
+        // ================== 自定义角色管理功能 ==================
+
+        // 显示添加角色模态框
+        function showAddSpeakerModal() {
+            // 清空表单
+            document.getElementById('speakerName').value = '';
+            document.getElementById('speakerVoiceId').value = '';
+            document.getElementById('speakerDescription').value = '';
+            
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('addSpeakerModal'));
+            modal.show();
+        }
+
+        // 添加自定义角色
+        async function addCustomSpeaker() {
+            const name = document.getElementById('speakerName').value.trim();
+            const voiceId = document.getElementById('speakerVoiceId').value.trim();
+            const description = document.getElementById('speakerDescription').value.trim();
+
+            if (!name || !voiceId) {
+                addLog('请填写角色名称和语音ID', 'error');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('voice_id', voiceId);
+                formData.append('description', description);
+
+                const response = await fetch('/api/custom-speakers', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog(`✅ 成功添加自定义角色: ${name}`, 'success');
+                    
+                    // 关闭模态框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addSpeakerModal'));
+                    modal.hide();
+                    
+                    // 刷新自定义角色列表
+                    await loadCustomSpeakers();
+                    
+                    // 更新说话人选择器
+                    updateSpeakerSelectors();
+                } else {
+                    addLog(`❌ 添加角色失败: ${result.detail || result.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('添加自定义角色失败:', error);
+                addLog(`❌ 添加角色失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 加载自定义角色列表
+        async function loadCustomSpeakers() {
+            try {
+                const response = await fetch('/api/custom-speakers');
+                const result = await response.json();
+
+                if (result.success) {
+                    renderCustomSpeakers(result.speakers);
+                }
+            } catch (error) {
+                console.error('加载自定义角色失败:', error);
+            }
+        }
+
+        // 渲染自定义角色列表
+        function renderCustomSpeakers(speakers) {
+            const container = document.getElementById('customSpeakersContainer');
+            
+            if (speakers.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="border-top pt-3 mt-3"><h6 class="text-muted mb-3">自定义角色</h6>';
+            
+            speakers.forEach((speaker, index) => {
+                const rowClass = index % 2 === 0 ? 'row g-3 mb-3' : 'row g-3 mb-3';
+                const colClass = index % 2 === 0 ? 'col-6' : 'col-6';
+                
+                if (index % 2 === 0) {
+                    html += '<div class="row g-3 mb-3">';
+                }
+                
+                html += `
+                    <div class="${colClass}">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <label class="form-label small">${speaker.name}</label>
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="customSpeaker_${speaker.id}" 
+                                       value="${speaker.voice_id}"
+                                       data-speaker-id="${speaker.id}"
+                                       data-speaker-name="${speaker.name}"
+                                       onchange="updateCustomSpeakerVoice('${speaker.id}', this.value)">
+                                ${speaker.description ? `<small class="text-muted">${speaker.description}</small>` : ''}
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-2" 
+                                    onclick="deleteCustomSpeaker('${speaker.id}', '${speaker.name}')"
+                                    title="删除角色">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                if (index % 2 === 1 || index === speakers.length - 1) {
+                    html += '</div>';
+                }
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // 更新自定义角色语音
+        async function updateCustomSpeakerVoice(speakerId, voiceId) {
+            try {
+                const formData = new FormData();
+                formData.append('voice_id', voiceId);
+
+                const response = await fetch(`/api/custom-speakers/${speakerId}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog(`✅ 已更新角色语音: ${result.speaker.name} -> ${voiceId}`, 'success');
+                    saveCustomSpeakersConfig(); // 保存到本地存储
+                } else {
+                    addLog(`❌ 更新角色语音失败: ${result.detail || result.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('更新自定义角色语音失败:', error);
+                addLog(`❌ 更新角色语音失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 删除自定义角色
+        async function deleteCustomSpeaker(speakerId, speakerName) {
+            if (!confirm(`确定要删除自定义角色 "${speakerName}" 吗？此操作不可撤销。`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/custom-speakers/${speakerId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog(`✅ 已删除自定义角色: ${speakerName}`, 'success');
+                    
+                    // 刷新自定义角色列表
+                    await loadCustomSpeakers();
+                    
+                    // 更新说话人选择器
+                    updateSpeakerSelectors();
+                } else {
+                    addLog(`❌ 删除角色失败: ${result.detail || result.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('删除自定义角色失败:', error);
+                addLog(`❌ 删除角色失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 更新说话人选择器（批量操作和其他地方使用）
+        async function updateSpeakerSelectors() {
+            try {
+                const response = await fetch('/api/all-speakers');
+                const result = await response.json();
+
+                if (result.success) {
+                    // 更新批量说话人选择器
+                    const batchSelect = document.getElementById('batchSpeakerSelect');
+                    if (batchSelect) {
+                        const currentValue = batchSelect.value;
+                        batchSelect.innerHTML = '<option value="">选择说话人</option>';
+                        
+                        result.all_speaker_names.forEach(speakerName => {
+                            const option = document.createElement('option');
+                            option.value = speakerName;
+                            option.textContent = speakerName;
+                            batchSelect.appendChild(option);
+                        });
+                        
+                        // 恢复之前的选择
+                        if (currentValue) {
+                            batchSelect.value = currentValue;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('更新说话人选择器失败:', error);
+            }
+        }
+
+        // 保存自定义角色配置到本地存储
+        function saveCustomSpeakersConfig() {
+            const customInputs = document.querySelectorAll('[id^="customSpeaker_"]');
+            const config = {};
+            
+            customInputs.forEach(input => {
+                const speakerId = input.dataset.speakerId;
+                const speakerName = input.dataset.speakerName;
+                config[speakerId] = {
+                    name: speakerName,
+                    voice_id: input.value
+                };
+            });
+            
+            try {
+                localStorage.setItem('custom_speakers_config', JSON.stringify(config));
+            } catch (error) {
+                console.error('保存自定义角色配置失败:', error);
+            }
+        }
+
+        // 加载自定义角色配置
+        function loadCustomSpeakersConfig() {
+            try {
+                const saved = localStorage.getItem('custom_speakers_config');
+                if (saved) {
+                    const config = JSON.parse(saved);
+                    
+                    Object.keys(config).forEach(speakerId => {
+                        const input = document.getElementById(`customSpeaker_${speakerId}`);
+                        if (input && config[speakerId].voice_id) {
+                            input.value = config[speakerId].voice_id;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('加载自定义角色配置失败:', error);
+            }
         }
     </script>
 </body>
