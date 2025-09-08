@@ -685,12 +685,32 @@ async def add_subtitle_segment(
             speed=segment_data.get("speed", 1.0)
         )
         
-        # 获取插入位置参数
+        # 获取插入位置参数（支持新旧两种方式）
         insert_after_index = segment_data.get("insert_after_index")
+        insert_after_segment_id = segment_data.get("insert_after_segment_id")
+        
         print(f"🔥 DEBUG: 接收到的段落数据: {segment_data}")
         print(f"🔥 DEBUG: insert_after_index = {insert_after_index}")
+        print(f"🔥 DEBUG: insert_after_segment_id = {insert_after_segment_id}")
         print(f"🔥 DEBUG: 当前项目段落数: {len(project.segments)}")
-        project.add_segment(new_segment, insert_after_index)
+        
+        # 如果有segment_id，根据ID查找索引
+        if insert_after_segment_id:
+            target_index = None
+            for i, segment in enumerate(project.segments):
+                if segment.id == insert_after_segment_id:
+                    target_index = i + 1  # +1 因为add_segment期望的是插入位置
+                    break
+            
+            if target_index is not None:
+                print(f"🔥 DEBUG: 根据segment_id找到插入位置: {target_index}")
+                project.add_segment(new_segment, target_index)
+            else:
+                print(f"🔥 DEBUG: 未找到目标segment_id，追加到末尾")
+                project.add_segment(new_segment)
+        else:
+            # 使用旧的index方式
+            project.add_segment(new_segment, insert_after_index)
         
         return {
             "success": True,

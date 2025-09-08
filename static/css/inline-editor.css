@@ -1,0 +1,311 @@
+/* 内联编辑器样式 */
+
+/* 可编辑元素的基础样式 */
+.editable-field {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 1px 2px;
+    display: inline;
+    width: auto;
+    min-width: auto;
+    min-height: auto;
+}
+
+.editable-field:hover {
+    background-color: rgba(255, 192, 203, 0.1);
+    box-shadow: 0 0 0 1px rgba(255, 192, 203, 0.3);
+}
+
+/* 编辑状态指示 */
+.editable-field.editing {
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    position: relative;
+}
+
+.editable-field.editing > *:not(.inline-edit-input):not(.inline-edit-select):not(.inline-edit-textarea):not(.edit-hint):not(.inline-edit-actions) {
+    display: none !important;
+}
+
+/* 编辑时隐藏原始文本内容 */
+.editable-field.editing-content-hidden {
+    color: transparent;
+}
+
+.editable-field.editing-content-hidden .edit-hint,
+.editable-field.editing-content-hidden .inline-edit-actions,
+.editable-field.editing-content-hidden .inline-edit-input,
+.editable-field.editing-content-hidden .inline-edit-select,
+.editable-field.editing-content-hidden .inline-edit-textarea {
+    color: initial;
+}
+
+/* 内联输入框样式 */
+.inline-edit-input {
+    border: 2px solid var(--pink-400);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: inherit;
+    font-family: inherit;
+    background: white;
+    width: 100%;
+    min-width: 80px;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.inline-edit-input:focus {
+    border-color: var(--pink-600);
+    box-shadow: 0 0 0 3px rgba(255, 192, 203, 0.3);
+}
+
+/* 时间字段特殊样式 */
+.editable-time {
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+    color: var(--pink-600);
+    display: inline;
+    width: auto;
+    min-width: auto;
+}
+
+.editable-time.editing .inline-edit-input {
+    font-family: 'Courier New', monospace;
+    width: 85px;
+    font-size: inherit;
+}
+
+/* 角色字段样式 - 保持原始样式 */
+.speaker-simple.editable-field {
+    display: inline;
+    width: auto;
+    min-width: auto;
+}
+
+.speaker-simple.editable-field.editing .inline-edit-input {
+    width: auto;
+    min-width: 60px;
+    max-width: 120px;
+    font-size: inherit;
+}
+
+/* 情绪字段样式 - 保持原始样式 */
+.emotion-simple.editable-field {
+    display: inline;
+    width: auto;
+    min-width: auto;
+}
+
+.emotion-simple.editable-field.editing .inline-edit-select {
+    width: auto;
+    min-width: 60px;
+    border: 2px solid var(--pink-400);
+    border-radius: 4px;
+    padding: 2px 6px;
+    background: white;
+    outline: none;
+    font-size: inherit;
+}
+
+/* 独立的角色和情绪字段样式（如果需要的话） */
+.editable-speaker:not(.speaker-simple) {
+    background: rgba(255, 192, 203, 0.2);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-weight: 500;
+    min-width: 60px;
+    text-align: center;
+}
+
+.editable-emotion:not(.emotion-simple) {
+    background: rgba(135, 206, 235, 0.2);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-weight: 500;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* 语速字段样式 */
+.editable-speed {
+    color: var(--pink-600);
+    font-weight: 500;
+    display: inline;
+    width: auto;
+    min-width: auto;
+}
+
+.editable-speed.editing .inline-edit-input {
+    width: 45px;
+    text-align: center;
+    font-size: inherit;
+}
+
+/* 文本字段样式 */
+.editable-text {
+    line-height: 1.4;
+    min-height: 20px;
+    word-wrap: break-word;
+}
+
+.editable-text.editing .inline-edit-textarea {
+    border: 2px solid var(--pink-400);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: inherit;
+    background: white;
+    width: 100%;
+    min-height: 60px;
+    outline: none;
+    resize: vertical;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.editable-text.editing .inline-edit-textarea:focus {
+    border-color: var(--pink-600);
+    box-shadow: 0 0 0 3px rgba(255, 192, 203, 0.3);
+}
+
+/* 原文和译文的区分样式 */
+.editable-original-text {
+    color: var(--pink-700);
+    font-weight: 500;
+}
+
+.editable-translated-text {
+    color: var(--blue-600);
+    font-weight: 500;
+}
+
+/* 编辑提示 */
+.edit-hint {
+    position: absolute;
+    top: -25px;
+    left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.editable-field:hover .edit-hint {
+    opacity: 1;
+}
+
+.editable-field.editing .edit-hint {
+    opacity: 0;
+}
+
+/* 保存/取消按钮组 */
+.inline-edit-actions {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 6px;
+    gap: 4px;
+    z-index: 1002;
+    margin-top: 4px;
+}
+
+.editable-field.editing .inline-edit-actions {
+    display: flex;
+}
+
+.inline-edit-btn {
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.inline-edit-save {
+    background: var(--pink-400);
+    color: white;
+}
+
+.inline-edit-save:hover {
+    background: var(--pink-600);
+}
+
+.inline-edit-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.inline-edit-cancel:hover {
+    background: #5a6268;
+}
+
+/* 加载状态 */
+.inline-edit-loading {
+    position: relative;
+}
+
+.inline-edit-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--pink-400);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .editable-field {
+        min-height: 24px;
+        padding: 4px 6px;
+    }
+    
+    .inline-edit-input,
+    .inline-edit-textarea {
+        font-size: 14px;
+    }
+    
+    .edit-hint {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+}
+
+/* 辅助功能 */
+.editable-field[aria-label]:focus {
+    outline: 2px solid var(--pink-400);
+    outline-offset: 2px;
+}
+
+/* 成功保存动画 */
+@keyframes saveSuccess {
+    0% { background-color: rgba(40, 167, 69, 0.2); }
+    100% { background-color: transparent; }
+}
+
+.save-success {
+    animation: saveSuccess 0.8s ease;
+}

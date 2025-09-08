@@ -10,6 +10,7 @@
     <link href="/static/css/style.css" rel="stylesheet">
     <link href="/static/css/project-manager.css" rel="stylesheet">
     <link href="/static/css/progress-tracker.css" rel="stylesheet">
+    <link href="/static/css/inline-editor.css" rel="stylesheet">
     <style>
         :root {
             --blue-50: #f0f9ff;
@@ -980,68 +981,6 @@
         </div>
     </div>
 
-    <!-- 字幕段落编辑模态框 -->
-    <div class="modal fade" id="segmentModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>编辑字幕段落</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label">开始时间</label>
-                            <input type="text" class="form-control" id="segmentStartTime" placeholder="00:00:00,000">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">结束时间</label>
-                            <input type="text" class="form-control" id="segmentEndTime" placeholder="00:00:00,000">
-                        </div>
-                    </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label">说话人</label>
-                            <input type="text" class="form-control" id="segmentSpeaker">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">语速</label>
-                            <input type="number" class="form-control" id="segmentSpeed" min="1" max="2" step="0.1" value="1.0">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">情绪</label>
-                        <select class="form-select" id="segmentEmotion">
-                            <option value="auto">自动检测</option>
-                            <option value="happy">开心</option>
-                            <option value="sad">悲伤</option>
-                            <option value="angry">愤怒</option>
-                            <option value="fearful">恐惧</option>
-                            <option value="disgusted">厌恶</option>
-                            <option value="surprised">惊讶</option>
-                            <option value="calm">平静</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">原文</label>
-                        <textarea class="form-control" id="segmentText" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">译文</label>
-                        <textarea class="form-control" id="segmentTranslatedText" rows="3" placeholder="翻译后的文本"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>取消
-                    </button>
-                    <button type="button" class="btn btn-primary" id="saveSegmentBtn">
-                        <i class="bi bi-check-circle me-2"></i>保存
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Toast 通知 -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -1062,6 +1001,7 @@
     <script src="/static/js/project-manager.js"></script>
     <script src="/static/js/progress-tracker.js"></script>
     <script src="/static/js/text-adjuster.js"></script>
+    <script src="/static/js/inline-editor.js"></script>
     <script>
         // 导出SRT文件函数
         async function exportSrtFile() {
@@ -1222,7 +1162,7 @@
                 return;
             }
 
-            const segmentsHtml = segments.map(segment => `
+            const segmentsHtml = segments.map((segment, index) => `
                 <div class="segment-item">
                     <div class="d-flex flex-column">
                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -1249,14 +1189,8 @@
                                         style="width: 40px; display: flex; align-items: center; justify-content: center;">
                                     <i class="bi bi-play-circle"></i>
                                 </button>
-                                <button class="btn btn-sm btn-link text-muted" 
-                                        onclick="editSegment('${segment.id}')"
-                                        title="编辑"
-                                        style="width: 40px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-info" 
-                                        onclick="insertNewSegment(${segments.indexOf(segment)})"
+                                <button class="btn btn-sm btn-outline-info insert-segment-btn" 
+                                        data-segment-id="${segment.id}"
                                         title="在此段落后插入新段落"
                                         style="width: 40px; display: flex; align-items: center; justify-content: center;">
                                     <i class="bi bi-plus"></i>
@@ -1469,16 +1403,19 @@
         }
 
         // 在指定位置插入新段落
-        async function insertNewSegment(afterIndex) {
+        async function insertAfterSegment(segmentId) {
             if (!currentSubtitleProject) {
                 showToast('请先上传SRT文件');
                 return;
             }
 
-            if (afterIndex < 0 || afterIndex >= segments.length) {
-                showToast('插入位置无效');
+            // 根据segmentId找到对应的段落和索引
+            const afterIndex = segments.findIndex(seg => seg.id === segmentId);
+            if (afterIndex === -1) {
+                showToast('找不到目标段落');
                 return;
             }
+            
 
             // 生成新的段落ID
             const newSegmentId = 'segment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -1494,13 +1431,14 @@
                 const currentEndTime = currentSegment.end_time;
                 const nextStartTime = nextSegment.start_time;
                 
-                // 计算中间时间
+                
+                // 计算中间时间 - 支持两种时间格式：HH:MM:SS,mmm 和 HH:MM:SS.mmm
                 const [hours1, minutes1, seconds1] = currentEndTime.split(':');
-                const [secs1, ms1] = seconds1.split(',');
+                const [secs1, ms1] = seconds1.includes(',') ? seconds1.split(',') : seconds1.split('.');
                 const currentEndSeconds = parseInt(hours1) * 3600 + parseInt(minutes1) * 60 + parseInt(secs1) + parseInt(ms1) / 1000;
                 
                 const [hours2, minutes2, seconds2] = nextStartTime.split(':');
-                const [secs2, ms2] = seconds2.split(',');
+                const [secs2, ms2] = seconds2.includes(',') ? seconds2.split(',') : seconds2.split('.');
                 const nextStartSeconds = parseInt(hours2) * 3600 + parseInt(minutes2) * 60 + parseInt(secs2) + parseInt(ms2) / 1000;
                 
                 const middleTime = (currentEndSeconds + nextStartSeconds) / 2;
@@ -1513,7 +1451,7 @@
                 // 在最后一个段落之后插入
                 const lastEndTime = currentSegment.end_time;
                 const [hours, minutes, seconds] = lastEndTime.split(':');
-                const [secs, ms] = seconds.split(',');
+                const [secs, ms] = seconds.includes(',') ? seconds.split(',') : seconds.split('.');
                 
                 const totalSeconds = parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseInt(secs) + parseInt(ms) / 1000;
                 const newStartSeconds = totalSeconds + 0.5;
@@ -1539,7 +1477,7 @@
                 audio_url: '',
                 trace_id: '',
                 updated_at: new Date().toISOString(),
-                insert_after_index: afterIndex + 1  // 添加插入位置参数，afterIndex是数组索引，需要+1转为段落序号
+                insert_after_segment_id: segmentId  // 使用段落ID而非索引
             };
 
             try {
@@ -1555,8 +1493,8 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    addLog(`在段落${afterIndex + 1}后插入新段落: ${newSegmentId}`);
-                    showToast(`新段落已插入到段落${afterIndex + 1}之后`);
+                    addLog(`在段落 ${currentSegment.index} 后插入新段落: ${newSegmentId}`);
+                    showToast(`新段落已插入到段落 ${currentSegment.index} 之后`);
                     
                     // 重新加载当前页面，保持分页
                     await loadSubtitleSegments();
@@ -2118,7 +2056,7 @@
         }
         
         // 格式化时间
-        function formatTime(seconds) {
+        function formatDuration(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -2151,54 +2089,6 @@
             loadSubtitleSegments();
         });
 
-        function editSegment(segmentId) {
-            const segment = segments.find(s => s.id === segmentId);
-            if (!segment) return;
-
-            document.getElementById('segmentStartTime').value = segment.start_time;
-            document.getElementById('segmentEndTime').value = segment.end_time;
-            document.getElementById('segmentSpeaker').value = segment.speaker;
-            document.getElementById('segmentEmotion').value = segment.emotion;
-            document.getElementById('segmentSpeed').value = segment.speed;
-            document.getElementById('segmentText').value = segment.text;
-            document.getElementById('segmentTranslatedText').value = segment.translated_text || '';
-
-            const modal = new bootstrap.Modal(document.getElementById('segmentModal'));
-            modal.show();
-
-            // 保存按钮事件
-            document.getElementById('saveSegmentBtn').onclick = async () => {
-                try {
-                    const updatedSegment = {
-                        start_time: document.getElementById('segmentStartTime').value,
-                        end_time: document.getElementById('segmentEndTime').value,
-                        speaker: document.getElementById('segmentSpeaker').value,
-                        emotion: document.getElementById('segmentEmotion').value,
-                        speed: parseFloat(document.getElementById('segmentSpeed').value),
-                        text: document.getElementById('segmentText').value,
-                        translated_text: document.getElementById('segmentTranslatedText').value
-                    };
-
-                    const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/segment/${segmentId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(updatedSegment)
-                    });
-
-                    if (response.ok) {
-                        modal.hide();
-                        loadSubtitleSegments();
-                        showToast('段落更新成功');
-                    } else {
-                        showToast('更新失败');
-                    }
-                } catch (error) {
-                    showToast('更新失败: ' + error.message);
-                }
-            };
-        }
 
         // 检查是否有已保存的项目，并返回项目列表
         async function checkForSavedProjects() {
@@ -2525,6 +2415,17 @@
                     element.addEventListener('blur', saveAllConfig);
                     // 监听选择变化事件（对select类型）
                     element.addEventListener('change', saveAllConfig);
+                }
+            });
+            
+            // 使用事件委托绑定插入段落按钮，确保动态添加的按钮也能正常工作
+            document.addEventListener('click', function(event) {
+                if (event.target.closest('.insert-segment-btn')) {
+                    const button = event.target.closest('.insert-segment-btn');
+                    const segmentId = button.dataset.segmentId;
+                    console.log('插入按钮点击，segment ID:', segmentId);
+                    addLog(`🔘 点击插入按钮，目标段落ID: ${segmentId}`);
+                    insertAfterSegment(segmentId);
                 }
             });
 
@@ -2963,8 +2864,8 @@
             // 波形更新已经集成到进度更新中，不需要单独停止
         }
         
-        // 格式化时间
-        function formatTime(seconds) {
+        // 格式化时间（用于音频播放时长显示）
+        function formatPlaybackTime(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
