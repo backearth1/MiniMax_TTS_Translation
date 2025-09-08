@@ -24,6 +24,9 @@ class ProxyManager:
         self.detection_cache = {}
         self.last_detection_time = 0
         self.current_proxy_config = None
+        self._cache_valid = False
+        # 启动时异步加载缓存
+        asyncio.create_task(self._load_detection_cache())
         
     async def get_optimal_proxy_config(self, force_refresh: bool = False) -> Optional[Dict[str, Any]]:
         """
@@ -38,11 +41,10 @@ class ProxyManager:
         current_time = time.time()
         cache_ttl = Config.PROXY_CONFIG.get("detection_cache_ttl", 300)
         
-        # 检查缓存是否有效
-        if not force_refresh and (current_time - self.last_detection_time) < cache_ttl:
-            if self.current_proxy_config is not None:
-                logger.info(f"使用缓存的代理配置: {self.current_proxy_config.get('mode', 'unknown')}")
-                return self.current_proxy_config
+        # 检查缓存是否有效（修复：直连配置None也应该被缓存）
+        if not force_refresh and (current_time - self.last_detection_time) < cache_ttl and hasattr(self, '_cache_valid'):
+            logger.info(f"使用缓存的代理配置: {self.current_proxy_config}")
+            return self.current_proxy_config
         
         # 根据配置模式选择代理
         proxy_mode = Config.PROXY_CONFIG.get("mode", "auto")
@@ -76,8 +78,9 @@ class ProxyManager:
             logger.warning(f"未知的代理模式: {proxy_mode}，使用直连")
             self.current_proxy_config = None
         
-        # 更新缓存时间
+        # 更新缓存时间和标记
         self.last_detection_time = current_time
+        self._cache_valid = True  # 标记缓存有效
         
         # 保存检测结果到文件
         await self._save_detection_cache()
@@ -222,7 +225,14 @@ class ProxyManager:
                 self.last_detection_time = cache_data.get("last_detection_time", 0)
                 self.current_proxy_config = cache_data.get("current_proxy_config")
                 
-                logger.info("已加载代理检测缓存")
+                # 检查缓存是否仍然有效
+                current_time = time.time()
+                cache_ttl = Config.PROXY_CONFIG.get("detection_cache_ttl", 600)
+                if (current_time - self.last_detection_time) < cache_ttl:
+                    self._cache_valid = True
+                    logger.info(f"已加载有效代理缓存: {self.current_proxy_config}")
+                else:
+                    logger.info("代理缓存已过期，需要重新检测")
                 
         except Exception as e:
             logger.warning(f"加载代理缓存失败: {str(e)}")

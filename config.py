@@ -44,15 +44,13 @@ class Config:
             "no_proxy": os.getenv("no_proxy", "localhost,127.0.0.1,*.xaminim.com,10.0.0.0/8")
         },
         
-        # 检测配置
+        # 检测配置 - 优化：减少URL数量和超时时间
         "test_urls": [
-            "https://api.minimaxi.com/health",
-            "https://api.minimax.io/health", 
-            "https://www.baidu.com",
-            "https://httpbin.org/ip"
+            "https://www.baidu.com",       # 快速测试URL
+            "https://api.minimaxi.com/health"  # 主要API测试
         ],
-        "connection_timeout": 5,        # 连接超时（秒）
-        "detection_cache_ttl": 300      # 检测缓存时间（秒）
+        "connection_timeout": 3,        # 连接超时（秒）- 减少到3秒
+        "detection_cache_ttl": 600      # 检测缓存时间（秒）- 增加到10分钟
     }
     
     # API 端点配置
