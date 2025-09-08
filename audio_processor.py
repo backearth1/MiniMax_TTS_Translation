@@ -168,6 +168,21 @@ class TTSService:
         self._last_request_time = 0  # 添加请求时间控制
         self._request_interval = 1.0  # 请求间隔1秒
         
+    def _get_dynamic_config(self):
+        """获取动态配置，如果获取失败则使用默认值"""
+        try:
+            from admin_modules.system_manager import system_manager
+            return system_manager.get_batch_api_config()
+        except:
+            # 创建默认配置对象
+            class DefaultConfig:
+                tts_request_interval_seconds = 1.0
+                tts_timeout_seconds = 30
+                tts_max_retries = 3
+                tts_retry_delay_base = 2.0
+                tts_download_retry_delay = 2.0
+            return DefaultConfig()
+    
     async def initialize(self, group_id: str = None, api_key: str = None):
         """初始化 TTS 服务"""
         self.group_id = group_id
@@ -190,11 +205,14 @@ class TTSService:
         Returns:
             Dict containing 'audio_data' and 'duration_ms'
         """
-        # 添加请求间隔控制，避免频率限制
+        # 添加请求间隔控制，避免频率限制 - 使用动态配置
+        config = self._get_dynamic_config()
+        request_interval = config.tts_request_interval_seconds
+        
         current_time = time.time()
         time_since_last = current_time - self._last_request_time
-        if time_since_last < self._request_interval:
-            wait_time = self._request_interval - time_since_last
+        if time_since_last < request_interval:
+            wait_time = request_interval - time_since_last
             await self.logger.info("请求间隔控制", f"等待 {wait_time:.1f} 秒避免频率限制")
             await asyncio.sleep(wait_time)
         
@@ -245,13 +263,14 @@ class TTSService:
                 
                 await self.logger.info("发送API请求", f"URL: {api_url}, 模型: {model}, 语音设置: {api_data['voice_setting']}, Emotion: {emotion}")
                 
-                # 添加重试逻辑处理rate limit
-                max_retries = 3
+                # 添加重试逻辑处理rate limit - 使用动态配置
+                config = self._get_dynamic_config()
+                max_retries = config.tts_max_retries
                 for retry in range(max_retries):
                     try:
-                        # 如果不是第一次请求，添加延迟避免rate limit
+                        # 如果不是第一次请求，添加延迟避免rate limit - 使用动态配置
                         if retry > 0:
-                            delay = 2 ** retry  # 指数退避: 2s, 4s, 8s
+                            delay = config.tts_retry_delay_base ** retry  # 指数退避
                             await self.logger.info("等待重试", f"延迟 {delay} 秒避免频率限制")
                             await asyncio.sleep(delay)
                         
@@ -452,8 +471,9 @@ class TTSService:
         """
         await self.logger.info("下载音频", f"URL: {audio_url[:50]}...")
         
-        # 重试机制
-        max_retries = 3
+        # 重试机制 - 使用动态配置
+        config = self._get_dynamic_config()
+        max_retries = config.tts_max_retries
         for retry_count in range(max_retries):
             try:
                 # 设置请求头，模拟浏览器访问
@@ -532,9 +552,10 @@ class TTSService:
                 await self.logger.error("音频下载失败", f"重试 {retry_count + 1}/{max_retries}, 错误: {str(download_error)}")
                 
                 if retry_count < max_retries - 1:
-                    # 还有重试机会，等待后重试
+                    # 还有重试机会，等待后重试 - 使用动态配置
                     import asyncio
-                    await asyncio.sleep(2)  # 等待2秒后重试
+                    delay = config.tts_download_retry_delay
+                    await asyncio.sleep(delay)  # 使用配置的延迟时间
                     continue
                 else:
                     # 最后一次重试失败
@@ -730,6 +751,17 @@ class AudioProcessor:
         self.tts_service = TTSService(logger, group_id, api_key, api_endpoint)
         self._last_request_time = 0  # 添加请求时间控制
         self._request_interval = 1.0  # 请求间隔1秒
+    
+    def _get_dynamic_config(self):
+        """获取动态配置，如果获取失败则使用默认值"""
+        try:
+            from admin_modules.system_manager import system_manager
+            return system_manager.get_batch_api_config()
+        except:
+            # 创建默认配置对象
+            class DefaultConfig:
+                tts_batch_size = 20
+            return DefaultConfig()
         
     async def initialize(self, group_id: str = None, api_key: str = None, api_endpoint: str = None):
         """初始化音频处理器"""

@@ -25,9 +25,25 @@ class RateLimitConfig(BaseModel):
     file_size_limit_mb: int = Field(default=10, ge=1, le=100, description="文件大小限制(MB)")
     user_request_rate_per_minute: int = Field(default=10, ge=1, le=100, description="用户每分钟请求限制")
 
+class BatchAPIConfig(BaseModel):
+    """批量API配置模型"""
+    # 批量翻译配置
+    translation_delay_seconds: float = Field(default=2.0, ge=0.1, le=10.0, description="翻译请求间隔(秒)")
+    translation_timeout_seconds: int = Field(default=30, ge=10, le=120, description="翻译请求超时(秒)")
+    translation_max_retries: int = Field(default=3, ge=1, le=10, description="翻译最大重试次数")
+    
+    # 批量TTS配置
+    tts_request_interval_seconds: float = Field(default=1.0, ge=0.1, le=5.0, description="TTS请求间隔(秒)")
+    tts_timeout_seconds: int = Field(default=30, ge=10, le=120, description="TTS请求超时(秒)")
+    tts_max_retries: int = Field(default=3, ge=1, le=10, description="TTS最大重试次数")
+    tts_retry_delay_base: float = Field(default=2.0, ge=1.0, le=5.0, description="TTS重试延迟基数(秒)")
+    tts_download_retry_delay: float = Field(default=2.0, ge=0.5, le=10.0, description="TTS下载重试延迟(秒)")
+    tts_batch_size: int = Field(default=20, ge=1, le=100, description="TTS批处理大小")
+
 class SystemConfig(BaseModel):
     """系统配置模型"""
     rate_limit: RateLimitConfig = Field(default_factory=RateLimitConfig)
+    batch_api: BatchAPIConfig = Field(default_factory=BatchAPIConfig)
     updated_at: str = Field(default_factory=lambda: datetime.now().isoformat())
     updated_by: str = Field(default="admin")
 
@@ -84,9 +100,24 @@ class SystemConfigManager:
             print(f"更新限流配置失败: {e}")
             return False
     
+    def update_batch_api_config(self, new_config: BatchAPIConfig, updated_by: str = "admin") -> bool:
+        """更新批量API配置"""
+        try:
+            self._config.batch_api = new_config
+            self._config.updated_at = datetime.now().isoformat()
+            self._config.updated_by = updated_by
+            return self._save_config()
+        except Exception as e:
+            print(f"更新批量API配置失败: {e}")
+            return False
+    
     def get_rate_limit_config(self) -> RateLimitConfig:
         """获取限流配置"""
         return self.get_config().rate_limit
+    
+    def get_batch_api_config(self) -> BatchAPIConfig:
+        """获取批量API配置"""
+        return self.get_config().batch_api
     
     def reset_to_default(self) -> bool:
         """重置为默认配置"""
@@ -178,6 +209,24 @@ async def update_rate_limit_config(config: RateLimitConfig):
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"更新限流配置失败: {str(e)}")
+
+@system_router.post("/api/batch-api")
+async def update_batch_api_config(config: BatchAPIConfig):
+    """更新批量API配置API"""
+    try:
+        success = system_manager.update_batch_api_config(config, "admin_user")
+        
+        if success:
+            # 记录管理员活动
+            from admin import record_user_activity
+            record_user_activity("admin_user", "update_batch_api_config")
+            
+            return {"success": True, "message": "批量API配置更新成功"}
+        else:
+            raise HTTPException(status_code=500, detail="保存配置失败")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"更新批量API配置失败: {str(e)}")
 
 @system_router.post("/api/reset")
 async def reset_system_config():

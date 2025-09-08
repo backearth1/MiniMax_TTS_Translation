@@ -1,0 +1,62 @@
+{
+  "id": "5b62f1a4-6589-4741-8781-dc50f192c5d2",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "parse_double_life_English.srt_edited (7句话).srt_edited.srt",
+  "session_id": "UHrSkorx8yLPuaO9QvYldYdiLOuNIZHrzH8C-fMt95M",
+  "total_segments": 3,
+  "created_at": "2025-09-08T11:04:03.334313",
+  "updated_at": "2025-09-08T11:04:26.331315",
+  "segments": [
+    {
+      "id": "81e3787d-1715-4370-9822-5a95574e8e86",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.1,
+      "has_audio": true,
+      "audio_duration": 3913,
+      "audio_url": "/audio/segment_81e3787d-1715-4370-9822-5a95574e8e86_1757300677_0.mp3",
+      "trace_id": "050d7ab30fb36d7c2fbed17fdace57be",
+      "translated_text": "Cześć tato, czy mogę pożyczyć 50 tysięcy dolarów?",
+      "created_at": "2025-09-08T11:04:03.334330",
+      "updated_at": "2025-09-08T11:04:37.302809"
+    },
+    {
+      "id": "86a43776-554d-4fee-a542-ecfe98db3608",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 2.0,
+      "has_audio": true,
+      "audio_duration": 2426,
+      "audio_url": "/audio/segment_86a43776-554d-4fee-a542-ecfe98db3608_1757300683_1.mp3",
+      "trace_id": "050d7abba6662666bbbf219cdf8d4f53",
+      "translated_text": "Mama potrzebuje dializy nerkowej, a naprawdę nie mamy pieniędzy.",
+      "created_at": "2025-09-08T11:04:03.334373",
+      "updated_at": "2025-09-08T11:04:43.924499"
+    },
+    {
+      "id": "29463385-98bb-446b-9a6d-8af6e2f07cb3",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.7,
+      "has_audio": true,
+      "audio_duration": 1306,
+      "audio_url": "/audio/segment_29463385-98bb-446b-9a6d-8af6e2f07cb3_1757300765_2.mp3",
+      "trace_id": "050d7b0cd0ec74627d3a37772a58cf1d",
+      "translated_text": "Natalia, posłuchaj...",
+      "created_at": "2025-09-08T11:04:03.334409",
+      "updated_at": "2025-09-08T11:06:05.159706"
+    }
+  ]
+}

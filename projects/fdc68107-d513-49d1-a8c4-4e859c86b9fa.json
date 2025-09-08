@@ -1,0 +1,62 @@
+{
+  "id": "fdc68107-d513-49d1-a8c4-4e859c86b9fa",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_1782jba7y",
+  "session_id": "Lm3o8Oonal1MM3pdPL9Spb3_fXHfS7AYCyBx6_95rwA",
+  "total_segments": 3,
+  "created_at": "2025-09-08T12:09:51.296052",
+  "updated_at": "2025-09-08T12:10:02.147330",
+  "segments": [
+    {
+      "id": "243358f6-1cfb-489c-9532-d5452cb242d2",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.1,
+      "has_audio": true,
+      "audio_duration": 2181,
+      "audio_url": "/audio/segment_243358f6-1cfb-489c-9532-d5452cb242d2_1757304612_0.mp3",
+      "trace_id": "",
+      "translated_text": "Hey Dad, can I borrow $50,000?",
+      "created_at": "2025-09-08T12:09:51.296068",
+      "updated_at": "2025-09-08T12:10:12.908242"
+    },
+    {
+      "id": "7fb2a43f-f685-4f3f-b680-8e1c5fccfc26",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 1360,
+      "audio_url": "/audio/segment_7fb2a43f-f685-4f3f-b680-8e1c5fccfc26_1757304613_1.mp3",
+      "trace_id": "",
+      "translated_text": null,
+      "created_at": "2025-09-08T12:09:51.296110",
+      "updated_at": "2025-09-08T12:10:13.915061"
+    },
+    {
+      "id": "38f64f1a-5dfe-421b-82cd-f30f2faa0789",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 1040,
+      "audio_url": "/audio/segment_38f64f1a-5dfe-421b-82cd-f30f2faa0789_1757304614_2.mp3",
+      "trace_id": "",
+      "translated_text": null,
+      "created_at": "2025-09-08T12:09:51.296147",
+      "updated_at": "2025-09-08T12:10:14.907738"
+    }
+  ]
+}

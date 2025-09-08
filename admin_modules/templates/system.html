@@ -104,7 +104,10 @@
                         <i class="bi bi-arrow-clockwise me-1"></i>刷新配置
                     </button>
                     <button class="btn btn-success" onclick="saveConfig()">
-                        <i class="bi bi-check-circle me-1"></i>保存配置
+                        <i class="bi bi-check-circle me-1"></i>保存基础配置
+                    </button>
+                    <button class="btn btn-success" onclick="saveBatchApiConfig()">
+                        <i class="bi bi-gear-wide-connected me-1"></i>保存批量API配置
                     </button>
                     <button class="btn btn-danger" onclick="resetConfig()">
                         <i class="bi bi-arrow-counterclockwise me-1"></i>重置默认
@@ -121,7 +124,7 @@
                 <!-- 限流配置 -->
                 <div class="card config-card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>限流配置</h5>
+                        <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>基础限流配置</h5>
                     </div>
                     <div class="card-body">
                         <form id="rateLimitForm">
@@ -165,6 +168,81 @@
                                     <input type="number" class="form-control" id="userRequestRatePerMinute" 
                                            min="1" max="100" value="10">
                                     <div class="form-text">单个用户每分钟最大请求数</div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 批量API配置 -->
+                <div class="card config-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-gear-wide-connected me-2"></i>批量API限流配置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="batchApiForm">
+                            <h6 class="text-muted mb-3">批量翻译API配置</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="translationDelaySeconds" class="form-label">翻译请求间隔(秒)</label>
+                                    <input type="number" class="form-control" id="translationDelaySeconds" 
+                                           min="0.1" max="10.0" step="0.1" value="2.0">
+                                    <div class="form-text">批量翻译时每个请求间的间隔</div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="translationTimeoutSeconds" class="form-label">翻译请求超时(秒)</label>
+                                    <input type="number" class="form-control" id="translationTimeoutSeconds" 
+                                           min="10" max="120" value="30">
+                                    <div class="form-text">单个翻译请求的超时时间</div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="translationMaxRetries" class="form-label">翻译最大重试次数</label>
+                                    <input type="number" class="form-control" id="translationMaxRetries" 
+                                           min="1" max="10" value="3">
+                                    <div class="form-text">翻译失败时的重试次数</div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            <h6 class="text-muted mb-3">批量TTS API配置</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="ttsRequestIntervalSeconds" class="form-label">TTS请求间隔(秒)</label>
+                                    <input type="number" class="form-control" id="ttsRequestIntervalSeconds" 
+                                           min="0.1" max="5.0" step="0.1" value="1.0">
+                                    <div class="form-text">TTS请求间的间隔控制</div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="ttsTimeoutSeconds" class="form-label">TTS请求超时(秒)</label>
+                                    <input type="number" class="form-control" id="ttsTimeoutSeconds" 
+                                           min="10" max="120" value="30">
+                                    <div class="form-text">单个TTS请求的超时时间</div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="ttsMaxRetries" class="form-label">TTS最大重试次数</label>
+                                    <input type="number" class="form-control" id="ttsMaxRetries" 
+                                           min="1" max="10" value="3">
+                                    <div class="form-text">TTS失败时的重试次数</div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="ttsRetryDelayBase" class="form-label">TTS重试延迟基数(秒)</label>
+                                    <input type="number" class="form-control" id="ttsRetryDelayBase" 
+                                           min="1.0" max="5.0" step="0.1" value="2.0">
+                                    <div class="form-text">指数退避重试的基数</div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="ttsDownloadRetryDelay" class="form-label">TTS下载重试延迟(秒)</label>
+                                    <input type="number" class="form-control" id="ttsDownloadRetryDelay" 
+                                           min="0.5" max="10.0" step="0.1" value="2.0">
+                                    <div class="form-text">音频下载失败时的重试延迟</div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="ttsBatchSize" class="form-label">TTS批处理大小</label>
+                                    <input type="number" class="form-control" id="ttsBatchSize" 
+                                           min="1" max="100" value="20">
+                                    <div class="form-text">音频批处理的段落数量</div>
                                 </div>
                             </div>
                         </form>
@@ -240,13 +318,25 @@
                 if (result.success) {
                     const config = result.data.config.rate_limit;
                     
-                    // 填充表单
+                    // 填充基础配置表单
                     document.getElementById('maxOnlineUsers').value = config.max_online_users;
                     document.getElementById('maxProjectsPerUser').value = config.max_projects_per_user;
                     document.getElementById('maxSegmentsPerFile').value = config.max_segments_per_file;
                     document.getElementById('maxDurationSeconds').value = config.max_duration_seconds;
                     document.getElementById('fileSizeLimitMb').value = config.file_size_limit_mb;
                     document.getElementById('userRequestRatePerMinute').value = config.user_request_rate_per_minute;
+                    
+                    // 填充批量API配置表单
+                    const batchConfig = result.data.config.batch_api;
+                    document.getElementById('translationDelaySeconds').value = batchConfig.translation_delay_seconds;
+                    document.getElementById('translationTimeoutSeconds').value = batchConfig.translation_timeout_seconds;
+                    document.getElementById('translationMaxRetries').value = batchConfig.translation_max_retries;
+                    document.getElementById('ttsRequestIntervalSeconds').value = batchConfig.tts_request_interval_seconds;
+                    document.getElementById('ttsTimeoutSeconds').value = batchConfig.tts_timeout_seconds;
+                    document.getElementById('ttsMaxRetries').value = batchConfig.tts_max_retries;
+                    document.getElementById('ttsRetryDelayBase').value = batchConfig.tts_retry_delay_base;
+                    document.getElementById('ttsDownloadRetryDelay').value = batchConfig.tts_download_retry_delay;
+                    document.getElementById('ttsBatchSize').value = batchConfig.tts_batch_size;
                     
                     // 显示配置历史
                     const history = result.data.history;
@@ -349,6 +439,43 @@
                 }
             } catch (error) {
                 console.error('保存配置失败:', error);
+                showToast('网络错误', 'danger');
+            }
+        }
+
+        // 保存批量API配置
+        async function saveBatchApiConfig() {
+            try {
+                const config = {
+                    translation_delay_seconds: parseFloat(document.getElementById('translationDelaySeconds').value),
+                    translation_timeout_seconds: parseInt(document.getElementById('translationTimeoutSeconds').value),
+                    translation_max_retries: parseInt(document.getElementById('translationMaxRetries').value),
+                    tts_request_interval_seconds: parseFloat(document.getElementById('ttsRequestIntervalSeconds').value),
+                    tts_timeout_seconds: parseInt(document.getElementById('ttsTimeoutSeconds').value),
+                    tts_max_retries: parseInt(document.getElementById('ttsMaxRetries').value),
+                    tts_retry_delay_base: parseFloat(document.getElementById('ttsRetryDelayBase').value),
+                    tts_download_retry_delay: parseFloat(document.getElementById('ttsDownloadRetryDelay').value),
+                    tts_batch_size: parseInt(document.getElementById('ttsBatchSize').value)
+                };
+                
+                const response = await fetch('/admin/system/api/batch-api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('批量API配置保存成功', 'success');
+                    loadConfig(); // 重新加载配置
+                } else {
+                    showToast('批量API配置保存失败: ' + result.detail, 'danger');
+                }
+            } catch (error) {
+                console.error('保存批量API配置失败:', error);
                 showToast('网络错误', 'danger');
             }
         }

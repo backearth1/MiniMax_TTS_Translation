@@ -41,13 +41,25 @@ def get_dynamic_limits() -> Dict:
     try:
         from admin_modules.system_manager import system_manager
         config = system_manager.get_rate_limit_config()
+        batch_config = system_manager.get_batch_api_config()
         return {
             "maxFileSize": config.file_size_limit_mb * 1024 * 1024,  # 转换为字节
             "maxSegments": config.max_segments_per_file,
             "maxDuration": config.max_duration_seconds,
             "maxProjects": config.max_projects_per_user,
             "maxOnlineUsers": config.max_online_users,
-            "requestRateLimit": config.user_request_rate_per_minute
+            "requestRateLimit": config.user_request_rate_per_minute,
+            "batchApi": {
+                "translationDelay": batch_config.translation_delay_seconds,
+                "translationTimeout": batch_config.translation_timeout_seconds,
+                "translationMaxRetries": batch_config.translation_max_retries,
+                "ttsRequestInterval": batch_config.tts_request_interval_seconds,
+                "ttsTimeout": batch_config.tts_timeout_seconds,
+                "ttsMaxRetries": batch_config.tts_max_retries,
+                "ttsRetryDelayBase": batch_config.tts_retry_delay_base,
+                "ttsDownloadRetryDelay": batch_config.tts_download_retry_delay,
+                "ttsBatchSize": batch_config.tts_batch_size
+            }
         }
     except Exception as e:
         print(f"获取动态限制失败，使用默认值: {e}")
@@ -57,7 +69,18 @@ def get_dynamic_limits() -> Dict:
             "maxDuration": 1200,
             "maxProjects": 5,
             "maxOnlineUsers": 10,
-            "requestRateLimit": 10
+            "requestRateLimit": 10,
+            "batchApi": {
+                "translationDelay": 2.0,
+                "translationTimeout": 30,
+                "translationMaxRetries": 3,
+                "ttsRequestInterval": 1.0,
+                "ttsTimeout": 30,
+                "ttsMaxRetries": 3,
+                "ttsRetryDelayBase": 2.0,
+                "ttsDownloadRetryDelay": 2.0,
+                "ttsBatchSize": 20
+            }
         }
 
 def get_or_create_session_id(request: Request, response: Response) -> str:
@@ -1655,9 +1678,14 @@ async def batch_translate_project(
                 failed_translations += 1
                 await logger.error(f"段落 {i} 翻译异常", f"错误: {str(e)}")
             
-            # 添加延迟避免API限制
+            # 添加延迟避免API限制 - 使用动态配置
             if i < total_segments:
-                await asyncio.sleep(Config.TRANSLATION_CONFIG["translation_delay"])
+                try:
+                    from admin_modules.system_manager import system_manager
+                    delay = system_manager.get_batch_api_config().translation_delay_seconds
+                except:
+                    delay = Config.TRANSLATION_CONFIG["translation_delay"]  # 回退到默认值
+                await asyncio.sleep(delay)
         
         # 保存项目
         try:
@@ -1778,6 +1806,17 @@ async def translate_text_with_minimax(text: str, target_language: str, group_id:
     """使用MiniMax API翻译文本"""
     import aiohttp
     import json
+    
+    # 获取动态配置
+    try:
+        from admin_modules.system_manager import system_manager
+        batch_config = system_manager.get_batch_api_config()
+        timeout_seconds = batch_config.translation_timeout_seconds
+        max_retries = batch_config.translation_max_retries
+    except:
+        # 回退到默认配置
+        timeout_seconds = Config.TRANSLATION_CONFIG["timeout"]
+        max_retries = Config.TRANSLATION_CONFIG["max_retries"]
     import uuid
     
     # 生成trace_id
@@ -1819,7 +1858,7 @@ async def translate_text_with_minimax(text: str, target_language: str, group_id:
         
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, json=payload, 
-                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
+                                  timeout=aiohttp.ClientTimeout(total=timeout_seconds),
                                   proxy=proxy_url) as response:
                 response_data = await response.json()
                 
@@ -1919,7 +1958,7 @@ async def optimize_translation_for_audio_length(
         
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, json=payload, 
-                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
+                                  timeout=aiohttp.ClientTimeout(total=timeout_seconds),
                                   proxy=proxy_url) as response:
                 response_data = await response.json()
                 
