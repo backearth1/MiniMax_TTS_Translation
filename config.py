@@ -27,31 +27,8 @@ class Config:
         "ffmpeg_path": "ffmpeg"  # 系统路径中的 ffmpeg
     }
     
-    # 网络代理配置 - 智能代理管理
-    PROXY_CONFIG = {
-        # 代理模式: "auto"(自动检测), "manual"(手动配置), "disabled"(禁用代理)
-        "mode": os.getenv("PROXY_MODE", "auto"),
-        
-        # 自动检测配置
-        "auto_detect": True,
-        "fallback_to_direct": True,
-        
-        # 手动配置代理
-        "manual": {
-            "http_proxy": os.getenv("http_proxy", "http://pac-internal.xaminim.com:3129"),
-            "https_proxy": os.getenv("https_proxy", "http://pac-internal.xaminim.com:3129"),
-            "ftp_proxy": os.getenv("ftp_proxy", "http://pac-internal.xaminim.com:3129"),
-            "no_proxy": os.getenv("no_proxy", "localhost,127.0.0.1,*.xaminim.com,10.0.0.0/8")
-        },
-        
-        # 检测配置 - 优化：减少URL数量和超时时间
-        "test_urls": [
-            "https://www.baidu.com",       # 快速测试URL
-            "https://api.minimaxi.com/health"  # 主要API测试
-        ],
-        "connection_timeout": 3,        # 连接超时（秒）- 减少到3秒
-        "detection_cache_ttl": 600      # 检测缓存时间（秒）- 增加到10分钟
-    }
+    # 网络配置 - 使用系统默认网络设置
+    # 系统代理通过环境变量自动识别: http_proxy, https_proxy, no_proxy
     
     # API 端点配置
     API_ENDPOINTS = {
@@ -200,35 +177,15 @@ class Config:
         }
     ]
 
-# 获取代理设置 - 兼容旧版本
-def get_proxy_settings():
-    """
-    获取代理设置用于HTTP请求（兼容函数）
-    推荐使用 proxy_manager 模块的异步函数
-    """
-    proxy_mode = Config.PROXY_CONFIG.get("mode", "auto")
-    
-    if proxy_mode == "disabled":
-        return None
-    elif proxy_mode == "manual":
-        manual_config = Config.PROXY_CONFIG.get("manual", {})
-        if manual_config.get("http_proxy"):
-            return {
-                "http": manual_config.get("http_proxy"),
-                "https": manual_config.get("https_proxy"),
-                "ftp": manual_config.get("ftp_proxy")
-            }
-        return None
-    else:
-        # auto模式需要异步检测，这里返回手动配置作为fallback
-        manual_config = Config.PROXY_CONFIG.get("manual", {})
-        if manual_config.get("http_proxy"):
-            return {
-                "http": manual_config.get("http_proxy"),
-                "https": manual_config.get("https_proxy"), 
-                "ftp": manual_config.get("ftp_proxy")
-            }
-        return None
+# 简化网络配置 - 使用系统环境变量
+# aiohttp和requests会自动读取以下环境变量:
+# - http_proxy: HTTP代理
+# - https_proxy: HTTPS代理  
+# - no_proxy: 不使用代理的地址列表
+# 
+# 使用示例:
+# export https_proxy=http://proxy:3129
+# export http_proxy=http://proxy:3129
 
 # 创建必要目录
 def create_directories():
