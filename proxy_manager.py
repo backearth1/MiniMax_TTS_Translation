@@ -25,8 +25,9 @@ class ProxyManager:
         self.last_detection_time = 0
         self.current_proxy_config = None
         self._cache_valid = False
-        # 启动时异步加载缓存
-        asyncio.create_task(self._load_detection_cache())
+        self._cache_loaded = False
+        # 同步加载缓存（如果存在）
+        self._load_detection_cache_sync()
         
     async def get_optimal_proxy_config(self, force_refresh: bool = False) -> Optional[Dict[str, Any]]:
         """
@@ -236,6 +237,30 @@ class ProxyManager:
                 
         except Exception as e:
             logger.warning(f"加载代理缓存失败: {str(e)}")
+    
+    def _load_detection_cache_sync(self):
+        """同步加载检测缓存（模块初始化时使用）"""
+        try:
+            if self.cache_file.exists():
+                with open(self.cache_file, 'r', encoding='utf-8') as f:
+                    cache_data = json.load(f)
+                    
+                self.last_detection_time = cache_data.get("last_detection_time", 0)
+                self.current_proxy_config = cache_data.get("current_proxy_config")
+                
+                # 检查缓存是否仍然有效
+                current_time = time.time()
+                cache_ttl = Config.PROXY_CONFIG.get("detection_cache_ttl", 600)
+                if (current_time - self.last_detection_time) < cache_ttl:
+                    self._cache_valid = True
+                    print(f"✅ 已加载有效代理缓存: {self.current_proxy_config}")
+                else:
+                    print("⏰ 代理缓存已过期，首次API调用时将重新检测")
+                
+                self._cache_loaded = True
+                
+        except Exception as e:
+            print(f"⚠️ 加载代理缓存失败: {str(e)}")
     
     async def get_proxy_for_aiohttp(self) -> Optional[str]:
         """
