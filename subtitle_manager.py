@@ -285,16 +285,26 @@ class SubtitleManager:
             if not segments_data:
                 return False, "SRT文件格式无效或为空", None
             
-            if len(segments_data) > 500:
-                return False, f"字幕条目过多({len(segments_data)}条)，最多支持500条", None
+            # 从配置管理器获取限制值
+            try:
+                from admin_modules.system_manager import system_manager
+                config = system_manager.get_rate_limit_config()
+                max_segments = config.max_segments_per_file
+                max_duration = config.max_duration_seconds
+            except:
+                max_segments = 500  # 默认值
+                max_duration = 1200  # 默认值
             
-            # 检查总时长限制（20分钟 = 1200秒）
+            if len(segments_data) > max_segments:
+                return False, f"字幕条目过多({len(segments_data)}条)，最多支持{max_segments}条", None
+            
+            # 检查总时长限制
             if segments_data:
                 from audio_processor import SubtitleParser
                 last_segment = segments_data[-1]
                 last_end_time = SubtitleParser._time_to_seconds(last_segment['end'])
-                if last_end_time > 1200:  # 20分钟限制
-                    return False, f"字幕总时长过长({last_end_time:.1f}秒)，最多支持20分钟(1200秒)", None
+                if last_end_time > max_duration:
+                    return False, f"字幕总时长过长({last_end_time:.1f}秒)，最多支持{max_duration//60}分钟({max_duration}秒)", None
             
             # 创建新项目，传入session_id
             project = SubtitleProject(filename, client_id, session_id)
@@ -373,12 +383,26 @@ class SubtitleManager:
             if getattr(project, 'session_id', None) == session_id
         ])
     
-    async def check_project_limit(self, session_id: str, max_projects: int = 5) -> bool:
+    async def check_project_limit(self, session_id: str, max_projects: int = None) -> bool:
         """检查项目数量是否超过限制"""
+        if max_projects is None:
+            # 从配置管理器获取动态限制
+            try:
+                from admin_modules.system_manager import system_manager
+                max_projects = system_manager.get_rate_limit_config().max_projects_per_user
+            except:
+                max_projects = 5  # 默认值
         return self.count_projects_by_session(session_id) < max_projects
     
-    async def cleanup_old_projects_if_needed(self, session_id: str, max_projects: int = 5):
+    async def cleanup_old_projects_if_needed(self, session_id: str, max_projects: int = None):
         """如果超过限制，删除最旧的项目"""
+        if max_projects is None:
+            # 从配置管理器获取动态限制
+            try:
+                from admin_modules.system_manager import system_manager
+                max_projects = system_manager.get_rate_limit_config().max_projects_per_user
+            except:
+                max_projects = 5  # 默认值
         session_projects = [
             project for project in self.projects.values()
             if getattr(project, 'session_id', None) == session_id

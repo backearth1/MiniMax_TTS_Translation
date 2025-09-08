@@ -22,6 +22,9 @@ from audio_processor import AudioProcessor
 from utils.logger import websocket_logger, get_process_logger
 from subtitle_manager import subtitle_manager
 from admin import admin_router, record_user_activity, start_cleanup_task
+from admin_modules.project_manager import project_router
+from admin_modules.user_manager import user_router
+from admin_modules.system_manager import system_router
 from project_manager import router as project_manager_router
 
 from contextlib import asynccontextmanager
@@ -32,6 +35,30 @@ task_cancellation_flags = {}
 
 # 会话管理
 active_sessions = {}  # session_id -> session_info
+
+def get_dynamic_limits() -> Dict:
+    """获取动态配置限制"""
+    try:
+        from admin_modules.system_manager import system_manager
+        config = system_manager.get_rate_limit_config()
+        return {
+            "maxFileSize": config.file_size_limit_mb * 1024 * 1024,  # 转换为字节
+            "maxSegments": config.max_segments_per_file,
+            "maxDuration": config.max_duration_seconds,
+            "maxProjects": config.max_projects_per_user,
+            "maxOnlineUsers": config.max_online_users,
+            "requestRateLimit": config.user_request_rate_per_minute
+        }
+    except Exception as e:
+        print(f"获取动态限制失败，使用默认值: {e}")
+        return {
+            "maxFileSize": 10 * 1024 * 1024,  # 10MB
+            "maxSegments": 500,
+            "maxDuration": 1200,
+            "maxProjects": 5,
+            "maxOnlineUsers": 10,
+            "requestRateLimit": 10
+        }
 
 def get_or_create_session_id(request: Request, response: Response) -> str:
     """获取或创建会话ID"""
@@ -158,6 +185,9 @@ app.mount("/audio", StaticFiles(directory="audio_files"), name="audio")
 
 # 注册管理员路由
 app.include_router(admin_router)
+app.include_router(project_router)
+app.include_router(user_router)
+app.include_router(system_router)
 
 # 注册项目管理路由
 app.include_router(project_manager_router)
@@ -278,9 +308,12 @@ async def generate_audio(
         print(f"🔥 DEBUG: 开始读取文件")
         content = await file.read()
         print(f"🔥 DEBUG: 文件读取完成，大小: {len(content)} 字节")
-        if len(content) > Config.AUDIO_CONFIG["max_file_size"]:
+        # 使用动态文件大小限制
+        limits = get_dynamic_limits()
+        if len(content) > limits["maxFileSize"]:
             print(f"🔥 DEBUG: 文件过大")
-            raise HTTPException(status_code=400, detail="文件过大，请上传小于 10MB 的文件")
+            max_size_mb = limits["maxFileSize"] // (1024 * 1024)
+            raise HTTPException(status_code=400, detail=f"文件过大，请上传小于 {max_size_mb}MB 的文件")
         print(f"🔥 DEBUG: 文件大小验证通过")
         
         print(f"🔥 DEBUG: 准备创建logger日志")
@@ -421,7 +454,7 @@ async def get_config():
         "voices": Config.VOICE_MAPPING,
         "models": ["speech-02-hd", "speech-01"],
         "languages": Config.TTS_CONFIG["supported_languages"],
-        "maxFileSize": Config.AUDIO_CONFIG["max_file_size"],
+        "limits": get_dynamic_limits(),
         "supportedFormats": Config.AUDIO_CONFIG["supported_formats"]
     }
 

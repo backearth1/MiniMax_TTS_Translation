@@ -29,8 +29,14 @@ system_stats = {
     "api_calls": defaultdict(int)
 }
 
-# 用户数量限制
-MAX_ONLINE_USERS = 10
+# 用户数量限制 - 现在从配置管理器动态获取
+def get_max_online_users():
+    """获取最大在线用户数限制"""
+    try:
+        from admin_modules.system_manager import system_manager
+        return system_manager.get_rate_limit_config().max_online_users
+    except:
+        return 10  # 默认值
 
 @admin_router.get("/dashboard", response_class=HTMLResponse)
 async def admin_dashboard():
@@ -204,7 +210,12 @@ async def admin_dashboard():
                 <p>实时监控系统运行状态和用户活动</p>
             </div>
             
-            <button class="refresh-btn" onclick="refreshData()">🔄 刷新数据</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="refresh-btn" onclick="refreshData()">🔄 刷新数据</button>
+                <button class="refresh-btn" onclick="window.open('/admin/projects/', '_blank')" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">📁 项目管理</button>
+                <button class="refresh-btn" onclick="window.open('/admin/users/', '_blank')" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);">👥 用户管理</button>
+                <button class="refresh-btn" onclick="window.open('/admin/system/', '_blank')" style="background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);">⚙️ 系统配置</button>
+            </div>
             
             <div class="stats-grid">
                 <div class="stat-card">
@@ -446,7 +457,7 @@ def get_active_users_count():
 
 def check_user_limit():
     """检查用户数量是否超过限制"""
-    return get_active_users_count() >= MAX_ONLINE_USERS
+    return get_active_users_count() >= get_max_online_users()
 
 def can_accept_new_user():
     """检查是否可以接受新用户"""

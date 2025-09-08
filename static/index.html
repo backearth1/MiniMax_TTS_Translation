@@ -1119,6 +1119,7 @@
             try {
                 const formData = new FormData();
                 formData.append('file', file);
+                formData.append('clientId', app.clientId); // 添加真实的clientId
 
                 const response = await fetch('/api/parse-subtitle', {
                     method: 'POST',

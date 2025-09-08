@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+        }
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .control-group label {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+        }
+        select, input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+        .stats-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .users-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .table-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            position: sticky;
+            top: 0;
+        }
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        .sortable:hover {
+            background: #e9ecef;
+        }
+        .sort-icon {
+            margin-left: 5px;
+            opacity: 0.5;
+        }
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .user-type {
+            padding: 3px 6px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .type-normal {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .type-temporary {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .type-other {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .pagination {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+        }
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .page-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .page-btn:hover {
+            background: #f8f9fa;
+        }
+        .page-btn.active {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .user-details {
+            font-size: 12px;
+            color: #666;
+        }
+        .api-calls {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .api-tag {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 用户管理</h1>
+            <p>监控和管理所有系统用户，分析使用统计和活动模式</p>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="controls">
+            <div class="control-group">
+                <label>状态筛选:</label>
+                <select id="status-filter">
+                    <option value="all">全部</option>
+                    <option value="online">在线</option>
+                    <option value="offline">离线</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>用户类型:</label>
+                <select id="user-type-filter">
+                    <option value="all">全部</option>
+                    <option value="normal">正常用户</option>
+                    <option value="temporary">临时用户</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>排序方式:</label>
+                <select id="sort-by">
+                    <option value="last_activity">最后活动</option>
+                    <option value="first_seen">首次访问</option>
+                    <option value="total_requests">请求总数</option>
+                    <option value="api_calls_count">API种类</option>
+                    <option value="projects_count">项目数量</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>排序方向:</label>
+                <select id="sort-order">
+                    <option value="desc">降序</option>
+                    <option value="asc">升序</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>每页显示:</label>
+                <select id="per-page">
+                    <option value="20">20条</option>
+                    <option value="50">50条</option>
+                    <option value="100">100条</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="refreshUsers()">🔄 刷新</button>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="stats-bar">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-users">-</div>
+                    <div class="stat-label">总用户数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="online-users">-</div>
+                    <div class="stat-label">在线用户</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="normal-users">-</div>
+                    <div class="stat-label">正常用户</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="temporary-users">-</div>
+                    <div class="stat-label">临时用户</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="total-requests">-</div>
+                    <div class="stat-label">总请求数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avg-requests">-</div>
+                    <div class="stat-label">平均请求数</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户列表 -->
+        <div class="users-table">
+            <div class="table-header">
+                <div class="table-title">用户列表</div>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortTable('client_id')">用户ID <span class="sort-icon">↕️</span></th>
+                            <th>类型</th>
+                            <th>状态</th>
+                            <th class="sortable" onclick="sortTable('total_requests')">请求数 <span class="sort-icon">↕️</span></th>
+                            <th class="sortable" onclick="sortTable('projects_count')">项目数 <span class="sort-icon">↕️</span></th>
+                            <th class="sortable" onclick="sortTable('first_seen')">首次访问 <span class="sort-icon">↕️</span></th>
+                            <th class="sortable" onclick="sortTable('last_activity')">最后活动 <span class="sort-icon">↕️</span></th>
+                            <th>会话时长</th>
+                            <th>API调用</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr>
+                            <td colspan="10" class="loading">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination">
+                <div class="pagination-info" id="pagination-info">显示第 1-20 条，共 0 条记录</div>
+                <div class="pagination-controls">
+                    <button class="page-btn" id="prev-page" onclick="changePage(-1)" disabled>上一页</button>
+                    <span id="page-numbers"></span>
+                    <button class="page-btn" id="next-page" onclick="changePage(1)" disabled>下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        let users = [];
+
+        // 页面加载时获取用户列表
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshUsers();
+        });
+
+        // 刷新用户列表
+        async function refreshUsers() {
+            try {
+                const statusFilter = document.getElementById('status-filter').value;
+                const userTypeFilter = document.getElementById('user-type-filter').value;
+                const sortBy = document.getElementById('sort-by').value;
+                const sortOrder = document.getElementById('sort-order').value;
+                const perPage = document.getElementById('per-page').value;
+
+                const response = await fetch(`/admin/users/api/list?page=${currentPage}&per_page=${perPage}&sort_by=${sortBy}&order=${sortOrder}&status_filter=${statusFilter}&user_type_filter=${userTypeFilter}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    users = result.data.users;
+                    updateTable(result.data);
+                    updateStatistics(result.data.statistics);
+                    updatePagination(result.data.pagination);
+                } else {
+                    showError('获取用户列表失败');
+                }
+            } catch (error) {
+                console.error('刷新用户列表失败:', error);
+                showError('网络错误，请重试');
+            }
+        }
+
+        // 更新表格
+        function updateTable(data) {
+            const tbody = document.getElementById('users-tbody');
+            
+            if (data.users.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="empty-state">
+                            <h3>暂无用户</h3>
+                            <p>还没有任何用户活动记录</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.users.map(user => `
+                <tr>
+                    <td>
+                        <div style="font-weight: bold; color: #333;">${formatUserId(user.client_id)}</div>
+                        <div class="user-details">Group: ${user.group_id || '未设置'}</div>
+                    </td>
+                    <td>
+                        <span class="user-type ${getTypeClass(user.user_type)}">${getTypeLabel(user.user_type)}</span>
+                    </td>
+                    <td>
+                        <span class="status ${user.status === 'online' ? 'status-online' : 'status-offline'}">
+                            ${user.status === 'online' ? '🟢 在线' : '🔴 离线'}
+                        </span>
+                        <div class="user-details">${user.last_activity_minutes} 分钟前</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: bold;">${user.total_requests}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${Math.min(user.total_requests / 100 * 100, 100)}%"></div>
+                        </div>
+                    </td>
+                    <td>${user.projects_count}</td>
+                    <td>
+                        <div>${formatDateTime(user.first_seen)}</div>
+                    </td>
+                    <td>
+                        <div>${formatDateTime(user.last_activity)}</div>
+                    </td>
+                    <td>
+                        <div>${formatDuration(user.session_duration)}</div>
+                    </td>
+                    <td>
+                        <div class="api-calls">
+                            ${Object.keys(user.api_calls).slice(0, 3).map(api => 
+                                `<span class="api-tag">${api.split('/').pop()}</span>`
+                            ).join('')}
+                            ${Object.keys(user.api_calls).length > 3 ? `<span class="api-tag">+${Object.keys(user.api_calls).length - 3}</span>` : ''}
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" onclick="viewUser('${user.client_id}')" style="font-size: 12px; padding: 4px 8px;">详情</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 更新统计信息
+        function updateStatistics(stats) {
+            document.getElementById('total-users').textContent = stats.total_users;
+            document.getElementById('online-users').textContent = stats.online_users;
+            document.getElementById('normal-users').textContent = stats.normal_users;
+            document.getElementById('temporary-users').textContent = stats.temporary_users;
+            document.getElementById('total-requests').textContent = stats.total_requests;
+            document.getElementById('avg-requests').textContent = stats.avg_requests_per_user;
+        }
+
+        // 更新分页
+        function updatePagination(pagination) {
+            currentPage = pagination.page;
+            totalPages = pagination.total_pages;
+            
+            const start = (pagination.page - 1) * pagination.per_page + 1;
+            const end = Math.min(start + pagination.per_page - 1, pagination.total_count);
+            
+            document.getElementById('pagination-info').textContent = 
+                `显示第 ${start}-${end} 条，共 ${pagination.total_count} 条记录`;
+            
+            document.getElementById('prev-page').disabled = currentPage <= 1;
+            document.getElementById('next-page').disabled = currentPage >= totalPages;
+            
+            // 生成页码按钮
+            let pageNumbers = '';
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                pageNumbers += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            
+            document.getElementById('page-numbers').innerHTML = pageNumbers;
+        }
+
+        // 切换页面
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                refreshUsers();
+            }
+        }
+
+        // 跳转到指定页面
+        function goToPage(page) {
+            currentPage = page;
+            refreshUsers();
+        }
+
+        // 查看用户详情
+        async function viewUser(clientId) {
+            try {
+                const response = await fetch(`/admin/users/api/detail/${encodeURIComponent(clientId)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    showUserDetail(result.data);
+                } else {
+                    showError('获取用户详情失败');
+                }
+            } catch (error) {
+                console.error('获取用户详情失败:', error);
+                showError('网络错误，请重试');
+            }
+        }
+
+        // 显示用户详情
+        function showUserDetail(user) {
+            const apiCallsText = Object.entries(user.api_calls)
+                .map(([api, count]) => `${api}: ${count}次`)
+                .join('\\n');
+            
+            const projectsText = user.projects.slice(0, 5)
+                .map(p => `• ${p.filename} (${p.total_segments}段)`)
+                .join('\\n');
+            
+            const detail = `
+用户详情：
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 用户ID: ${user.client_id}
+🏷️  用户类型: ${getTypeLabel(user.user_type)}
+🟢 在线状态: ${user.is_online ? '在线' : '离线'}
+📅 首次访问: ${formatDateTime(user.first_seen)}
+⏰ 最后活动: ${formatDateTime(user.last_activity)}
+⏱️  会话时长: ${formatDuration(user.session_duration)}
+📊 请求总数: ${user.total_requests}
+🗂️  项目数量: ${user.projects.length}
+
+📋 API调用统计:
+${apiCallsText || '暂无API调用'}
+
+📁 最近项目:
+${projectsText || '暂无项目'}
+            `;
+            alert(detail);
+        }
+
+        // 排序表格
+        function sortTable(column) {
+            const currentSort = document.getElementById('sort-by').value;
+            const currentOrder = document.getElementById('sort-order').value;
+            
+            if (currentSort === column) {
+                // 切换排序方向
+                document.getElementById('sort-order').value = currentOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                // 改变排序列
+                document.getElementById('sort-by').value = column;
+                document.getElementById('sort-order').value = 'desc';
+            }
+            
+            refreshUsers();
+        }
+
+        // 监听筛选和排序变化
+        document.getElementById('status-filter').addEventListener('change', () => {
+            currentPage = 1;
+            refreshUsers();
+        });
+
+        document.getElementById('user-type-filter').addEventListener('change', () => {
+            currentPage = 1;
+            refreshUsers();
+        });
+
+        document.getElementById('sort-by').addEventListener('change', refreshUsers);
+        document.getElementById('sort-order').addEventListener('change', refreshUsers);
+        document.getElementById('per-page').addEventListener('change', () => {
+            currentPage = 1;
+            refreshUsers();
+        });
+
+        // 工具函数
+        function formatUserId(clientId) {
+            if (clientId.startsWith('parse_')) {
+                return '📁 ' + clientId.replace('parse_', '').substring(0, 15) + (clientId.length > 20 ? '...' : '');
+            } else if (clientId.startsWith('client_')) {
+                return '👤 ' + clientId;
+            } else {
+                return '🔗 ' + clientId;
+            }
+        }
+
+        function getTypeClass(type) {
+            switch (type) {
+                case 'normal': return 'type-normal';
+                case 'temporary': return 'type-temporary';
+                default: return 'type-other';
+            }
+        }
+
+        function getTypeLabel(type) {
+            switch (type) {
+                case 'normal': return '正常用户';
+                case 'temporary': return '临时用户';
+                default: return '其他';
+            }
+        }
+
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDuration(minutes) {
+            if (minutes < 60) {
+                return `${minutes}分钟`;
+            } else {
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                return `${hours}小时${mins}分钟`;
+            }
+        }
+
+        function showError(message) {
+            alert('错误: ' + message);
+        }
+    </script>
+</body>
+</html>

@@ -462,9 +462,11 @@ class VoiceGeneratorApp {
             return false;
         }
 
-        // 检查文件大小 (10MB)
-        if (subtitleFile.size > 10 * 1024 * 1024) {
-            this.addLog('error', '文件过大', '文件大小不能超过10MB');
+        // 检查文件大小 (使用动态限制)
+        const maxFileSize = this.config?.limits?.maxFileSize || (10 * 1024 * 1024);
+        const maxFileSizeMB = maxFileSize / (1024 * 1024);
+        if (subtitleFile.size > maxFileSize) {
+            this.addLog('error', '文件过大', `文件大小不能超过${maxFileSizeMB}MB`);
             return false;
         }
 

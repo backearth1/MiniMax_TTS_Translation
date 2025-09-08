@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统配置管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .config-card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .config-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+        }
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+        .status-normal {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1050;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1><i class="bi bi-gear-fill me-2"></i>系统配置管理</h1>
+                    <p class="mb-0">配置系统限流策略和运行参数</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" onclick="loadConfig()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>刷新配置
+                    </button>
+                    <button class="btn btn-success" onclick="saveConfig()">
+                        <i class="bi bi-check-circle me-1"></i>保存配置
+                    </button>
+                    <button class="btn btn-danger" onclick="resetConfig()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>重置默认
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.open('/admin/dashboard', '_blank')">
+                        <i class="bi bi-house me-1"></i>返回仪表板
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- 限流配置 -->
+                <div class="card config-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>限流配置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="rateLimitForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="maxOnlineUsers" class="form-label">最大在线用户数</label>
+                                    <input type="number" class="form-control" id="maxOnlineUsers" 
+                                           min="1" max="100" value="10">
+                                    <div class="form-text">同时在线的最大用户数量</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="maxProjectsPerUser" class="form-label">每用户最大项目数</label>
+                                    <input type="number" class="form-control" id="maxProjectsPerUser" 
+                                           min="1" max="50" value="5">
+                                    <div class="form-text">单个用户可创建的最大项目数</div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="maxSegmentsPerFile" class="form-label">每文件最大段落数</label>
+                                    <input type="number" class="form-control" id="maxSegmentsPerFile" 
+                                           min="1" max="2000" value="500">
+                                    <div class="form-text">单个字幕文件的最大段落数</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="maxDurationSeconds" class="form-label">最大时长(秒)</label>
+                                    <input type="number" class="form-control" id="maxDurationSeconds" 
+                                           min="60" max="7200" value="1200">
+                                    <div class="form-text">字幕文件的最大时长</div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="fileSizeLimitMb" class="form-label">文件大小限制(MB)</label>
+                                    <input type="number" class="form-control" id="fileSizeLimitMb" 
+                                           min="1" max="100" value="10">
+                                    <div class="form-text">上传文件的最大大小</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="userRequestRatePerMinute" class="form-label">用户每分钟请求限制</label>
+                                    <input type="number" class="form-control" id="userRequestRatePerMinute" 
+                                           min="1" max="100" value="10">
+                                    <div class="form-text">单个用户每分钟最大请求数</div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- 当前状态 -->
+                <div class="card config-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>当前系统状态</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="currentStatus">
+                            <div class="loading">
+                                <i class="bi bi-hourglass-split"></i> 加载中...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 配置历史 -->
+                <div class="card config-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>配置信息</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="configHistory">
+                            <div class="loading">
+                                <i class="bi bi-hourglass-split"></i> 加载中...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 显示提示信息
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        // 加载配置
+        async function loadConfig() {
+            try {
+                const response = await fetch('/admin/system/api/config');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const config = result.data.config.rate_limit;
+                    
+                    // 填充表单
+                    document.getElementById('maxOnlineUsers').value = config.max_online_users;
+                    document.getElementById('maxProjectsPerUser').value = config.max_projects_per_user;
+                    document.getElementById('maxSegmentsPerFile').value = config.max_segments_per_file;
+                    document.getElementById('maxDurationSeconds').value = config.max_duration_seconds;
+                    document.getElementById('fileSizeLimitMb').value = config.file_size_limit_mb;
+                    document.getElementById('userRequestRatePerMinute').value = config.user_request_rate_per_minute;
+                    
+                    // 显示配置历史
+                    const history = result.data.history;
+                    document.getElementById('configHistory').innerHTML = `
+                        <div class="info-item">
+                            <span>最后更新:</span>
+                            <span>${new Date(history.last_updated).toLocaleString()}</span>
+                        </div>
+                        <div class="info-item">
+                            <span>更新者:</span>
+                            <span>${history.updated_by}</span>
+                        </div>
+                        <div class="info-item">
+                            <span>配置文件:</span>
+                            <span>${Math.round(history.file_size / 1024 * 100) / 100} KB</span>
+                        </div>
+                    `;
+                    
+                    showToast('配置加载成功', 'success');
+                } else {
+                    showToast('配置加载失败', 'danger');
+                }
+            } catch (error) {
+                console.error('加载配置失败:', error);
+                showToast('网络错误', 'danger');
+            }
+            
+            // 同时加载当前状态
+            loadCurrentStatus();
+        }
+
+        // 加载当前状态
+        async function loadCurrentStatus() {
+            try {
+                const response = await fetch('/admin/system/api/current-limits');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    const limits = data.limits;
+                    const status = data.current_status;
+                    
+                    let statusClass = 'status-normal';
+                    if (status.is_at_user_limit) {
+                        statusClass = 'status-danger';
+                    } else if (status.online_users / limits.max_online_users > 0.8) {
+                        statusClass = 'status-warning';
+                    }
+                    
+                    document.getElementById('currentStatus').innerHTML = `
+                        <div class="info-item">
+                            <span>在线用户:</span>
+                            <span class="status-badge ${statusClass}">${status.online_users_usage}</span>
+                        </div>
+                        <div class="info-item">
+                            <span>总项目数:</span>
+                            <span>${status.total_projects}</span>
+                        </div>
+                        <div class="info-item">
+                            <span>用户限制:</span>
+                            <span>${status.is_at_user_limit ? '已达上限' : '正常'}</span>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('currentStatus').innerHTML = '<div class="text-danger">加载状态失败</div>';
+                }
+            } catch (error) {
+                console.error('加载状态失败:', error);
+                document.getElementById('currentStatus').innerHTML = '<div class="text-danger">网络错误</div>';
+            }
+        }
+
+        // 保存配置
+        async function saveConfig() {
+            try {
+                const config = {
+                    max_online_users: parseInt(document.getElementById('maxOnlineUsers').value),
+                    max_projects_per_user: parseInt(document.getElementById('maxProjectsPerUser').value),
+                    max_segments_per_file: parseInt(document.getElementById('maxSegmentsPerFile').value),
+                    max_duration_seconds: parseInt(document.getElementById('maxDurationSeconds').value),
+                    file_size_limit_mb: parseInt(document.getElementById('fileSizeLimitMb').value),
+                    user_request_rate_per_minute: parseInt(document.getElementById('userRequestRatePerMinute').value)
+                };
+                
+                const response = await fetch('/admin/system/api/rate-limit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('配置保存成功', 'success');
+                    loadConfig(); // 重新加载配置
+                } else {
+                    showToast('配置保存失败: ' + result.detail, 'danger');
+                }
+            } catch (error) {
+                console.error('保存配置失败:', error);
+                showToast('网络错误', 'danger');
+            }
+        }
+
+        // 重置配置
+        async function resetConfig() {
+            if (!confirm('确定要重置为默认配置吗？此操作不可恢复。')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/admin/system/api/reset', {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('配置已重置为默认值', 'success');
+                    loadConfig(); // 重新加载配置
+                } else {
+                    showToast('重置配置失败: ' + result.detail, 'danger');
+                }
+            } catch (error) {
+                console.error('重置配置失败:', error);
+                showToast('网络错误', 'danger');
+            }
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            
+            // 每30秒刷新一次状态
+            setInterval(loadCurrentStatus, 30000);
+        });
+    </script>
+</body>
+</html>

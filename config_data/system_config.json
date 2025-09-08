@@ -1,0 +1,12 @@
+{
+  "rate_limit": {
+    "max_online_users": 10,
+    "max_projects_per_user": 5,
+    "max_segments_per_file": 500,
+    "max_duration_seconds": 1200,
+    "file_size_limit_mb": 10,
+    "user_request_rate_per_minute": 10
+  },
+  "updated_at": "2025-09-08T12:31:37.517143",
+  "updated_by": "admin"
+}
