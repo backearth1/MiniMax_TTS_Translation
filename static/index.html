@@ -2435,6 +2435,19 @@
                 clearLogsBtn.addEventListener('click', clearLogs);
             }
             
+            // 绑定音频下载按钮
+            const downloadAudioBtn = document.getElementById('downloadAudioBtn');
+            if (downloadAudioBtn) {
+                downloadAudioBtn.addEventListener('click', () => {
+                    const mergeDownloadBtn = document.getElementById('mergeDownloadBtn');
+                    if (mergeDownloadBtn && mergeDownloadBtn.href !== '#') {
+                        mergeDownloadBtn.click();
+                    } else {
+                        showToast('没有可下载的音频文件');
+                    }
+                });
+            }
+            
             // 绑定关闭合并结果按钮
             const clearMergeResultBtn = document.getElementById('clearMergeResultBtn');
             if (clearMergeResultBtn) {
