@@ -262,16 +262,15 @@ class TTSService:
                             try:
                                 import aiohttp
                                 
-                                # 获取代理设置
-                                from config import get_proxy_settings
-                                proxy_settings = get_proxy_settings()
+                                # 获取智能代理设置
+                                from proxy_manager import get_aiohttp_proxy
+                                proxy_url = await get_aiohttp_proxy()
                                 
                                 timeout = aiohttp.ClientTimeout(total=30)  # 30秒超时
-                                connector = aiohttp.TCPConnector() if proxy_settings else None
+                                connector = aiohttp.TCPConnector()
                                 
                                 async with aiohttp.ClientSession(timeout=timeout, headers=headers, connector=connector) as session:
-                                    async with session.post(api_url, json=api_data, 
-                                                          proxy=proxy_settings.get('https') if proxy_settings else None) as response:
+                                    async with session.post(api_url, json=api_data, proxy=proxy_url) as response:
                                         response_text = await response.text()
                                         
                                         if response.status == 200:
@@ -288,10 +287,9 @@ class TTSService:
                                 # 使用requests库的同步请求
                                 import requests
                                 import json
-                                from config import get_proxy_settings
+                                from proxy_manager import get_requests_proxy
                                 
-                                proxy_settings = get_proxy_settings()
-                                proxies = proxy_settings if proxy_settings else None
+                                proxies = await get_requests_proxy()
                                 
                                 response = requests.post(
                                     api_url, 
@@ -472,17 +470,17 @@ class TTSService:
                 try:
                     import aiohttp
                     
-                    # 获取代理设置
-                    from config import get_proxy_settings
-                    proxy_settings = get_proxy_settings()
+                    # 获取智能代理设置
+                    from proxy_manager import get_aiohttp_proxy
+                    proxy_url = await get_aiohttp_proxy()
                     
                     timeout = aiohttp.ClientTimeout(total=60)  # 增加超时时间到60秒
-                    connector = aiohttp.TCPConnector() if proxy_settings else None
+                    connector = aiohttp.TCPConnector()
                     
                     async with aiohttp.ClientSession(timeout=timeout, headers=headers, connector=connector) as session:
                         await self.logger.info("使用aiohttp下载", f"重试 {retry_count + 1}/{max_retries}")
                         
-                        async with session.get(audio_url, proxy=proxy_settings.get('https') if proxy_settings else None) as response:
+                        async with session.get(audio_url, proxy=proxy_url) as response:
                             await self.logger.info("HTTP响应", f"状态码: {response.status}")
                             
                             if response.status == 200:
@@ -500,10 +498,9 @@ class TTSService:
                     
                     # 使用requests进行同步下载
                     import requests
-                    from config import get_proxy_settings
+                    from proxy_manager import get_requests_proxy
                     
-                    proxy_settings = get_proxy_settings()
-                    proxies = proxy_settings if proxy_settings else None
+                    proxies = await get_requests_proxy()
                     
                     response = requests.get(audio_url, headers=headers, timeout=60, stream=True, proxies=proxies)
                     await self.logger.info("HTTP响应", f"状态码: {response.status_code}")

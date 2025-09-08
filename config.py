@@ -27,13 +27,32 @@ class Config:
         "ffmpeg_path": "ffmpeg"  # 系统路径中的 ffmpeg
     }
     
-    # 网络代理配置
+    # 网络代理配置 - 智能代理管理
     PROXY_CONFIG = {
-        "enabled": True,
-        "http_proxy": os.getenv("http_proxy", "http://pac-internal.xaminim.com:3129"),
-        "https_proxy": os.getenv("https_proxy", "http://pac-internal.xaminim.com:3129"),
-        "ftp_proxy": os.getenv("ftp_proxy", "http://pac-internal.xaminim.com:3129"),
-        "no_proxy": os.getenv("no_proxy", "localhost,127.0.0.1,*.xaminim.com,10.0.0.0/8")
+        # 代理模式: "auto"(自动检测), "manual"(手动配置), "disabled"(禁用代理)
+        "mode": os.getenv("PROXY_MODE", "auto"),
+        
+        # 自动检测配置
+        "auto_detect": True,
+        "fallback_to_direct": True,
+        
+        # 手动配置代理
+        "manual": {
+            "http_proxy": os.getenv("http_proxy", "http://pac-internal.xaminim.com:3129"),
+            "https_proxy": os.getenv("https_proxy", "http://pac-internal.xaminim.com:3129"),
+            "ftp_proxy": os.getenv("ftp_proxy", "http://pac-internal.xaminim.com:3129"),
+            "no_proxy": os.getenv("no_proxy", "localhost,127.0.0.1,*.xaminim.com,10.0.0.0/8")
+        },
+        
+        # 检测配置
+        "test_urls": [
+            "https://api.minimaxi.com/health",
+            "https://api.minimax.io/health", 
+            "https://www.baidu.com",
+            "https://httpbin.org/ip"
+        ],
+        "connection_timeout": 5,        # 连接超时（秒）
+        "detection_cache_ttl": 300      # 检测缓存时间（秒）
     }
     
     # API 端点配置
@@ -183,16 +202,35 @@ class Config:
         }
     ]
 
-# 获取代理设置
+# 获取代理设置 - 兼容旧版本
 def get_proxy_settings():
-    """获取代理设置用于HTTP请求"""
-    if Config.PROXY_CONFIG["enabled"]:
-        return {
-            "http": Config.PROXY_CONFIG["http_proxy"],
-            "https": Config.PROXY_CONFIG["https_proxy"],
-            "ftp": Config.PROXY_CONFIG["ftp_proxy"]
-        }
-    return None
+    """
+    获取代理设置用于HTTP请求（兼容函数）
+    推荐使用 proxy_manager 模块的异步函数
+    """
+    proxy_mode = Config.PROXY_CONFIG.get("mode", "auto")
+    
+    if proxy_mode == "disabled":
+        return None
+    elif proxy_mode == "manual":
+        manual_config = Config.PROXY_CONFIG.get("manual", {})
+        if manual_config.get("http_proxy"):
+            return {
+                "http": manual_config.get("http_proxy"),
+                "https": manual_config.get("https_proxy"),
+                "ftp": manual_config.get("ftp_proxy")
+            }
+        return None
+    else:
+        # auto模式需要异步检测，这里返回手动配置作为fallback
+        manual_config = Config.PROXY_CONFIG.get("manual", {})
+        if manual_config.get("http_proxy"):
+            return {
+                "http": manual_config.get("http_proxy"),
+                "https": manual_config.get("https_proxy"), 
+                "ftp": manual_config.get("ftp_proxy")
+            }
+        return None
 
 # 创建必要目录
 def create_directories():

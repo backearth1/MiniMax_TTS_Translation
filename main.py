@@ -170,10 +170,66 @@ app.include_router(text_adjuster_router)
 from custom_speakers import router as custom_speakers_router
 app.include_router(custom_speakers_router)
 
+# 注册代理管理路由
+from proxy_manager import proxy_manager, get_proxy_status, refresh_proxy_config
+
 @app.get("/")
 async def read_root():
     """主页重定向到静态文件"""
     return FileResponse(Config.STATIC_DIR / "index.html")
+
+# 代理管理API端点
+@app.get("/api/proxy/status")
+async def get_proxy_status_api():
+    """获取代理状态"""
+    try:
+        status = get_proxy_status()
+        return {"success": True, "data": status}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/proxy/refresh")
+async def refresh_proxy_config_api():
+    """刷新代理配置"""
+    try:
+        await refresh_proxy_config()
+        status = get_proxy_status()
+        return {"success": True, "message": "代理配置已刷新", "data": status}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/proxy/test")
+async def test_proxy_connection():
+    """测试代理连接"""
+    try:
+        from proxy_manager import get_aiohttp_proxy
+        import aiohttp
+        import time
+        
+        proxy_url = await get_aiohttp_proxy()
+        test_url = "https://api.minimaxi.com/health"
+        
+        start_time = time.time()
+        connector = aiohttp.TCPConnector()
+        timeout = aiohttp.ClientTimeout(total=10)
+        
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+            async with session.get(test_url, proxy=proxy_url) as response:
+                latency = time.time() - start_time
+                return {
+                    "success": True,
+                    "proxy_used": proxy_url is not None,
+                    "proxy_url": proxy_url,
+                    "status_code": response.status,
+                    "latency": round(latency, 3),
+                    "test_url": test_url
+                }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "proxy_used": proxy_url is not None if 'proxy_url' in locals() else None
+        }
 
 @app.get("/api/health")
 async def health_check():
@@ -1777,19 +1833,17 @@ async def translate_text_with_minimax(text: str, target_language: str, group_id:
             await logger.info("调用翻译API", f"目标语言: {target_language}, Trace: {trace_id}")
             await logger.info("发送API请求", f"Trace: {trace_id}")
         
-        # 获取代理设置
-        from config import get_proxy_settings
-        proxy_settings = get_proxy_settings()
+        # 获取智能代理设置
+        from proxy_manager import get_aiohttp_proxy
+        proxy_url = await get_aiohttp_proxy()
         
-        # 创建连接器，支持代理
-        connector = None
-        if proxy_settings:
-            connector = aiohttp.TCPConnector()
+        # 创建连接器
+        connector = aiohttp.TCPConnector()
         
         async with aiohttp.ClientSession(connector=connector) as session:
             async with session.post(url, headers=headers, json=payload, 
                                   timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
-                                  proxy=proxy_settings.get('https') if proxy_settings else None) as response:
+                                  proxy=proxy_url) as response:
                 response_data = await response.json()
                 
                 # 调试：打印完整的响应头信息
@@ -1882,19 +1936,17 @@ async def optimize_translation_for_audio_length(
             await logger.info("调用翻译优化API", f"目标语言: {target_language}, Trace: {trace_id}")
             await logger.info("发送API请求", f"Trace: {trace_id}")
         
-        # 获取代理设置
-        from config import get_proxy_settings
-        proxy_settings = get_proxy_settings()
+        # 获取智能代理设置
+        from proxy_manager import get_aiohttp_proxy
+        proxy_url = await get_aiohttp_proxy()
         
-        # 创建连接器，支持代理
-        connector = None
-        if proxy_settings:
-            connector = aiohttp.TCPConnector()
+        # 创建连接器
+        connector = aiohttp.TCPConnector()
         
         async with aiohttp.ClientSession(connector=connector) as session:
             async with session.post(url, headers=headers, json=payload, 
                                   timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
-                                  proxy=proxy_settings.get('https') if proxy_settings else None) as response:
+                                  proxy=proxy_url) as response:
                 response_data = await response.json()
                 
                 # 尝试从响应头或响应体中获取trace_id

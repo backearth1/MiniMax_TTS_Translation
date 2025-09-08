@@ -139,18 +139,17 @@ async def adjust_text_length(
             await logger.info(f"调用{action_text}API", f"目标语言: {target_language}, Trace: {trace_id}")
             await logger.info("文本调整详情", f"当前长度: {current_char_count}字 → 目标长度: {target_char_count}字 ({action_text}20%)")
         
-        # 获取代理设置
-        proxy_settings = get_proxy_settings()
+        # 获取智能代理设置
+        from proxy_manager import get_aiohttp_proxy
+        proxy_url = await get_aiohttp_proxy()
         
-        # 创建连接器，支持代理
-        connector = None
-        if proxy_settings:
-            connector = aiohttp.TCPConnector()
+        # 创建连接器
+        connector = aiohttp.TCPConnector()
         
         async with aiohttp.ClientSession(connector=connector) as session:
             async with session.post(url, headers=headers, json=payload,
                                   timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
-                                  proxy=proxy_settings.get('https') if proxy_settings else None) as response:
+                                  proxy=proxy_url) as response:
                 response_data = await response.json()
                 
                 # 尝试从响应头或响应体中获取trace_id
