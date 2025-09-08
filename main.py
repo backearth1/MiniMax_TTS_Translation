@@ -1780,9 +1780,14 @@ async def translate_text_with_minimax(text: str, target_language: str, group_id:
             await logger.info("调用翻译API", f"目标语言: {target_language}, Trace: {trace_id}")
             await logger.info("发送API请求", f"Trace: {trace_id}")
         
+        # 获取系统代理设置
+        import os
+        proxy_url = os.environ.get('https_proxy') or os.environ.get('http_proxy')
+        
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, json=payload, 
-                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"])) as response:
+                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
+                                  proxy=proxy_url) as response:
                 response_data = await response.json()
                 
                 # 调试：打印完整的响应头信息
@@ -1875,9 +1880,14 @@ async def optimize_translation_for_audio_length(
             await logger.info("调用翻译优化API", f"目标语言: {target_language}, Trace: {trace_id}")
             await logger.info("发送API请求", f"Trace: {trace_id}")
         
+        # 获取系统代理设置
+        import os
+        proxy_url = os.environ.get('https_proxy') or os.environ.get('http_proxy')
+        
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, json=payload, 
-                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"])) as response:
+                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
+                                  proxy=proxy_url) as response:
                 response_data = await response.json()
                 
                 # 尝试从响应头或响应体中获取trace_id

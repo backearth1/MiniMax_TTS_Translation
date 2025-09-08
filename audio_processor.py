@@ -264,8 +264,12 @@ class TTSService:
                                 
                                 timeout = aiohttp.ClientTimeout(total=30)  # 30秒超时
                                 
+                                # 获取系统代理设置
+                                import os
+                                proxy_url = os.environ.get('https_proxy') or os.environ.get('http_proxy')
+                                
                                 async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
-                                    async with session.post(api_url, json=api_data) as response:
+                                    async with session.post(api_url, json=api_data, proxy=proxy_url) as response:
                                         response_text = await response.text()
                                         
                                         if response.status == 200:
@@ -282,12 +286,20 @@ class TTSService:
                                 # 使用requests库的同步请求
                                 import requests
                                 import json
+                                import os
+                                
+                                # 获取系统代理设置
+                                proxies = {
+                                    'http': os.environ.get('http_proxy'),
+                                    'https': os.environ.get('https_proxy')
+                                } if os.environ.get('http_proxy') or os.environ.get('https_proxy') else None
                                 
                                 response = requests.post(
                                     api_url, 
                                     json=api_data, 
                                     headers=headers, 
-                                    timeout=30
+                                    timeout=30,
+                                    proxies=proxies
                                 )
                                 
                                 if response.status_code == 200:
@@ -463,10 +475,14 @@ class TTSService:
                     
                     timeout = aiohttp.ClientTimeout(total=60)  # 增加超时时间到60秒
                     
+                    # 获取系统代理设置
+                    import os
+                    proxy_url = os.environ.get('https_proxy') or os.environ.get('http_proxy')
+                    
                     async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
                         await self.logger.info("使用aiohttp下载", f"重试 {retry_count + 1}/{max_retries}")
                         
-                        async with session.get(audio_url) as response:
+                        async with session.get(audio_url, proxy=proxy_url) as response:
                             await self.logger.info("HTTP响应", f"状态码: {response.status}")
                             
                             if response.status == 200:
@@ -484,8 +500,15 @@ class TTSService:
                     
                     # 使用requests进行同步下载
                     import requests
+                    import os
                     
-                    response = requests.get(audio_url, headers=headers, timeout=60, stream=True)
+                    # 获取系统代理设置
+                    proxies = {
+                        'http': os.environ.get('http_proxy'),
+                        'https': os.environ.get('https_proxy')
+                    } if os.environ.get('http_proxy') or os.environ.get('https_proxy') else None
+                    
+                    response = requests.get(audio_url, headers=headers, timeout=60, stream=True, proxies=proxies)
                     await self.logger.info("HTTP响应", f"状态码: {response.status_code}")
                     
                     if response.status_code == 200:
