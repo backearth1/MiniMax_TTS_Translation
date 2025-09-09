@@ -59,6 +59,7 @@ class InlineEditor {
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === 'childList') {
+                    console.log('🔄 检测到段落列表变化，重新初始化内联编辑器');
                     // 延迟执行，确保DOM更新完成
                     setTimeout(() => this.enhanceAllSegments(), 100);
                 }
@@ -76,6 +77,7 @@ class InlineEditor {
      */
     enhanceAllSegments() {
         const segmentItems = document.querySelectorAll('.segment-item');
+        console.log(`🔧 内联编辑器：重新增强 ${segmentItems.length} 个段落`);
         segmentItems.forEach(item => this.enhanceSegment(item));
     }
 
@@ -84,8 +86,12 @@ class InlineEditor {
      */
     enhanceSegment(segmentElement) {
         // 避免重复增强
-        if (segmentElement.dataset.inlineEditEnhanced) return;
+        if (segmentElement.dataset.inlineEditEnhanced) {
+            console.log(`⚠️ 段落已增强，跳过:`, segmentElement);
+            return;
+        }
         segmentElement.dataset.inlineEditEnhanced = 'true';
+        console.log(`✅ 增强段落:`, segmentElement);
 
         // 增强时间字段
         this.enhanceTimeFields(segmentElement);
@@ -555,9 +561,17 @@ class InlineEditor {
      */
     async updateSegment(segmentId, field, value) {
         try {
+            if (!currentSubtitleProject || !currentSubtitleProject.id) {
+                console.error('❌ 当前项目无效:', currentSubtitleProject);
+                throw new Error('当前项目无效，请重新上传SRT文件');
+            }
+
             const updates = { [field]: field === 'speed' ? parseFloat(value) : value };
+            const url = `/api/subtitle/${currentSubtitleProject.id}/segment/${segmentId}`;
             
-            const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/segment/${segmentId}`, {
+            console.log(`🔄 更新段落 ${segmentId} 的 ${field}:`, value, '请求URL:', url);
+            
+            const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -565,10 +579,17 @@ class InlineEditor {
                 body: JSON.stringify(updates)
             });
 
-            return response.ok;
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`❌ API调用失败 (${response.status}):`, errorText);
+                throw new Error(`保存失败 (${response.status}): ${errorText}`);
+            }
+            
+            console.log(`✅ 成功更新段落 ${segmentId} 的 ${field}`);
+            return true;
         } catch (error) {
-            console.error('API调用失败:', error);
-            return false;
+            console.error('❌ API调用失败:', error);
+            throw error;
         }
     }
 

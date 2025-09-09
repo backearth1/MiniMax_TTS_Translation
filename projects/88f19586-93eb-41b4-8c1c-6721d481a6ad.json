@@ -1,0 +1,62 @@
+{
+  "id": "88f19586-93eb-41b4-8c1c-6721d481a6ad",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_i3mc0tm4w",
+  "session_id": "nlyEgjYui8lG70tcf0Iihl_aYdnBTgWtuXCK7Tx0YN0",
+  "total_segments": 3,
+  "created_at": "2025-09-09T10:52:48.413790",
+  "updated_at": "2025-09-09T10:53:03.671291",
+  "segments": [
+    {
+      "id": "1984b0c5-20cc-44a9-8541-a709e0cde6ef",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.2,
+      "has_audio": true,
+      "audio_duration": 3228,
+      "audio_url": "/audio/segment_1984b0c5-20cc-44a9-8541-a709e0cde6ef_1757386400_0.mp3",
+      "trace_id": "050ec98e4ef434e8ff87830fa8fb6b2f",
+      "translated_text": "Hey Dad, can I borrow $50,000?",
+      "created_at": "2025-09-09T10:52:48.413818",
+      "updated_at": "2025-09-09T10:53:20.049787"
+    },
+    {
+      "id": "96b8ad8c-f588-45e9-b253-34bd923509c5",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.9,
+      "has_audio": true,
+      "audio_duration": 2458,
+      "audio_url": "/audio/segment_96b8ad8c-f588-45e9-b253-34bd923509c5_1757386412_1.mp3",
+      "trace_id": "050ec99b2281306d9aa24c2503aa44a5",
+      "translated_text": "Mom needs to have kidney dialysis, and we really don't have the money.",
+      "created_at": "2025-09-09T10:52:48.413884",
+      "updated_at": "2025-09-09T10:53:32.017619"
+    },
+    {
+      "id": "67f88665-b52f-4352-a804-ade93231708e",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.8,
+      "has_audio": true,
+      "audio_duration": 1183,
+      "audio_url": "/audio/segment_67f88665-b52f-4352-a804-ade93231708e_1757386422_2.mp3",
+      "trace_id": "050ec9a6602c401a39e0086d71c9ede5",
+      "translated_text": null,
+      "created_at": "2025-09-09T10:52:48.413946",
+      "updated_at": "2025-09-09T10:53:42.481820"
+    }
+  ]
+}

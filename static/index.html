@@ -761,6 +761,15 @@
             `).join('');
 
             container.innerHTML = segmentsHtml;
+            
+            // 重新渲染后，确保内联编辑器重新初始化
+            if (window.inlineEditor) {
+                // 延迟执行，确保DOM完全更新
+                setTimeout(() => {
+                    console.log('🔧 手动重新初始化内联编辑器');
+                    window.inlineEditor.enhanceAllSegments();
+                }, 50);
+            }
         }
 
         // TTS生成函数
