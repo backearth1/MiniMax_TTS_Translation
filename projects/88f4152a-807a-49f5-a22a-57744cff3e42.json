@@ -1,0 +1,62 @@
+{
+  "id": "88f4152a-807a-49f5-a22a-57744cff3e42",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_1rcehwd5b",
+  "session_id": "nh-qjP7p4Ccqb_C9LfMz9jEdyHw2PtN5MYepefm0zRw",
+  "total_segments": 3,
+  "created_at": "2025-09-09T15:21:01.087794",
+  "updated_at": "2025-09-09T15:21:26.617644",
+  "segments": [
+    {
+      "id": "04694422-d8db-428b-a83c-325b4c20338d",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 3445,
+      "audio_url": "/audio/segment_04694422-d8db-428b-a83c-325b4c20338d_1757402492_0.mp3",
+      "trace_id": "050f08683ecba769b0bb19ac21b6318f",
+      "translated_text": "Привет, пап, можно я одолжу у тебя 50 тысяч долларов?",
+      "created_at": "2025-09-09T15:21:01.087820",
+      "updated_at": "2025-09-09T15:21:32.587932"
+    },
+    {
+      "id": "83e88853-793e-40f1-afce-ee839d694c5b",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.8,
+      "has_audio": true,
+      "audio_duration": 2415,
+      "audio_url": "/audio/segment_83e88853-793e-40f1-afce-ee839d694c5b_1757402502_1.mp3",
+      "trace_id": "050f0874900062755c8094bb91f9a6ac",
+      "translated_text": "Маме нужно делать диализ почек, и у нас действительно нет денег.",
+      "created_at": "2025-09-09T15:21:01.087870",
+      "updated_at": "2025-09-09T15:21:42.805434"
+    },
+    {
+      "id": "c716fb12-541a-48a4-8a08-2ebc47949017",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.7,
+      "has_audio": true,
+      "audio_duration": 1375,
+      "audio_url": "/audio/segment_c716fb12-541a-48a4-8a08-2ebc47949017_1757402531_2.mp3",
+      "trace_id": "050f0890cccc476c7e063f959506dd77",
+      "translated_text": "Натали, дело в том...",
+      "created_at": "2025-09-09T15:21:01.087907",
+      "updated_at": "2025-09-09T15:22:11.192452"
+    }
+  ]
+}
