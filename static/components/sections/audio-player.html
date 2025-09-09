@@ -1,0 +1,55 @@
+<!-- 音频播放器区块组件 -->
+<div class="col-12">
+    <div class="card" id="mergeResultCard">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-soundwave me-2"></i>音频预览</h5>
+        </div>
+        <div class="card-body">
+            <div id="mergeResultContent">
+                
+                <!-- 音频播放器 -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="audio-player-container">
+                            <!-- 波形显示区域 -->
+                            <div class="waveform-container mb-3">
+                                <canvas id="audioWaveform" width="800" height="100" 
+                                        style="width: 100%; height: 100px; border: 1px solid #ddd; border-radius: 4px; background: #f8f9fa;">
+                                </canvas>
+                            </div>
+                            
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="text-muted small me-2" id="currentTime">00:00</span>
+                                <div class="flex-grow-1 mx-2">
+                                    <input type="range" class="form-range" id="audioProgress" 
+                                           min="0" max="100" value="0" step="0.1">
+                                </div>
+                                <span class="text-muted small ms-2" id="totalTime">00:00</span>
+                            </div>
+                            
+                            <!-- 播放控制按钮 -->
+                            <div class="d-flex justify-content-center mt-3">
+                                <button class="btn btn-primary btn-sm me-2" id="mergePlayBtn" disabled>
+                                    <i class="bi bi-play-circle me-2"></i>播放
+                                </button>
+                                <button class="btn btn-secondary btn-sm me-2" id="mergePauseBtn" style="display: none;" disabled>
+                                    <i class="bi bi-pause-circle me-2"></i>暂停
+                                </button>
+                                <button class="btn btn-primary btn-sm" id="downloadAudioBtn" disabled>
+                                    <i class="bi bi-download me-2"></i>下载
+                                </button>
+                            </div>
+                            
+                            <!-- 隐藏的下载链接 -->
+                            <a id="mergeDownloadBtn" href="#" download="" style="display: none;"></a>
+                            
+                            <!-- 状态提示 -->
+                            <div class="text-center mt-2" id="audioStatus">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

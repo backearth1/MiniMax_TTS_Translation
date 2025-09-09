@@ -1,0 +1,28 @@
+<!-- 自定义角色模态框组件 -->
+<div class="modal fade" id="addSpeakerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>添加自定义角色</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSpeakerForm">
+                    <div class="mb-3">
+                        <label for="speakerVoiceId" class="form-label">语音ID</label>
+                        <input type="text" class="form-control" id="speakerVoiceId" placeholder="如: ai_her_04, wumei_yujie" required>
+                        <div class="form-text">请输入MiniMax支持的语音ID，系统将自动分配SPEAKER_XX角色名称</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>取消
+                </button>
+                <button type="button" class="btn btn-primary" onclick="addCustomSpeaker()">
+                    <i class="bi bi-check-circle me-2"></i>添加角色
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

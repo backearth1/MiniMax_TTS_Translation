@@ -1,0 +1,34 @@
+<!-- 批量操作面板组件 -->
+<div id="batchSpeakerPanel" style="display: none;" class="mb-4 p-3 border rounded bg-light">
+    <h6 class="mb-3">
+        <i class="bi bi-people me-2"></i>批量修改说话人
+    </h6>
+    <div class="row g-3 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label small">选择新的说话人</label>
+            <select class="form-select form-select-sm" id="batchSpeakerSelect">
+                <option value="">选择说话人</option>
+                <option value="SPEAKER_00">SPEAKER_00</option>
+                <option value="SPEAKER_01">SPEAKER_01</option>
+                <option value="SPEAKER_02">SPEAKER_02</option>
+                <option value="SPEAKER_03">SPEAKER_03</option>
+                <option value="SPEAKER_04">SPEAKER_04</option>
+                <option value="SPEAKER_05">SPEAKER_05</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-warning btn-sm w-100" onclick="batchUpdateSpeaker()" id="batchUpdateBtn" disabled>
+                <i class="bi bi-person-lines-fill me-1"></i>应用修改
+            </button>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-secondary btn-sm w-100" onclick="toggleBatchSpeakerPanel()">
+                <i class="bi bi-x-lg me-1"></i>关闭
+            </button>
+        </div>
+    </div>
+    <div class="mt-2">
+        <span class="badge bg-info" id="selectedCount">已选择: 0</span>
+        <small class="text-muted ms-2">请先选择要修改的段落</small>
+    </div>
+</div>

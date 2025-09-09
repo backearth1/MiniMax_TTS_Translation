@@ -77,61 +77,11 @@
                             </div>
                         </div>
 
-                        <!-- 项目管理面板 -->
-                        <div id="projectManagerPanel" style="display: none;" class="mb-4 p-3 border rounded bg-light">
-                            <h6 class="mb-3">
-                                <i class="bi bi-collection me-2"></i>项目列表
-                            </h6>
-                            <div id="projectList" class="mb-3">
-                                <div class="text-center text-muted py-2">
-                                    <i class="bi bi-hourglass-split"></i>
-                                    正在加载项目列表...
-                                </div>
-                            </div>
-                            <div class="d-flex gap-2 justify-content-between">
-                                <button type="button" class="btn btn-sm btn-danger" onclick="cleanupOldProjects()">
-                                    <i class="bi bi-trash me-1"></i>清理旧项目
-                                </button>
-                                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleProjectManager()">
-                                    <i class="bi bi-x-lg me-1"></i>关闭面板
-                                </button>
-                            </div>
-                        </div>
+                        <!-- 项目管理面板 - 组件化 -->
+                        <div id="projectPanelSection"></div>
 
-                        <!-- 批量说话人选择面板 -->
-                        <div id="batchSpeakerPanel" style="display: none;" class="mb-4 p-3 border rounded bg-light">
-                            <h6 class="mb-3">
-                                <i class="bi bi-people me-2"></i>批量修改说话人
-                            </h6>
-                            <div class="row g-3 align-items-end">
-                                <div class="col-md-6">
-                                    <label class="form-label small">选择新的说话人</label>
-                                    <select class="form-select form-select-sm" id="batchSpeakerSelect">
-                                        <option value="">选择说话人</option>
-                                        <option value="SPEAKER_00">SPEAKER_00</option>
-                                        <option value="SPEAKER_01">SPEAKER_01</option>
-                                        <option value="SPEAKER_02">SPEAKER_02</option>
-                                        <option value="SPEAKER_03">SPEAKER_03</option>
-                                        <option value="SPEAKER_04">SPEAKER_04</option>
-                                        <option value="SPEAKER_05">SPEAKER_05</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <button class="btn btn-warning btn-sm w-100" onclick="batchUpdateSpeaker()" id="batchUpdateBtn" disabled>
-                                        <i class="bi bi-person-lines-fill me-1"></i>应用修改
-                                    </button>
-                                </div>
-                                <div class="col-md-3">
-                                    <button class="btn btn-secondary btn-sm w-100" onclick="toggleBatchSpeakerPanel()">
-                                        <i class="bi bi-x-lg me-1"></i>关闭
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                                <span class="badge bg-info" id="selectedCount">已选择: 0</span>
-                                <small class="text-muted ms-2">请先选择要修改的段落</small>
-                            </div>
-                        </div>
+                        <!-- 批量操作面板 - 组件化 -->
+                        <div id="batchPanelSection"></div>
 
                         <!-- 翻译功能区域 -->
                         <div class="d-flex gap-2 justify-content-center mb-3" id="translationSection" style="display: none;">
@@ -323,61 +273,8 @@
                     </div>
 
 
-                    <!-- 拼接音频结果区 -->
-                    <div class="col-12">
-                        <div class="card" id="mergeResultCard">
-                            <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-soundwave me-2"></i>音频预览</h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="mergeResultContent">
-                                    
-                                    <!-- 音频播放器 -->
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <div class="audio-player-container">
-                                                <!-- 波形显示区域 -->
-                                                <div class="waveform-container mb-3">
-                                                    <canvas id="audioWaveform" width="800" height="100" 
-                                                            style="width: 100%; height: 100px; border: 1px solid #ddd; border-radius: 4px; background: #f8f9fa;">
-                                                    </canvas>
-                                                </div>
-                                                
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <span class="text-muted small me-2" id="currentTime">00:00</span>
-                                                    <div class="flex-grow-1 mx-2">
-                                                        <input type="range" class="form-range" id="audioProgress" 
-                                                               min="0" max="100" value="0" step="0.1">
-                                                    </div>
-                                                    <span class="text-muted small ms-2" id="totalTime">00:00</span>
-                                                </div>
-                                                
-                                                <!-- 播放控制按钮 -->
-                                                <div class="d-flex justify-content-center mt-3">
-                                                    <button class="btn btn-primary btn-sm me-2" id="mergePlayBtn" disabled>
-                                                        <i class="bi bi-play-circle me-2"></i>播放
-                                                    </button>
-                                                    <button class="btn btn-secondary btn-sm me-2" id="mergePauseBtn" style="display: none;" disabled>
-                                                        <i class="bi bi-pause-circle me-2"></i>暂停
-                                                    </button>
-                                                    <button class="btn btn-primary btn-sm" id="downloadAudioBtn" disabled>
-                                                        <i class="bi bi-download me-2"></i>下载
-                                                    </button>
-                                                </div>
-                                                
-                                                <!-- 隐藏的下载链接 -->
-                                                <a id="mergeDownloadBtn" href="#" download="" style="display: none;"></a>
-                                                
-                                                <!-- 状态提示 -->
-                                                <div class="text-center mt-2" id="audioStatus">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- 音频播放器区 - 组件化 -->
+                    <div id="audioPlayerSection"></div>
 
                     <!-- 日志展示区 - 组件化 -->
                     <div id="logDisplaySection"></div>
@@ -466,34 +363,8 @@
         </div>
     </div>
 
-    <!-- 自定义角色模态框 -->
-    <div class="modal fade" id="addSpeakerModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>添加自定义角色</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addSpeakerForm">
-                        <div class="mb-3">
-                            <label for="speakerVoiceId" class="form-label">语音ID</label>
-                            <input type="text" class="form-control" id="speakerVoiceId" placeholder="如: ai_her_04, wumei_yujie" required>
-                            <div class="form-text">请输入MiniMax支持的语音ID，系统将自动分配SPEAKER_XX角色名称</div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>取消
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="addCustomSpeaker()">
-                        <i class="bi bi-check-circle me-2"></i>添加角色
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- 模态框区域 - 组件化 -->
+    <div id="modalsSection"></div>
 
 
     <!-- Toast 通知 -->
@@ -1839,7 +1710,11 @@
             // 加载HTML组件 - Phase 2组件化
             try {
                 await componentLoader.loadBatch([
-                    { path: 'sections/log-display.html', target: '#logDisplaySection' }
+                    { path: 'sections/audio-player.html', target: '#audioPlayerSection' },
+                    { path: 'sections/log-display.html', target: '#logDisplaySection' },
+                    { path: 'widgets/project-panel.html', target: '#projectPanelSection' },
+                    { path: 'widgets/batch-panel.html', target: '#batchPanelSection' },
+                    { path: 'modals/add-speaker-modal.html', target: '#modalsSection' }
                 ]);
                 console.log('✅ 组件加载完成');
             } catch (error) {
