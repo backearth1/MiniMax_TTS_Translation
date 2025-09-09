@@ -1,0 +1,62 @@
+{
+  "id": "03c7d21b-66ae-4439-b9f0-f461c175851a",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_37iczeria",
+  "session_id": "Dju-d9N7fgoCeHY0PSa-i0pKz_HMp-lO4QHNng7Owx0",
+  "total_segments": 3,
+  "created_at": "2025-09-08T16:28:11.762784",
+  "updated_at": "2025-09-08T16:28:29.258940",
+  "segments": [
+    {
+      "id": "c110089c-ecb1-44ad-8687-a4ba17e2347f",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 3313,
+      "audio_url": "/audio/segment_c110089c-ecb1-44ad-8687-a4ba17e2347f_1757320115_0.mp3",
+      "trace_id": "050dc6a22be81f4d7991cfd371273496",
+      "translated_text": null,
+      "created_at": "2025-09-08T16:28:11.762802",
+      "updated_at": "2025-09-08T16:28:35.167973"
+    },
+    {
+      "id": "6840542b-71a7-4f9d-bcb5-42efd39c1952",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.9,
+      "has_audio": true,
+      "audio_duration": 2287,
+      "audio_url": "/audio/segment_6840542b-71a7-4f9d-bcb5-42efd39c1952_1757320148_1.mp3",
+      "trace_id": "050dc6ae9f82bb1a41d13fec14dae326",
+      "translated_text": "Mom needs to have kidney dialysis, and we really don't have the money.",
+      "created_at": "2025-09-08T16:28:11.762850",
+      "updated_at": "2025-09-08T16:29:08.101606"
+    },
+    {
+      "id": "d7ea1881-b88a-45f1-93cc-ab68d5f17e23",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 1040,
+      "audio_url": "/audio/segment_d7ea1881-b88a-45f1-93cc-ab68d5f17e23_1757320148_2.mp3",
+      "trace_id": "",
+      "translated_text": null,
+      "created_at": "2025-09-08T16:28:11.762888",
+      "updated_at": "2025-09-08T16:29:08.287569"
+    }
+  ]
+}

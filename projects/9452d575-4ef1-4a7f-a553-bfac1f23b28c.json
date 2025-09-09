@@ -1,0 +1,62 @@
+{
+  "id": "9452d575-4ef1-4a7f-a553-bfac1f23b28c",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_3i4c4nr14",
+  "session_id": "I-1gHKOsEfWeP1fs8d9zLu30ndV3YbpLwh9Ksablz7Y",
+  "total_segments": 3,
+  "created_at": "2025-09-08T16:24:57.035936",
+  "updated_at": "2025-09-08T16:25:14.290233",
+  "segments": [
+    {
+      "id": "5fcc7b38-4b3d-40f9-ae66-be2e8e3bd14f",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 2400,
+      "audio_url": "/audio/segment_5fcc7b38-4b3d-40f9-ae66-be2e8e3bd14f_1757319914_0.mp3",
+      "trace_id": "",
+      "translated_text": "Hey Dad, can I borrow $50,000?",
+      "created_at": "2025-09-08T16:24:57.035954",
+      "updated_at": "2025-09-08T16:25:14.577560"
+    },
+    {
+      "id": "9d41ccb7-2a94-498e-8017-4a643be4bfa1",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 2.0,
+      "has_audio": true,
+      "audio_duration": 2359,
+      "audio_url": "",
+      "trace_id": "",
+      "translated_text": "Mom needs to undergo kidney dialysis, and we really don't have the money.",
+      "created_at": "2025-09-08T16:24:57.035994",
+      "updated_at": "2025-09-08T16:25:24.263292"
+    },
+    {
+      "id": "21dc5c8d-306c-4124-bf93-228cb791f616",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.6,
+      "has_audio": true,
+      "audio_duration": 1434,
+      "audio_url": "/audio/segment_21dc5c8d-306c-4124-bf93-228cb791f616_1757319935_2.mp3",
+      "trace_id": "050dc5ef86cca8485412b434eb4a2d4d",
+      "translated_text": null,
+      "created_at": "2025-09-08T16:24:57.036027",
+      "updated_at": "2025-09-08T16:25:35.614090"
+    }
+  ]
+}

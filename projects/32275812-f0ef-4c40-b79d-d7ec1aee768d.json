@@ -1,0 +1,62 @@
+{
+  "id": "32275812-f0ef-4c40-b79d-d7ec1aee768d",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_mjz85uu5x",
+  "session_id": "r3JToKVD01vtnAPdMsga_K-j5zjxj5FTlx981rkgZuE",
+  "total_segments": 3,
+  "created_at": "2025-09-08T15:45:49.308982",
+  "updated_at": "2025-09-08T15:46:59.320536",
+  "segments": [
+    {
+      "id": "f38703cc-d3fb-49cb-b2d4-3de87888064c",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,040",
+      "speaker": "SPEAKER_02",
+      "text": "嘿，爸爸，我能借5万美元吗？啊",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 3104,
+      "audio_url": "/audio/segment_f38703cc-d3fb-49cb-b2d4-3de87888064c_1757317584_0.mp3",
+      "trace_id": "050dbcc059a256608f703dfe0dd48ca2",
+      "translated_text": "Hey Dad, can I borrow $50,000?",
+      "created_at": "2025-09-08T15:45:49.309023",
+      "updated_at": "2025-09-08T15:46:42.149244"
+    },
+    {
+      "id": "14f8f99e-9099-4d94-b178-693088da82bb",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_02",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 2.0,
+      "has_audio": true,
+      "audio_duration": 2301,
+      "audio_url": "/audio/segment_14f8f99e-9099-4d94-b178-693088da82bb_1757317685_1.mp3",
+      "trace_id": "050dbce328b18d6bfda549ed585955c5",
+      "translated_text": "Mom needs to undergo kidney dialysis, and we really don't have the money.",
+      "created_at": "2025-09-08T15:45:49.309108",
+      "updated_at": "2025-09-08T15:48:05.190012"
+    },
+    {
+      "id": "dab26d7f-2199-404d-bcc8-5091bf9a445a",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.4,
+      "has_audio": true,
+      "audio_duration": 1337,
+      "audio_url": "/audio/segment_dab26d7f-2199-404d-bcc8-5091bf9a445a_1757317694_2.mp3",
+      "trace_id": "050dbd2eb8fb3ca9960ab91cb2e512c6",
+      "translated_text": "Natalie, here's the thing...",
+      "created_at": "2025-09-08T15:45:49.309194",
+      "updated_at": "2025-09-08T15:48:14.596454"
+    }
+  ]
+}

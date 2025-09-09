@@ -1,0 +1,62 @@
+{
+  "id": "41dca897-7f8c-4193-8ca9-67ad24f1ef2b",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_4xblnz6sj",
+  "session_id": "M9J-okRk-hoSlGYzWIll-yms5AodG4oLgVvdRcE5H0I",
+  "total_segments": 3,
+  "created_at": "2025-09-08T15:53:57.440535",
+  "updated_at": "2025-09-08T15:54:08.579161",
+  "segments": [
+    {
+      "id": "2abfe8e5-5a2c-438a-a584-60e9ce15d661",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 3143,
+      "audio_url": "/audio/segment_2abfe8e5-5a2c-438a-a584-60e9ce15d661_1757318058_0.mp3",
+      "trace_id": "050dbe98c3128f3cc4000fcc620b35f6",
+      "translated_text": "Hey Dad, can I borrow $50,000?",
+      "created_at": "2025-09-08T15:53:57.440560",
+      "updated_at": "2025-09-08T15:54:18.555581"
+    },
+    {
+      "id": "97ebd4ea-74b3-463d-ac20-e1df9b39ff21",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 1360,
+      "audio_url": "/audio/segment_97ebd4ea-74b3-463d-ac20-e1df9b39ff21_1757318059_1.mp3",
+      "trace_id": "",
+      "translated_text": null,
+      "created_at": "2025-09-08T15:53:57.440622",
+      "updated_at": "2025-09-08T15:54:19.761645"
+    },
+    {
+      "id": "edd05d4b-728a-4da6-bbcb-3a5d37902f7c",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.4,
+      "has_audio": true,
+      "audio_duration": 742,
+      "audio_url": "/audio/segment_edd05d4b-728a-4da6-bbcb-3a5d37902f7c_1757318070_2.mp3",
+      "trace_id": "",
+      "translated_text": null,
+      "created_at": "2025-09-08T15:53:57.440673",
+      "updated_at": "2025-09-08T15:54:30.450849"
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+/**
+ * 主题样式 - 从index.html提取的内联CSS
+ * 统一的蓝色主题配色方案
+ */
+
+:root {
+    --blue-50: #f0f9ff;
+    --blue-100: #e0f2fe;
+    --blue-200: #bae6fd;
+    --blue-300: #7dd3fc;
+    --blue-400: #38bdf8;
+    --blue-500: #0ea5e9;
+    --blue-600: #0284c7;
+    --blue-700: #0369a1;
+    --blue-800: #075985;
+    
+    /* 音频播放器样式 */
+    --audio-primary: #0ea5e9;
+    --audio-secondary: #64748b;
+    --audio-success: #10b981;
+    --audio-warning: #f59e0b;
+    --audio-danger: #ef4444;
+}
+
+/* =============================================================================
+   基础布局样式
+   ============================================================================= */
+
+body {
+    background: linear-gradient(135deg, var(--blue-50) 0%, var(--blue-100) 100%);
+    min-height: 100vh;
+}
+
+.navbar {
+    background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+    border-bottom: 2px solid var(--blue-300);
+}
+
+.card {
+    border: 1px solid var(--blue-200);
+    box-shadow: 0 4px 6px rgba(14, 165, 233, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+    min-height: 400px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+    border-bottom: 1px solid var(--blue-200);
+    color: #1f2937 !important;
+}
+
+/* =============================================================================
+   按钮样式统一覆盖
+   ============================================================================= */
+
+.btn, .btn-primary, .btn-success, .btn-outline-primary, .btn-secondary, 
+.btn-outline-light, .btn-warning, .btn-danger, .btn-info,
+.btn-danger, .btn-outline-danger, .btn-outline-success, .btn-outline-warning, 
+.btn-outline-info, .btn-outline-secondary,
+.btn-sm, .btn-lg, .btn-group .btn, .dropdown-toggle, .nav-link {
+    background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+    border-color: var(--blue-300) !important;
+    color: #1f2937 !important;
+}
+
+.btn:hover, .btn:focus, .btn:active, .btn-primary:hover, .btn-success:hover, 
+.btn-outline-primary:hover, .btn-danger:hover, .btn-warning:hover, .btn-info:hover, 
+.btn-secondary:hover, .btn-outline-danger:hover, .btn-outline-success:hover, 
+.btn-outline-warning:hover, .btn-outline-info:hover, .btn-outline-secondary:hover {
+    background: linear-gradient(135deg, var(--blue-300) 0%, var(--blue-400) 100%) !important;
+    border-color: var(--blue-400) !important;
+    color: #1f2937 !important;
+}
+
+.btn:disabled {
+    background: var(--blue-100) !important;
+    border-color: var(--blue-200) !important;
+    color: #6b7280 !important;
+    opacity: 0.6;
+}
+
+/* =============================================================================
+   徽章和背景色统一覆盖
+   ============================================================================= */
+
+.badge, .bg-secondary, .bg-info, .bg-primary, .bg-success, .bg-warning, .bg-danger,
+.badge-danger, .badge-primary, .badge-success, .badge-warning, .badge-info, .badge-secondary {
+    background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+    color: #1f2937 !important;
+    border: none !important;
+}
+
+/* =============================================================================
+   进度条样式
+   ============================================================================= */
+
+.progress-bar, .bg-warning, .bg-success, .bg-info, .bg-primary {
+    background: linear-gradient(135deg, var(--blue-300) 0%, var(--blue-400) 100%) !important;
+}
+
+.progress-bar-striped {
+    background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent) !important;
+}
+
+.progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite !important;
+}
+
+/* =============================================================================
+   文字颜色和边框统一覆盖
+   ============================================================================= */
+
+.text-primary, .text-secondary, .text-success, .text-danger, .text-warning, 
+.text-info, .text-light, .text-dark, .text-muted {
+    color: #1f2937 !important;
+}
+
+.border-primary, .border-success, .border-warning, .border-danger, .border-info {
+    border-color: var(--blue-300) !important;
+}
+
+/* =============================================================================
+   卡片标题样式
+   ============================================================================= */
+
+.card-header, .card-header.bg-primary, .card-header.bg-success, .card-header.bg-warning, 
+.card-header.bg-danger, .card-header.bg-info {
+    background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%) !important;
+    color: #1f2937 !important;
+    border-bottom: 1px solid var(--blue-200) !important;
+}
+
+/* =============================================================================
+   Alert样式
+   ============================================================================= */
+
+.alert, .alert-primary, .alert-success, .alert-warning, .alert-danger, .alert-info {
+    background: linear-gradient(135deg, var(--blue-100) 0%, var(--blue-200) 100%) !important;
+    border-color: var(--blue-300) !important;
+    color: #1f2937 !important;
+}
+
+/* =============================================================================
+   音频播放器专用样式
+   ============================================================================= */
+
+.audio-player-container {
+    background: linear-gradient(135deg, var(--blue-50) 0%, var(--blue-100) 100%);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--blue-200);
+}
+
+/* 进度条样式 */
+#audioProgress {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--blue-200);
+    outline: none;
+    cursor: pointer;
+}
+
+#audioProgress::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--audio-primary);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#audioProgress::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--audio-primary);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 音量滑块样式 */
+#audioVolume {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--blue-200);
+    outline: none;
+}
+
+#audioVolume::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--audio-secondary);
+    cursor: pointer;
+}
+
+/* 合并结果卡片样式 */
+#mergeResultCard {
+    border: 2px solid var(--blue-200);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+}
+
+#mergeResultCard .card-header {
+    background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%);
+    color: white;
+}
+
+/* =============================================================================
+   辅助样式
+   ============================================================================= */
+
+/* 移除所有链接的下划线 */
+a {
+    text-decoration: none !important;
+}
