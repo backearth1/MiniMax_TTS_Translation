@@ -1,0 +1,79 @@
+<!-- 使用说明区块组件 -->
+<div class="col-12">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-question-circle me-2"></i>使用说明</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-primary">1. 使用说明</h6>
+                        <p class="mb-2">本网站仅用于测试体验，在线人数多时将自动限流，如果长期商业化使用，请下载开源版本自行部署 <a href="https://github.com/backearth1/MiniMax_TTS_Translation" target="_blank" class="text-decoration-none">https://github.com/backearth1/MiniMax_TTS_Translation</a></p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-primary">2. API配置</h6>
+                        <p class="mb-2">请到<a href="https://platform.minimaxi.com" target="_blank" class="text-decoration-none">MiniMax开放平台</a>注册获取api_key，地址 "https://platform.minimaxi.com", 使用问题请联系MiniMax技术支持或邮件<a href="mailto:devin@minimaxi.com" class="text-decoration-none">devin@minimaxi.com</a></p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-primary">3. 建议流程</h6>
+                        <ol class="mb-2">
+                            <li>上传SRT文件</li>
+                            <li>编辑优化SRT的文本，角色，情绪等</li>
+                            <li>批量生成</li>
+                            <li>合成预览，根据效果，再返回优化文本</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-primary">4. 一键翻译功能</h6>
+                        <p class="mb-2">点击"一键翻译"按钮可自动完成以下流程：</p>
+                        <ol class="mb-2">
+                            <li><strong>批量翻译</strong>：将原文翻译为目标语言</li>
+                            <li><strong>批量TTS</strong>：为翻译后的文本生成语音</li>
+                            <li><strong>拼接音频</strong>：将所有音频片段拼接为完整文件</li>
+                        </ol>
+                        <p class="mb-2"><small class="text-muted">注意：一键翻译会使用当前配置的语言设置，请确保已正确配置API参数</small></p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-primary">5. 批量TTS时间戳对齐处理逻辑</h6>
+                        <p class="mb-2">系统会自动处理TTS生成音频与字幕时间戳的对齐问题：</p>
+                        <ul class="mb-2">
+                            <li><strong>翻译优化</strong>：当加速比例 > 1.3 时，系统会尝试重新翻译文本以缩短内容</li>
+                            <li><strong>速度调整</strong>：当加速比例 ≤ 1.3 或翻译优化无效时，会逐步调整语速参数（1.0 → 1.2 → 1.4 → 2.0）</li>
+                            <li><strong>失败处理</strong>：当速度达到2.0且比例仍 > 1.0时，该段落会被标记为失败并使用静音</li>
+                            <li><strong>手动优化</strong>：建议根据实际效果手动调整文本长度，以获得最佳对齐效果</li>
+                        </ul>
+                        <p class="mb-2"><small class="text-muted">注：加速比例 = TTS音频时长 / 字幕时长，比例 ≤ 1.0 表示音频时长在字幕时长范围内</small></p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-primary">6. SRT格式支持</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6 class="fw-bold text-success">有序号</h6>
+                                <pre class="bg-light p-2 rounded small">1
+00:00:06.879 --> 00:00:11.039
+嗨，你好啊</pre>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="fw-bold text-success">无序号</h6>
+                                <pre class="bg-light p-2 rounded small">00:00:06.879 --> 00:00:11.039
+嗨，你好啊</pre>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="fw-bold text-success">完整标注</h6>
+                                <pre class="bg-light p-2 rounded small">1
+[00:00:06.879 --> 00:00:11.039] SPEAKER_00 [emotion: happy]
+嗨，你好啊</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
