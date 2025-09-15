@@ -143,23 +143,7 @@ class VoiceGeneratorApp {
     }
 
     bindEvents() {
-        // 表单提交事件
-        const configForm = document.getElementById('configForm');
-        if (configForm) {
-            configForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.startGeneration();
-            });
-        }
 
-        // 生成按钮事件
-        const generateBtn = document.getElementById('generateBtn');
-        if (generateBtn) {
-            generateBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.startGeneration();
-            });
-        }
 
         // 清空日志事件
         const clearLogsBtn = document.getElementById('clearLogsBtn');
@@ -342,85 +326,6 @@ class VoiceGeneratorApp {
     }
     */
 
-    async startGeneration() {
-        console.log('startGeneration called'); // 调试用
-        this.addLog('info', '调试：开始生成函数被调用', '开始执行生成流程');
-        
-        if (this.isGenerating) {
-            this.addLog('warning', '生成中', '请等待当前任务完成');
-            return;
-        }
-
-        // 验证表单
-        this.addLog('info', '调试：开始验证表单', '检查必填字段');
-        if (!this.validateForm()) {
-            this.addLog('error', '调试：表单验证失败', '停止执行');
-            return;
-        }
-        this.addLog('info', '调试：表单验证通过', '继续执行');
-
-        this.isGenerating = true;
-        this.updateStatus('生成中...', 'warning');
-        this.disableGenerateButton(true);
-        this.showProgress(0, '准备开始...');
-        this.addLog('info', '开始生成', '正在准备参数...');
-
-        try {
-            const formData = this.getFormData();
-            
-            // 调试信息：检查文件是否正确选择
-            const fileInput = document.getElementById('subtitleFile');
-            const selectedFile = fileInput.files[0];
-            if (selectedFile) {
-                this.addLog('info', '文件确认', `文件名: ${selectedFile.name}, 大小: ${this.formatFileSize(selectedFile.size)}`);
-            } else {
-                this.addLog('error', '文件选择错误', '没有检测到选择的文件');
-                return;
-            }
-
-            const response = await fetch('/api/generate-audio', {
-                method: 'POST',
-                body: formData
-            });
-
-            // 检查响应状态
-            if (!response.ok) {
-                // 尝试解析错误信息
-                let errorMessage = `HTTP ${response.status} ${response.statusText}`;
-                try {
-                    const errorResult = await response.json();
-                    errorMessage = errorResult.detail || errorResult.message || errorMessage;
-                } catch (jsonError) {
-                    // 如果无法解析JSON，尝试获取文本内容
-                    try {
-                        const errorText = await response.text();
-                        if (errorText) {
-                            errorMessage = errorText;
-                        }
-                    } catch (textError) {
-                        // 如果连文本都无法获取，使用默认错误信息
-                    }
-                }
-                this.handleGenerationError(errorMessage);
-                return;
-            }
-
-            const result = await response.json();
-
-            if (result.success) {
-                this.updateProgress(100, '处理完成');
-                this.handleGenerationSuccess(result);
-            } else {
-                this.handleGenerationError(result.detail || result.message || '未知错误');
-            }
-        } catch (error) {
-            this.handleGenerationError(error.message);
-        } finally {
-            this.isGenerating = false;
-            this.disableGenerateButton(false);
-            this.updateStatus('准备就绪', 'success');
-        }
-    }
 
     showProgress(progress, statusText) {
         this.updateProgress(progress, statusText);
@@ -623,18 +528,6 @@ class VoiceGeneratorApp {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    disableGenerateButton(disabled) {
-        const generateBtn = document.getElementById('generateBtn');
-        generateBtn.disabled = disabled;
-        
-        if (disabled) {
-            generateBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>生成中...';
-            generateBtn.classList.add('loading');
-        } else {
-            generateBtn.innerHTML = '<i class="bi bi-play-circle-fill me-2"></i>开始生成配音';
-            generateBtn.classList.remove('loading');
-        }
-    }
 
     toggleVoiceMapping() {
         const container = document.getElementById('voiceMappingContainer');
