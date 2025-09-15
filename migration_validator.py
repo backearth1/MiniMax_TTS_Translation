@@ -55,6 +55,84 @@ class MigrationValidator:
         self.validation_results.append(result)
         return result
 
+    async def validate_file_endpoints(self) -> List[Dict[str, Any]]:
+        """验证文件管理端点"""
+        results = []
+
+        async with aiohttp.ClientSession() as session:
+            # 测试样例文件列表
+            try:
+                async with session.get(f"{self.base_url}/api/sample-files") as response:
+                    if response.status == 200:
+                        data = await response.json()
+
+                        # 验证响应格式
+                        required_fields = ["files"]
+                        missing_fields = [field for field in required_fields if field not in data]
+
+                        result = {
+                            "endpoint": "/api/sample-files",
+                            "status": "pass" if not missing_fields else "fail",
+                            "response_code": response.status,
+                            "missing_fields": missing_fields,
+                            "validated_at": datetime.now().isoformat()
+                        }
+                    else:
+                        result = {
+                            "endpoint": "/api/sample-files",
+                            "status": "fail",
+                            "response_code": response.status,
+                            "error": f"HTTP {response.status}",
+                            "validated_at": datetime.now().isoformat()
+                        }
+            except Exception as e:
+                result = {
+                    "endpoint": "/api/sample-files",
+                    "status": "error",
+                    "error": str(e),
+                    "validated_at": datetime.now().isoformat()
+                }
+
+            results.append(result)
+
+            # 测试输出文件列表
+            try:
+                async with session.get(f"{self.base_url}/api/outputs") as response:
+                    if response.status == 200:
+                        data = await response.json()
+
+                        # 验证响应格式
+                        required_fields = ["files"]
+                        missing_fields = [field for field in required_fields if field not in data]
+
+                        result = {
+                            "endpoint": "/api/outputs",
+                            "status": "pass" if not missing_fields else "fail",
+                            "response_code": response.status,
+                            "missing_fields": missing_fields,
+                            "validated_at": datetime.now().isoformat()
+                        }
+                    else:
+                        result = {
+                            "endpoint": "/api/outputs",
+                            "status": "fail",
+                            "response_code": response.status,
+                            "error": f"HTTP {response.status}",
+                            "validated_at": datetime.now().isoformat()
+                        }
+            except Exception as e:
+                result = {
+                    "endpoint": "/api/outputs",
+                    "status": "error",
+                    "error": str(e),
+                    "validated_at": datetime.now().isoformat()
+                }
+
+            results.append(result)
+
+        self.validation_results.extend(results)
+        return results
+
     async def validate_api_compatibility(self) -> Dict[str, Any]:
         """验证API兼容性"""
         print("🔍 开始API兼容性验证...")
@@ -63,7 +141,11 @@ class MigrationValidator:
         health_result = await self.validate_health_endpoint()
         print(f"  健康检查: {'✅' if health_result['status'] == 'pass' else '❌'}")
 
-        # 这里可以添加更多API验证
+        # 测试文件管理端点
+        file_results = await self.validate_file_endpoints()
+        for result in file_results:
+            endpoint_name = result['endpoint'].split('/')[-1]
+            print(f"  {endpoint_name}: {'✅' if result['status'] == 'pass' else '❌'}")
 
         summary = {
             "total_tests": len(self.validation_results),

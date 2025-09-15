@@ -1,0 +1,29 @@
+{
+  "validation_summary": {
+    "total_tests": 3,
+    "passed": 0,
+    "failed": 0,
+    "errors": 3
+  },
+  "detailed_results": [
+    {
+      "endpoint": "/api/health",
+      "status": "error",
+      "error": "Cannot connect to host localhost:5215 ssl:default [Connect call failed ('127.0.0.1', 5215)]",
+      "validated_at": "2025-09-15T12:49:43.317329"
+    },
+    {
+      "endpoint": "/api/sample-files",
+      "status": "error",
+      "error": "Cannot connect to host localhost:5215 ssl:default [Connect call failed ('127.0.0.1', 5215)]",
+      "validated_at": "2025-09-15T12:49:43.317846"
+    },
+    {
+      "endpoint": "/api/outputs",
+      "status": "error",
+      "error": "Cannot connect to host localhost:5215 ssl:default [Connect call failed ('127.0.0.1', 5215)]",
+      "validated_at": "2025-09-15T12:49:43.318084"
+    }
+  ],
+  "generated_at": "2025-09-15T12:49:43.318144"
+}

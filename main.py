@@ -267,47 +267,53 @@ else:
             "version": "2.0.0"
         }
 
-@app.get("/api/sample-files")
-async def get_sample_files():
-    """获取样例文件列表"""
-    valid_files = []
-    
-    for file_info in Config.SAMPLE_FILES:
-        file_path = Config.BASE_DIR / file_info["path"]
-        if file_path.exists():
-            valid_files.append({
-                "name": file_info["name"],
-                "description": file_info["description"],
-                "size": file_path.stat().st_size,
-                "url": f"/api/sample-files/{file_info['name']}"
-            })
-        else:
-            print(f"⚠️ 样例文件不存在: {file_path}")
-    
-    return {"files": valid_files}
+# 文件管理路由 - 支持新旧版本兼容
+if MIGRATION_ENABLED and MigrationFlags.USE_NEW_FILE_ROUTES:
+    # 使用新的文件管理路由
+    try:
+        from api.routes.files import router as files_router
+        app.include_router(files_router)
+    except ImportError:
+        # 回退到原版本
+        @app.get("/api/sample-files")
+        async def get_sample_files():
+            """获取样例文件列表（兼容版本）"""
+            valid_files = []
 
-@app.get("/api/sample-files/{filename}")
-async def download_sample_file(filename: str):
-    """下载样例文件"""
-    # 查找对应的文件信息
-    file_info = None
-    for sample in Config.SAMPLE_FILES:
-        if sample["name"] == filename:
-            file_info = sample
-            break
-    
-    if not file_info:
-        raise HTTPException(status_code=404, detail="样例文件不存在")
-    
-    file_path = Config.BASE_DIR / file_info["path"]
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="文件未找到")
-    
-    return FileResponse(
-        path=file_path,
-        filename=filename,
-        media_type="text/plain"
-    )
+            for file_info in Config.SAMPLE_FILES:
+                file_path = Config.BASE_DIR / file_info["path"]
+                if file_path.exists():
+                    valid_files.append({
+                        "name": file_info["name"],
+                        "description": file_info["description"],
+                        "size": file_path.stat().st_size,
+                        "url": f"/api/sample-files/{file_info['name']}"
+                    })
+                else:
+                    print(f"⚠️ 样例文件不存在: {file_path}")
+
+            return {"files": valid_files}
+else:
+    # 使用原有的文件管理路由
+    @app.get("/api/sample-files")
+    async def get_sample_files():
+        """获取样例文件列表"""
+        valid_files = []
+
+        for file_info in Config.SAMPLE_FILES:
+            file_path = Config.BASE_DIR / file_info["path"]
+            if file_path.exists():
+                valid_files.append({
+                    "name": file_info["name"],
+                    "description": file_info["description"],
+                    "size": file_path.stat().st_size,
+                    "url": f"/api/sample-files/{file_info['name']}"
+                })
+            else:
+                print(f"⚠️ 样例文件不存在: {file_path}")
+
+        return {"files": valid_files}
+
 
 @app.post("/api/generate-audio")
 async def generate_audio(
@@ -473,28 +479,6 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
     finally:
         websocket_logger.disconnect(client_id)
 
-@app.post("/api/test-upload")
-async def test_upload(
-    file: UploadFile = File(...),
-    groupId: str = Form(...),
-    apiKey: str = Form(...)
-):
-    """测试文件上传功能"""
-    print(f"🔥 TEST: 收到测试请求")
-    print(f"🔥 TEST: 文件名: {file.filename}")
-    print(f"🔥 TEST: Group ID: {groupId}")
-    print(f"🔥 TEST: API Key: {apiKey}")
-    
-    content = await file.read()
-    print(f"🔥 TEST: 文件大小: {len(content)} 字节")
-    
-    return {
-        "success": True,
-        "filename": file.filename,
-        "size": len(content),
-        "groupId": groupId,
-        "apiKey": apiKey[:3] + "***"
-    }
 
 @app.get("/api/config")
 async def get_config():
@@ -507,42 +491,6 @@ async def get_config():
         "supportedFormats": Config.AUDIO_CONFIG["supported_formats"]
     }
 
-@app.get("/api/outputs")
-async def list_output_files():
-    """列出输出文件"""
-    try:
-        output_files = []
-        if Config.OUTPUT_DIR.exists():
-            for file_path in Config.OUTPUT_DIR.glob("*.mp3"):
-                stat = file_path.stat()
-                output_files.append({
-                    "name": file_path.name,
-                    "size": stat.st_size,
-                    "created": datetime.fromtimestamp(stat.st_ctime).isoformat(),
-                    "url": f"/outputs/{file_path.name}"
-                })
-        
-        # 按创建时间降序排序
-        output_files.sort(key=lambda x: x["created"], reverse=True)
-        
-        return {"files": output_files}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取文件列表失败: {str(e)}")
-
-@app.delete("/api/outputs/{filename}")
-async def delete_output_file(filename: str):
-    """删除输出文件"""
-    try:
-        file_path = Config.OUTPUT_DIR / filename
-        if not file_path.exists():
-            raise HTTPException(status_code=404, detail="文件不存在")
-        
-        file_path.unlink()
-        return {"success": True, "message": f"文件 {filename} 已删除"}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"删除文件失败: {str(e)}")
 
 # 字幕解析与管理相关API
 @app.post("/api/parse-subtitle")
