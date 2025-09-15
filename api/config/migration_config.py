@@ -18,6 +18,7 @@ class MigrationFlags:
     USE_NEW_AUDIO_ROUTES = False     # 音频处理路由
     USE_NEW_WEBSOCKET_ROUTES = True  # WebSocket和日志路由 - 低风险
     USE_NEW_BASIC_ROUTES = True      # 基础路由 - 极低风险
+    USE_NEW_TRANSLATION_ROUTES = True # 翻译路由 - 独立功能
 
     # Phase 2.3 - 服务层开关
     USE_NEW_TTS_SERVICE = False

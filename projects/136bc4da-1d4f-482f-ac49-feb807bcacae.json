@@ -1,0 +1,62 @@
+{
+  "id": "136bc4da-1d4f-482f-ac49-feb807bcacae",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_87x19ndm3",
+  "session_id": "h4-d3bwxV-M-TMoW_QNDMTT5nyLfHnmVCaJCAO3vIos",
+  "total_segments": 3,
+  "created_at": "2025-09-15T15:24:47.165424",
+  "updated_at": "2025-09-15T15:24:47.165541",
+  "segments": [
+    {
+      "id": "e50324f3-91eb-48cf-80cc-1fc79c31fa76",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": null,
+      "created_at": "2025-09-15T15:24:47.165454",
+      "updated_at": "2025-09-15T15:24:47.165456"
+    },
+    {
+      "id": "343342d2-0ebf-478c-9f2c-d1211443ed86",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": null,
+      "created_at": "2025-09-15T15:24:47.165493",
+      "updated_at": "2025-09-15T15:24:47.165495"
+    },
+    {
+      "id": "6edeea0a-3280-47a3-9c6a-e820aac78510",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.0,
+      "has_audio": false,
+      "audio_duration": 0,
+      "audio_url": null,
+      "trace_id": null,
+      "translated_text": null,
+      "created_at": "2025-09-15T15:24:47.165529",
+      "updated_at": "2025-09-15T15:24:47.165531"
+    }
+  ]
+}
