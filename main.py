@@ -230,10 +230,6 @@ app.include_router(text_adjuster_router)
 from custom_speakers import router as custom_speakers_router
 app.include_router(custom_speakers_router)
 
-# 移除复杂的代理管理，使用系统网络
-
-
-
 # 健康检查端点 - 支持新旧版本兼容
 if MIGRATION_ENABLED and MigrationFlags.USE_NEW_HEALTH_ENDPOINT:
     # 使用新的健康检查端点
@@ -449,9 +445,6 @@ async def generate_audio(
         raise HTTPException(status_code=500, detail=f"服务器内部错误: {str(e)}")
 
 
-
-
-
 # 字幕解析与管理相关API - 已迁移到新路由模块
 
 # 项目管理路由 - 支持新旧版本兼容
@@ -557,6 +550,19 @@ if MIGRATION_ENABLED and MigrationFlags.USE_NEW_SUBTITLE_MANAGEMENT_ROUTES:
         pass
 else:
     # 使用原有的字幕管理路由 - 保持在原位置
+    pass
+
+# 单段落TTS路由 - 支持新旧版本兼容
+if MIGRATION_ENABLED and MigrationFlags.USE_NEW_SINGLE_TTS_ROUTES:
+    # 使用新的单段落TTS路由
+    try:
+        from api.routes.single_tts import router as single_tts_router
+        app.include_router(single_tts_router)
+    except ImportError:
+        # 回退到原版本 - 单段落TTS路由保持在原位置
+        pass
+else:
+    # 使用原有的单段落TTS路由 - 保持在原位置
     pass
 
 @app.post("/api/subtitle/{project_id}/segment/{segment_id}/generate-tts")
@@ -1149,11 +1155,6 @@ async def batch_generate_tts_for_project(
 
 # 旧版本的音频拼接路由已删除，使用新的audio.py模块
 
-
-
-
-
-
 async def optimize_translation_for_audio_length(
     original_text: str, 
     current_translation: str, 
@@ -1215,8 +1216,8 @@ async def optimize_translation_for_audio_length(
         proxy_url = os.environ.get('https_proxy') or os.environ.get('http_proxy')
         
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, headers=headers, json=payload, 
-                                  timeout=aiohttp.ClientTimeout(total=timeout_seconds),
+            async with session.post(url, headers=headers, json=payload,
+                                  timeout=aiohttp.ClientTimeout(total=Config.TRANSLATION_CONFIG["timeout"]),
                                   proxy=proxy_url) as response:
                 response_data = await response.json()
                 

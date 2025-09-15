@@ -21,6 +21,7 @@ class MigrationFlags:
     USE_NEW_TRANSLATION_ROUTES = True # 翻译路由 - 独立功能
     USE_NEW_AUDIO_MERGE_ROUTES = True # 音频拼接路由 - 音频时序控制
     USE_NEW_SUBTITLE_MANAGEMENT_ROUTES = True # 字幕管理路由 - 纯CRUD操作
+    USE_NEW_SINGLE_TTS_ROUTES = True # 单段落TTS路由 - 简单时长检查
 
     # Phase 2.3 - 服务层开关
     USE_NEW_TTS_SERVICE = False
