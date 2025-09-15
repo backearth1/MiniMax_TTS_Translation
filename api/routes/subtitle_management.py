@@ -14,15 +14,15 @@ from admin import check_user_limit, record_user_activity
 
 router = APIRouter()
 
-# 导入会话管理（从main.py）
-active_sessions = {}  # 临时解决方案，应该从全局状态获取
-
 # 获取或创建会话ID的工具函数
 def get_or_create_session_id(request: Request, response: Response) -> str:
     """获取或创建会话ID"""
     import secrets
 
     session_id = request.cookies.get("session_id")
+
+    # 导入全局会话管理
+    from main import active_sessions
 
     if not session_id or session_id not in active_sessions:
         # 生成新的会话ID
