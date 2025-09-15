@@ -16,6 +16,7 @@ class MigrationFlags:
     USE_NEW_PROJECT_ROUTES = True    # 项目管理路由 - 基础功能测试
     USE_NEW_SUBTITLE_ROUTES = False  # 字幕操作路由
     USE_NEW_AUDIO_ROUTES = False     # 音频处理路由
+    USE_NEW_WEBSOCKET_ROUTES = True  # WebSocket和日志路由 - 低风险
 
     # Phase 2.3 - 服务层开关
     USE_NEW_TTS_SERVICE = False

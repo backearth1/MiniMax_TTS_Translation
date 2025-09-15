@@ -452,32 +452,6 @@ async def generate_audio(
         await logger.error("❌ 处理失败", str(e))
         raise HTTPException(status_code=500, detail=f"服务器内部错误: {str(e)}")
 
-@app.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: str):
-    """WebSocket 连接处理"""
-    try:
-        await websocket_logger.connect(websocket, client_id)
-        
-        # 保持连接
-        while True:
-            try:
-                # 等待客户端消息 (ping/pong)
-                data = await websocket.receive_text()
-                
-                # 可以处理客户端发送的消息
-                if data == "ping":
-                    await websocket.send_text("pong")
-                    
-            except WebSocketDisconnect:
-                break
-            except Exception as e:
-                print(f"WebSocket 错误: {e}")
-                break
-                
-    except Exception as e:
-        print(f"WebSocket 连接错误: {e}")
-    finally:
-        websocket_logger.disconnect(client_id)
 
 
 @app.get("/api/config")
@@ -585,6 +559,21 @@ else:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"获取项目列表失败: {str(e)}")
+
+# WebSocket和日志路由 - 支持新旧版本兼容
+if MIGRATION_ENABLED and MigrationFlags.USE_NEW_WEBSOCKET_ROUTES:
+    # 使用新的WebSocket和日志路由
+    try:
+        from api.routes.websocket_logs import router as websocket_router, global_state
+        # 注入全局状态
+        global_state.set_global_state(running_tasks, task_cancellation_flags)
+        app.include_router(websocket_router)
+    except ImportError:
+        # 回退到原版本 - WebSocket路由保持在下面
+        pass
+else:
+    # 使用原有的WebSocket和日志路由 - 保持在原位置
+    pass
 
 
 @app.get("/api/subtitle/{project_id}/segments")
@@ -1442,82 +1431,6 @@ async def merge_audio_for_project(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"音频合并失败: {str(e)}")
 
-@app.get("/api/logs/{client_id}")
-async def get_logs(client_id: str):
-    """获取指定客户端的日志"""
-    try:
-        from utils.logger import get_process_logger
-        logger = get_process_logger(client_id)
-        
-        # 获取最新的日志条目
-        logs = logger.get_recent_logs(50)  # 获取最近50条日志
-        
-        return logs  # 直接返回日志数组，前端期望这种格式
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取日志失败: {str(e)}")
-
-@app.post("/api/interrupt/{client_id}")
-async def interrupt_task(client_id: str):
-    """中断指定客户端的当前任务"""
-    try:
-        # 设置中断标志
-        task_cancellation_flags[client_id] = True
-        
-        # 记录中断日志
-        from utils.logger import get_process_logger
-        logger = get_process_logger(client_id)
-        await logger.warning("用户请求中断", "正在尝试中断当前任务...")
-        
-        # 如果有正在运行的任务，尝试取消
-        if client_id in running_tasks:
-            task = running_tasks[client_id]
-            if not task.done():
-                task.cancel()
-                await logger.info("任务中断", "已发送任务取消信号")
-            else:
-                await logger.info("任务状态", "任务已完成，无需中断")
-        else:
-            await logger.info("任务状态", "没有找到正在运行的任务")
-        
-        return {
-            "success": True,
-            "message": "中断请求已发送",
-            "client_id": client_id
-        }
-        
-    except Exception as e:
-        return {
-            "success": False,
-            "message": f"中断失败: {str(e)}",
-            "client_id": client_id
-        }
-
-@app.get("/api/task-status/{client_id}")
-async def get_task_status(client_id: str):
-    """获取指定客户端的任务状态"""
-    try:
-        is_running = client_id in running_tasks and not running_tasks[client_id].done()
-        is_cancelled = task_cancellation_flags.get(client_id, False)
-        
-        return {
-            "success": True,
-            "client_id": client_id,
-            "is_running": is_running,
-            "is_cancelled": is_cancelled
-        }
-        
-    except Exception as e:
-        return {
-            "success": False,
-            "message": f"获取任务状态失败: {str(e)}",
-            "client_id": client_id
-        }
-
-
-@app.get("/test-logs")
-async def test_logs():
-    """日志测试页面"""
-    return FileResponse("test_logs.html")
 
 @app.post("/api/subtitle/{project_id}/segment/{segment_id}/translate")
 async def translate_segment(
