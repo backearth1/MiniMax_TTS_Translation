@@ -452,63 +452,64 @@ async def generate_audio(
 
 
 
-# 字幕解析与管理相关API
-@app.post("/api/parse-subtitle")
-async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None), request: Request = None, response: Response = None):
-    """解析字幕文件"""
-    # 检查用户数量限制
-    from admin import check_user_limit, record_user_activity
-    if check_user_limit():
-        raise HTTPException(
-            status_code=503, 
-            detail="当前在线用户数过多，请稍后再试。当前限制：10个用户"
-        )
-    
-    # 获取或创建会话ID
-    session_id = get_or_create_session_id(request, response)
-    
-    # 检查项目数量限制（每个用户最多5个项目）
-    can_create = await subtitle_manager.check_project_limit(session_id, max_projects=5)
-    if not can_create:
-        # 自动清理旧项目
-        await subtitle_manager.cleanup_old_projects_if_needed(session_id, max_projects=5)
-    
-    # 记录用户活动（使用文件名作为临时clientId）
-    temp_client_id = f"parse_{file.filename}"
-    if clientId:
-        temp_client_id = clientId
-    record_user_activity(temp_client_id, "parse_subtitle")
-    
-    try:
-        # 验证文件类型
-        if not file.filename.lower().endswith('.srt'):
-            raise HTTPException(status_code=400, detail="仅支持SRT格式的字幕文件")
-        
-        # 读取文件内容
-        content = await file.read()
-        file_content = content.decode('utf-8', errors='ignore')
-        
-        # 解析字幕文件，传入session_id
-        success, error_msg, project = await subtitle_manager.parse_srt_file(
-            file_content, file.filename, temp_client_id, session_id
-        )
-        
-        if not success:
-            raise HTTPException(status_code=400, detail=error_msg)
-        
-        # 自动保存项目到磁盘
-        await subtitle_manager.save_project_to_disk(project)
-        
-        return {
-            "success": True,
-            "project": project.to_dict(),
-            "message": f"成功解析 {project.total_segments} 条字幕"
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"解析失败: {str(e)}")
+# 字幕解析与管理相关API - 支持新旧版本兼容
+if not (MIGRATION_ENABLED and MigrationFlags.USE_NEW_SUBTITLE_MANAGEMENT_ROUTES):
+    @app.post("/api/parse-subtitle")
+    async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None), request: Request = None, response: Response = None):
+        """解析字幕文件"""
+        # 检查用户数量限制
+        from admin import check_user_limit, record_user_activity
+        if check_user_limit():
+            raise HTTPException(
+                status_code=503,
+                detail="当前在线用户数过多，请稍后再试。当前限制：10个用户"
+            )
+
+        # 获取或创建会话ID
+        session_id = get_or_create_session_id(request, response)
+
+        # 检查项目数量限制（每个用户最多5个项目）
+        can_create = await subtitle_manager.check_project_limit(session_id, max_projects=5)
+        if not can_create:
+            # 自动清理旧项目
+            await subtitle_manager.cleanup_old_projects_if_needed(session_id, max_projects=5)
+
+        # 记录用户活动（使用文件名作为临时clientId）
+        temp_client_id = f"parse_{file.filename}"
+        if clientId:
+            temp_client_id = clientId
+        record_user_activity(temp_client_id, "parse_subtitle")
+
+        try:
+            # 验证文件类型
+            if not file.filename.lower().endswith('.srt'):
+                raise HTTPException(status_code=400, detail="仅支持SRT格式的字幕文件")
+
+            # 读取文件内容
+            content = await file.read()
+            file_content = content.decode('utf-8', errors='ignore')
+
+            # 解析字幕文件，传入session_id
+            success, error_msg, project = await subtitle_manager.parse_srt_file(
+                file_content, file.filename, temp_client_id, session_id
+            )
+
+            if not success:
+                raise HTTPException(status_code=400, detail=error_msg)
+
+            # 自动保存项目到磁盘
+            await subtitle_manager.save_project_to_disk(project)
+
+            return {
+                "success": True,
+                "project": project.to_dict(),
+                "message": f"成功解析 {project.total_segments} 条字幕"
+            }
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"解析失败: {str(e)}")
 
 
 # 项目管理路由 - 支持新旧版本兼容
@@ -603,30 +604,43 @@ else:
     # 使用原有的音频拼接路由 - 保持在原位置
     pass
 
-
-@app.get("/api/subtitle/{project_id}/segments")
-async def get_subtitle_segments(
-    project_id: str, 
-    page: int = Query(1, ge=1, description="页码"),
-    per_page: int = Query(20, ge=1, le=1000, description="每页条目数")
-):
-    """获取字幕段落（分页）"""
+# 字幕管理路由 - 支持新旧版本兼容
+if MIGRATION_ENABLED and MigrationFlags.USE_NEW_SUBTITLE_MANAGEMENT_ROUTES:
+    # 使用新的字幕管理路由
     try:
-        project = subtitle_manager.get_project(project_id)
-        if not project:
-            raise HTTPException(status_code=404, detail="项目未找到")
-        
-        result = project.get_segments_page(page, per_page)
-        return {
-            "success": True,
-            "project_info": project.to_dict(),
-            **result
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取段落失败: {str(e)}")
+        from api.routes.subtitle_management import router as subtitle_management_router
+        app.include_router(subtitle_management_router)
+    except ImportError:
+        # 回退到原版本 - 字幕管理路由保持在原位置
+        pass
+else:
+    # 使用原有的字幕管理路由 - 保持在原位置
+    pass
+
+
+    @app.get("/api/subtitle/{project_id}/segments")
+    async def get_subtitle_segments(
+        project_id: str,
+        page: int = Query(1, ge=1, description="页码"),
+        per_page: int = Query(20, ge=1, le=1000, description="每页条目数")
+    ):
+        """获取字幕段落（分页）"""
+        try:
+            project = subtitle_manager.get_project(project_id)
+            if not project:
+                raise HTTPException(status_code=404, detail="项目未找到")
+
+            result = project.get_segments_page(page, per_page)
+            return {
+                "success": True,
+                "project_info": project.to_dict(),
+                **result
+            }
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"获取段落失败: {str(e)}")
 
 
 @app.put("/api/subtitle/{project_id}/segment/{segment_id}")
@@ -1462,59 +1476,6 @@ if not (MIGRATION_ENABLED and MigrationFlags.USE_NEW_AUDIO_MERGE_ROUTES):
             raise HTTPException(status_code=500, detail=f"音频合并失败: {str(e)}")
 
 
-@app.post("/api/subtitle/{project_id}/segment/{segment_id}/translate")
-async def translate_segment(
-    project_id: str,
-    segment_id: str,
-    groupId: str = Form(...),
-    apiKey: str = Form(...),
-    target_language: str = Form(...),
-    apiEndpoint: str = Form("domestic")
-):
-    """翻译单个字幕段落"""
-    try:
-        # 获取项目
-        project = subtitle_manager.get_project(project_id)
-        if not project:
-            raise HTTPException(status_code=404, detail="项目不存在")
-        
-        # 获取段落
-        segment = project.get_segment(segment_id)
-        if not segment:
-            raise HTTPException(status_code=404, detail="段落不存在")
-        
-        # 检查目标语言是否支持
-        if target_language not in Config.TRANSLATION_CONFIG["supported_target_languages"]:
-            raise HTTPException(status_code=400, detail=f"不支持的目标语言: {target_language}")
-        
-        # 调用翻译API
-        translated_text = await translate_text_with_minimax(
-            segment.text, 
-            target_language, 
-            groupId, 
-            apiKey,
-            api_endpoint=apiEndpoint
-        )
-        
-        if translated_text:
-            # 更新段落的翻译文本
-            segment.translated_text = translated_text
-            await subtitle_manager.save_project_to_disk(project)
-            
-            return {
-                "success": True,
-                "message": "翻译成功",
-                "original_text": segment.text,
-                "translated_text": translated_text,
-                "target_language": target_language
-            }
-        else:
-            raise HTTPException(status_code=500, detail="翻译失败")
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"翻译失败: {str(e)}")
 
 
 @app.post("/api/subtitle/{project_id}/batch-update-speaker")
