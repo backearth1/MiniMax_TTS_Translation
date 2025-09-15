@@ -1,0 +1,26 @@
+{
+  "validation_summary": {
+    "total_tests": 1,
+    "passed": 0,
+    "failed": 1,
+    "errors": 0
+  },
+  "detailed_results": [
+    {
+      "endpoint": "/api/health",
+      "status": "fail",
+      "response_code": 200,
+      "response_data": {
+        "status": "healthy",
+        "timestamp": "2025-09-15T10:43:17.429288",
+        "service": "多人配音 Web 服务",
+        "version": "2.0.0"
+      },
+      "missing_fields": [
+        "uptime"
+      ],
+      "validated_at": "2025-09-15T10:43:17.429842"
+    }
+  ],
+  "generated_at": "2025-09-15T10:43:17.429992"
+}

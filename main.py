@@ -27,6 +27,13 @@ from admin_modules.user_manager import user_router
 from admin_modules.system_manager import system_router
 from project_manager import router as project_manager_router
 
+# Phase 2 迁移配置
+try:
+    from api.config.migration_config import MigrationFlags
+    MIGRATION_ENABLED = True
+except ImportError:
+    MIGRATION_ENABLED = False
+
 from contextlib import asynccontextmanager
 
 # 全局变量用于跟踪正在运行的任务
@@ -231,15 +238,34 @@ async def read_root():
     return FileResponse(Config.STATIC_DIR / "index.html")
 
 
-@app.get("/api/health")
-async def health_check():
-    """健康检查接口"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "service": "多人配音 Web 服务",
-        "version": "2.0.0"
-    }
+# 健康检查端点 - 支持新旧版本兼容
+if MIGRATION_ENABLED and MigrationFlags.USE_NEW_HEALTH_ENDPOINT:
+    # 使用新的健康检查端点
+    try:
+        from api.core.health import router as health_router
+        app.include_router(health_router)
+    except ImportError:
+        # 回退到原版本
+        @app.get("/api/health")
+        async def health_check():
+            """健康检查接口（兼容版本）"""
+            return {
+                "status": "healthy",
+                "timestamp": datetime.now().isoformat(),
+                "service": "多人配音 Web 服务",
+                "version": "2.0.0"
+            }
+else:
+    # 使用原有的健康检查端点
+    @app.get("/api/health")
+    async def health_check():
+        """健康检查接口"""
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "service": "多人配音 Web 服务",
+            "version": "2.0.0"
+        }
 
 @app.get("/api/sample-files")
 async def get_sample_files():
