@@ -244,13 +244,22 @@ async def batch_generate_tts_for_project(
                 translation_optimization_count = 0  # 翻译优化次数计数
 
                 for attempt in range(max_retries):
-                    await logger.info(f"段落 {i+1} 尝试 {attempt + 1}",
-                                    f"速度: {current_speed}, 目标时长: {t_srt_ms}ms")
+                    # 确定下一步行动
+                    if attempt == 0:
+                        next_action = "首次TTS生成"
+                    else:
+                        next_action = f"TTS生成(speed={current_speed})"
+
+                    # 优化前日志：TTS原始音频时长，去除前后静音后时长，比例ratio，是否≤1.0，是否已翻译优化，当前speed，下一步
+                    await logger.info(f"段落 {i+1} [步骤{attempt + 1}] 优化前",
+                                    f"原始音频: 未知ms, 去静音后: 未知ms, "
+                                    f"比例: 未知, ≤1.0: 未知, "
+                                    f"已翻译优化: {translation_optimization_count > 0}, 当前speed: {current_speed}, "
+                                    f"下一步: {next_action}")
 
                     # 优先使用译文，当译文为空时使用原文
                     text_to_use = segment.translated_text if segment.translated_text else segment.text
                     is_using_translation = bool(segment.translated_text)
-                    await logger.info(f"段落 {i+1} 使用文本", f"文本类型: {'译文' if is_using_translation else '原文'}")
 
                     # 生成TTS
                     result = await tts_service.generate_audio_with_info(
@@ -281,15 +290,40 @@ async def batch_generate_tts_for_project(
                             final_trace_id = trace_id
                             break
 
-                    # 显示完整的Trace ID
-                    trace_display = trace_id if trace_id else 'None'
-                    await logger.info(f"段落 {i+1} 音频分析",
-                                    f"TTS时长: {t_tts_ms}ms, 字幕时长: {t_srt_ms}ms, Trace: {trace_display}")
-
                     # 计算时长比例（无论是否成功都要计算）
                     duration_ratio = t_tts_ms / t_srt_ms if t_srt_ms > 0 else 0
-                    ratio_info = f"比例: {duration_ratio:.2f} (TTS: {t_tts_ms}ms, 字幕: {t_srt_ms}ms)"
-                    await logger.info(f"段落 {i+1} 时长比例", ratio_info)
+                    ratio_ok = duration_ratio <= 1.0
+
+                    # 决定下一步行动
+                    if ratio_ok:
+                        next_action = "成功：比例≤1.0"
+                    elif duration_ratio > 1.0 and translation_optimization_count < 1 and is_using_translation:
+                        next_action = "调用翻译优化"
+                    elif translation_optimization_count > 0 and duration_ratio <= 1.0:
+                        next_action = "成功：翻译优化后比例≤1.0"
+                    elif attempt < max_retries - 1:
+                        if duration_ratio > 1.0 or translation_optimization_count >= 1:
+                            if current_speed < 2.0:
+                                next_speed = min(current_speed + 0.2, 2.0)
+                                next_action = f"提高speed={next_speed:.1f}"
+                            else:
+                                next_action = "失败：speed=2.0仍>1.0，置静音"
+                        else:
+                            next_speed = min(current_speed + 0.2, 2.0)
+                            next_action = f"提高speed={next_speed:.1f}"
+                    else:
+                        if current_speed >= 2.0 and duration_ratio > 1.0:
+                            next_action = "失败：speed=2.0仍>1.0，置静音"
+                        else:
+                            next_action = "继续重试至speed=2.0"
+
+                    # 优化后日志：LLM和TTS的trace_id，TTS原始音频时长，去除前后静音后时长，比例ratio，是否≤1.0，是否已翻译优化，当前speed，下一步
+                    trace_display = trace_id if trace_id else 'None'
+                    await logger.info(f"段落 {i+1} [步骤{attempt + 1}] 优化后",
+                                    f"Trace: {trace_display}, 原始音频: {t_tts_ms}ms, 去静音后: {t_tts_ms}ms, "
+                                    f"比例: {duration_ratio:.2f}, ≤1.0: {ratio_ok}, "
+                                    f"已翻译优化: {translation_optimization_count > 0}, 当前speed: {current_speed}, "
+                                    f"下一步: {next_action}")
 
                     # 判断是否需要调整速度
                     if duration_ratio <= 1.0:
@@ -301,17 +335,17 @@ async def batch_generate_tts_for_project(
 
                     # 需要加速
                     if attempt < max_retries - 1:  # 还有重试机会
-                        # 翻译优化成功后，如果重试的ratio<=1.3则直接成功
-                        if translation_optimization_count > 0 and duration_ratio <= 1.3:
-                            await logger.success(f"段落 {i+1} 翻译优化成功", f"重试后比例: {duration_ratio:.2f} <= 1.3，直接成功")
+                        # 翻译优化成功后，如果重试的ratio<=1.0则直接成功
+                        if translation_optimization_count > 0 and duration_ratio <= 1.0:
+                            await logger.success(f"段落 {i+1} 翻译优化成功", f"重试后比例: {duration_ratio:.2f} <= 1.0，直接成功")
                             final_audio_data = audio_data
                             final_duration_ms = t_tts_ms
                             final_trace_id = trace_id
                             break
 
-                        if duration_ratio > 1.3 and translation_optimization_count < 1:  # 只翻译优化一次
-                            # 时长比例 > 1.3，重新翻译优化
-                            await logger.warning(f"段落 {i+1} 需要翻译优化", f"时长比例: {duration_ratio:.2f} > 1.3, 优化次数: {translation_optimization_count}")
+                        if duration_ratio > 1.0 and translation_optimization_count < 1:  # 只翻译优化一次
+                            # 时长比例 > 1.0，重新翻译优化
+                            await logger.warning(f"段落 {i+1} 需要翻译优化", f"时长比例: {duration_ratio:.2f} > 1.0, 优化次数: {translation_optimization_count}")
 
                             if is_using_translation:
                                 # 使用译文，进行翻译优化
@@ -335,10 +369,9 @@ async def batch_generate_tts_for_project(
                                         # 更新段落的译文
                                         segment.translated_text = optimized_text
                                         translation_optimization_count += 1
-                                        await logger.info(f"段落 {i+1} 翻译优化成功", f"原长度: {original_length}, 新长度: {optimized_length}, 新译文: {optimized_text}")
+                                        await logger.info(f"段落 {i+1} 翻译优化成功", f"原长度: {original_length}, 新长度: {optimized_length}")
                                         # 翻译优化成功后，继续使用当前speed重试，看优化后的效果
-                                        await logger.info(f"段落 {i+1} 重试", f"翻译优化成功，使用当前speed={current_speed}重试")
-                                        # 翻译优化成功后，如果重试的ratio<=1.3则直接成功，只有ratio>1.3才继续speed调整
+                                        # 翻译优化成功后，如果重试的ratio<=1.0则直接成功，只有ratio>1.0才继续speed调整
                                         attempt += 1  # 增加重试计数
                                         continue  # 重新尝试生成TTS
                                     else:
@@ -370,7 +403,7 @@ async def batch_generate_tts_for_project(
                                 attempt += 1  # 增加重试计数
                                 continue  # 继续重试
                         else:
-                            # 时长比例 <= 1.3 或 翻译优化次数已达上限，修改speed参数
+                            # 时长比例 <= 1.0 或 翻译优化次数已达上限，修改speed参数
                             if translation_optimization_count >= 1:
                                 await logger.warning(f"段落 {i+1} 翻译优化次数已达上限", f"已优化 {translation_optimization_count} 次，改用speed调整")
 
@@ -488,45 +521,64 @@ async def batch_generate_tts_for_project(
         await logger.success("批量TTS生成完成",
                            f"总段落: {total_segments}, 成功: {successful_segments}, 失败: {failed_segments}")
 
-        # 输出详细的优化统计
-        await logger.info("优化统计详情",
+        # 增强的最终总结信息 - 按用户要求的格式
+        await logger.info("=== 批量TTS最终总结 ===", "")
+        await logger.info("总体统计", f"成功: {successful_segments}条, 失败: {failed_segments}条")
+
+        # 失败段落的序号
+        if failed_silent_segments:
+            await logger.warning("失败段落序号", f"段落: {', '.join(map(str, failed_silent_segments))}")
+        else:
+            await logger.info("失败段落序号", "无失败段落")
+
+        # 成功加速后的效果：段落编号: speed=X, ratio=X
+        if accelerated_segments:
+            await logger.info("成功加速效果", f"共 {len(accelerated_segments)} 个段落需要加速:")
+            for seg in updated_segments:
+                if seg.get('final_speed', 1.0) > 1.0:
+                    # 获取段落序号
+                    segment_obj = next((s for s in project.segments if s.id == seg['segment_id']), None)
+                    if segment_obj:
+                        # 计算最终比例（假设比例为音频时长/字幕时长）
+                        segment_duration = seg.get('duration_ms', 0)
+                        if segment_obj.start_time and segment_obj.end_time:
+                            from audio_processor import SubtitleParser
+                            start_seconds = SubtitleParser._time_to_seconds(segment_obj.start_time)
+                            end_seconds = SubtitleParser._time_to_seconds(segment_obj.end_time)
+                            subtitle_duration_ms = int((end_seconds - start_seconds) * 1000)
+                            final_ratio = segment_duration / subtitle_duration_ms if subtitle_duration_ms > 0 else 0
+                            await logger.info("加速段落详情",
+                                            f"段落 {segment_obj.index}: speed={seg.get('final_speed', 1.0):.1f}, ratio={final_ratio:.2f}")
+        else:
+            await logger.info("成功加速效果", "无需加速的段落")
+
+        # 优化类型统计
+        await logger.info("优化类型统计",
                          f"正常生成: {len(normal_segments)}个, 翻译优化: {len(translation_optimized_segments)}个, "
                          f"速度优化: {len(speed_optimized_segments)}个, 失败静音: {len(failed_silent_segments)}个")
 
+        # 详细分类展示
         if translation_optimized_segments:
-            await logger.info("翻译优化段落", f"段落编号: {translation_optimized_segments}")
+            await logger.info("翻译优化段落", f"段落编号: {', '.join(map(str, translation_optimized_segments))}")
 
         if speed_optimized_segments:
-            await logger.info("速度优化段落", f"段落编号: {speed_optimized_segments}")
+            await logger.info("速度优化段落", f"段落编号: {', '.join(map(str, speed_optimized_segments))}")
 
-        if failed_silent_segments:
-            await logger.warning("失败静音段落", f"段落编号: {failed_silent_segments}")
+        if normal_segments:
+            await logger.info("正常生成段落", f"段落编号: {', '.join(map(str, normal_segments))}")
 
-        if accelerated_segments:
-            await logger.info("加速统计", f"加速段落: {len(accelerated_segments)}/{successful_segments}")
-            if max_speed_segments:
-                await logger.warning("最大加速", f"达到最大速度的段落: {len(max_speed_segments)}")
+        # 最大加速统计
+        if max_speed_segments:
+            await logger.warning("最大加速段落", f"达到speed=2.0的段落: {len(max_speed_segments)}个")
 
-        if speed_adjustments:
-            await logger.info("速度调整详情", f"调整段落: {len(speed_adjustments)}")
-            for adjustment in speed_adjustments:
-                await logger.info("调整详情", adjustment)
-
-        # 添加成功率统计
+        # 成功率统计
         success_rate = (successful_segments / total_segments) * 100
         await logger.info("批量TTS成功率", f"成功率: {success_rate:.1f}% ({successful_segments}/{total_segments})")
 
-        # 添加处理时间统计
-        await logger.info("批量TTS任务总结", f"处理时间: {datetime.now().strftime('%H:%M:%S')}, 模型: {model}, 语言: {language}")
+        # 处理完成时间
+        await logger.info("批量TTS任务完成", f"完成时间: {datetime.now().strftime('%H:%M:%S')}, 模型: {model}, 语言: {language}")
 
-        # 添加详细统计信息
-        await logger.info("批量TTS详细统计", f"总段落: {total_segments}, 成功: {successful_segments}, 失败: {failed_segments}")
-        if translation_optimized_segments:
-            await logger.info("批量TTS翻译优化统计", f"翻译优化段落: {len(translation_optimized_segments)}")
-        if speed_optimized_segments:
-            await logger.info("批量TTS速度优化统计", f"速度优化段落: {len(speed_optimized_segments)}")
-        if failed_silent_segments:
-            await logger.info("批量TTS失败静音统计", f"失败静音段落: {len(failed_silent_segments)}")
+        await logger.info("=== 批量TTS总结结束 ===", "")
 
         # 保存项目，确保翻译优化能够持久化
         try:
