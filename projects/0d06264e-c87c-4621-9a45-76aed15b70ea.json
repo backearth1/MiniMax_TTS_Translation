@@ -1,0 +1,62 @@
+{
+  "id": "0d06264e-c87c-4621-9a45-76aed15b70ea",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_nzz0nnllh",
+  "session_id": "UJICaJwvsW-6BGwPEGlG1t0TczWThY4uR0haanwcXas",
+  "total_segments": 3,
+  "created_at": "2025-09-15T21:06:36.968769",
+  "updated_at": "2025-09-15T21:10:48.554138",
+  "segments": [
+    {
+      "id": "f6082c37-b79c-4a22-836d-c145310cb93f",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.1,
+      "has_audio": true,
+      "audio_duration": 3413,
+      "audio_url": "/audio/segment_f6082c37-b79c-4a22-836d-c145310cb93f_1757941718_0.mp3",
+      "trace_id": "051742c498d02c1dae9cf5d12a9c3d0e",
+      "translated_text": "Hey Dad, can I borrow $50,000?",
+      "created_at": "2025-09-15T21:06:36.968786",
+      "updated_at": "2025-09-15T21:10:15.895031"
+    },
+    {
+      "id": "54b58713-532d-4c92-94dd-f55b6c9fdeac",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.1,
+      "has_audio": true,
+      "audio_duration": 2619,
+      "audio_url": "/audio/segment_54b58713-532d-4c92-94dd-f55b6c9fdeac_1757941738_1.mp3",
+      "trace_id": "051742d9c4a8d78fd7fe7f67235eee54",
+      "translated_text": "Mom needs dialysis but we can't afford it.",
+      "created_at": "2025-09-15T21:06:36.968832",
+      "updated_at": "2025-09-15T21:08:58.336001"
+    },
+    {
+      "id": "52774928-1826-4572-96dc-a3c05e81f4fa",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.6,
+      "has_audio": true,
+      "audio_duration": 1209,
+      "audio_url": "/audio/segment_52774928-1826-4572-96dc-a3c05e81f4fa_1757941744_2.mp3",
+      "trace_id": "051742dec1f169044883ffec50bf5739",
+      "translated_text": "Natalie, it's complicated...",
+      "created_at": "2025-09-15T21:06:36.968868",
+      "updated_at": "2025-09-15T21:10:58.520555"
+    }
+  ]
+}
