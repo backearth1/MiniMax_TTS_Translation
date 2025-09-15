@@ -27,12 +27,6 @@ from admin_modules.user_manager import user_router
 from admin_modules.system_manager import system_router
 from project_manager import router as project_manager_router
 
-# Phase 2 迁移配置
-try:
-    from api.config.migration_config import MigrationFlags
-    MIGRATION_ENABLED = True
-except ImportError:
-    MIGRATION_ENABLED = False
 
 from contextlib import asynccontextmanager
 
@@ -230,81 +224,13 @@ app.include_router(text_adjuster_router)
 from custom_speakers import router as custom_speakers_router
 app.include_router(custom_speakers_router)
 
-# 健康检查端点 - 支持新旧版本兼容
-if MIGRATION_ENABLED and MigrationFlags.USE_NEW_HEALTH_ENDPOINT:
-    # 使用新的健康检查端点
-    try:
-        from api.core.health import router as health_router
-        app.include_router(health_router)
-    except ImportError:
-        # 回退到原版本
-        @app.get("/api/health")
-        async def health_check():
-            """健康检查接口（兼容版本）"""
-            return {
-                "status": "healthy",
-                "timestamp": datetime.now().isoformat(),
-                "service": "多人配音 Web 服务",
-                "version": "2.0.0"
-            }
-else:
-    # 使用原有的健康检查端点
-    @app.get("/api/health")
-    async def health_check():
-        """健康检查接口"""
-        return {
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "service": "多人配音 Web 服务",
-            "version": "2.0.0"
-        }
+# 健康检查端点
+from api.core.health import router as health_router
+app.include_router(health_router)
 
-# 文件管理路由 - 支持新旧版本兼容
-if MIGRATION_ENABLED and MigrationFlags.USE_NEW_FILE_ROUTES:
-    # 使用新的文件管理路由
-    try:
-        from api.routes.files import router as files_router
-        app.include_router(files_router)
-    except ImportError:
-        # 回退到原版本
-        @app.get("/api/sample-files")
-        async def get_sample_files():
-            """获取样例文件列表（兼容版本）"""
-            valid_files = []
-
-            for file_info in Config.SAMPLE_FILES:
-                file_path = Config.BASE_DIR / file_info["path"]
-                if file_path.exists():
-                    valid_files.append({
-                        "name": file_info["name"],
-                        "description": file_info["description"],
-                        "size": file_path.stat().st_size,
-                        "url": f"/api/sample-files/{file_info['name']}"
-                    })
-                else:
-                    print(f"⚠️ 样例文件不存在: {file_path}")
-
-            return {"files": valid_files}
-else:
-    # 使用原有的文件管理路由
-    @app.get("/api/sample-files")
-    async def get_sample_files():
-        """获取样例文件列表"""
-        valid_files = []
-
-        for file_info in Config.SAMPLE_FILES:
-            file_path = Config.BASE_DIR / file_info["path"]
-            if file_path.exists():
-                valid_files.append({
-                    "name": file_info["name"],
-                    "description": file_info["description"],
-                    "size": file_path.stat().st_size,
-                    "url": f"/api/sample-files/{file_info['name']}"
-                })
-            else:
-                print(f"⚠️ 样例文件不存在: {file_path}")
-
-        return {"files": valid_files}
+# 文件管理路由
+from api.routes.files import router as files_router
+app.include_router(files_router)
 
 
 @app.post("/api/generate-audio")
@@ -447,110 +373,34 @@ async def generate_audio(
 
 # 字幕解析与管理相关API - 已迁移到新路由模块
 
-# 项目管理路由 - 支持新旧版本兼容
-if MIGRATION_ENABLED and MigrationFlags.USE_NEW_PROJECT_ROUTES:
-    # 使用新的项目管理路由
-    try:
-        from api.routes.projects import router as projects_router
-        app.include_router(projects_router)
-    except ImportError:
-        # 回退到原版本
-        @app.get("/api/projects")
-        async def get_projects(request: Request, response: Response):
-            """获取当前会话的字幕项目列表（兼容版本）"""
-            try:
-                session_id = get_or_create_session_id(request, response)
-                projects = subtitle_manager.list_projects(session_id)
-                return {
-                    "success": True,
-                    "projects": projects
-                }
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"获取项目列表失败: {str(e)}")
-else:
-    # 使用原有的项目管理路由
-    @app.get("/api/projects")
-    async def get_projects(request: Request, response: Response):
-        """获取当前会话的字幕项目列表"""
-        try:
-            session_id = get_or_create_session_id(request, response)
-            projects = subtitle_manager.list_projects(session_id)
-            return {
-                "success": True,
-                "projects": projects
-            }
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"获取项目列表失败: {str(e)}")
+# 项目管理路由
+from api.routes.projects import router as projects_router
+app.include_router(projects_router)
 
-# WebSocket和日志路由 - 支持新旧版本兼容
-if MIGRATION_ENABLED and MigrationFlags.USE_NEW_WEBSOCKET_ROUTES:
-    # 使用新的WebSocket和日志路由
-    try:
-        from api.routes.websocket_logs import router as websocket_router, global_state
-        # 注入全局状态
-        global_state.set_global_state(running_tasks, task_cancellation_flags)
-        app.include_router(websocket_router)
-    except ImportError:
-        # 回退到原版本 - WebSocket路由保持在下面
-        pass
-else:
-    # 使用原有的WebSocket和日志路由 - 保持在原位置
-    pass
+# WebSocket和日志路由
+from api.routes.websocket_logs import router as websocket_router, global_state
+# 注入全局状态
+global_state.set_global_state(running_tasks, task_cancellation_flags)
+app.include_router(websocket_router)
 
-# 基础路由 - 支持新旧版本兼容
-if MIGRATION_ENABLED and MigrationFlags.USE_NEW_BASIC_ROUTES:
-    # 使用新的基础路由
-    try:
-        from api.routes.basic import router as basic_router
-        app.include_router(basic_router)
-    except ImportError:
-        # 回退到原版本 - 基础路由保持在下面
-        pass
-else:
-    # 使用原有的基础路由 - 保持在原位置
-    pass
+# 基础路由
+from api.routes.basic import router as basic_router
+app.include_router(basic_router)
 
-# 翻译路由 - 支持新旧版本兼容
-if MIGRATION_ENABLED and MigrationFlags.USE_NEW_TRANSLATION_ROUTES:
-    # 使用新的翻译路由
-    try:
-        from api.routes.translation import router as translation_router
-        from api.core.global_state import global_state
-        # 注入全局状态
-        global_state.set_global_state(running_tasks, task_cancellation_flags)
-        app.include_router(translation_router)
-    except ImportError:
-        # 回退到原版本 - 翻译路由保持在原位置
-        pass
-else:
-    # 使用原有的翻译路由 - 保持在原位置
-    pass
+# 翻译路由
+from api.routes.translation import router as translation_router
+from api.core.global_state import global_state
+# 注入全局状态
+global_state.set_global_state(running_tasks, task_cancellation_flags)
+app.include_router(translation_router)
 
-# 音频拼接路由 - 支持新旧版本兼容
-if MIGRATION_ENABLED and MigrationFlags.USE_NEW_AUDIO_MERGE_ROUTES:
-    # 使用新的音频拼接路由
-    try:
-        from api.routes.audio import router as audio_router
-        app.include_router(audio_router)
-    except ImportError:
-        # 回退到原版本 - 音频拼接路由保持在原位置
-        pass
-else:
-    # 使用原有的音频拼接路由 - 保持在原位置
-    pass
+# 音频拼接路由
+from api.routes.audio import router as audio_router
+app.include_router(audio_router)
 
-# 字幕管理路由 - 支持新旧版本兼容
-if MIGRATION_ENABLED and MigrationFlags.USE_NEW_SUBTITLE_MANAGEMENT_ROUTES:
-    # 使用新的字幕管理路由
-    try:
-        from api.routes.subtitle_management import router as subtitle_management_router
-        app.include_router(subtitle_management_router)
-    except ImportError:
-        # 回退到原版本 - 字幕管理路由保持在原位置
-        pass
-else:
-    # 使用原有的字幕管理路由 - 保持在原位置
-    pass
+# 字幕管理路由
+from api.routes.subtitle_management import router as subtitle_management_router
+app.include_router(subtitle_management_router)
 
 # 单段落TTS路由 - 直接使用新路由模块
 from api.routes.single_tts import router as single_tts_router
