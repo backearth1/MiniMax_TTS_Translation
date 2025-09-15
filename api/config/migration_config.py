@@ -13,7 +13,7 @@ class MigrationFlags:
     # Phase 2.2 - 路由迁移开关
     USE_NEW_HEALTH_ENDPOINT = True   # 测试通过，已启用
     USE_NEW_FILE_ROUTES = True       # 文件管理路由 - 已测试通过
-    USE_NEW_PROJECT_ROUTES = False   # 项目管理路由
+    USE_NEW_PROJECT_ROUTES = True    # 项目管理路由 - 基础功能测试
     USE_NEW_SUBTITLE_ROUTES = False  # 字幕操作路由
     USE_NEW_AUDIO_ROUTES = False     # 音频处理路由
 

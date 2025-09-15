@@ -1,0 +1,38 @@
+{
+  "validation_summary": {
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "errors": 0
+  },
+  "detailed_results": [
+    {
+      "endpoint": "/api/health",
+      "status": "pass",
+      "response_code": 200,
+      "response_data": {
+        "status": "healthy",
+        "timestamp": "2025-09-15T12:55:33.573744",
+        "service": "多人配音 Web 服务",
+        "version": "2.0.0"
+      },
+      "missing_fields": [],
+      "validated_at": "2025-09-15T12:55:33.574307"
+    },
+    {
+      "endpoint": "/api/sample-files",
+      "status": "pass",
+      "response_code": 200,
+      "missing_fields": [],
+      "validated_at": "2025-09-15T12:55:33.575555"
+    },
+    {
+      "endpoint": "/api/outputs",
+      "status": "pass",
+      "response_code": 200,
+      "missing_fields": [],
+      "validated_at": "2025-09-15T12:55:33.576264"
+    }
+  ],
+  "generated_at": "2025-09-15T12:55:33.576376"
+}

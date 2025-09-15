@@ -551,18 +551,40 @@ async def parse_subtitle(file: UploadFile = File(...), clientId: str = Form(None
         raise HTTPException(status_code=500, detail=f"解析失败: {str(e)}")
 
 
-@app.get("/api/projects")
-async def get_projects(request: Request, response: Response):
-    """获取当前会话的字幕项目列表"""
+# 项目管理路由 - 支持新旧版本兼容
+if MIGRATION_ENABLED and MigrationFlags.USE_NEW_PROJECT_ROUTES:
+    # 使用新的项目管理路由
     try:
-        session_id = get_or_create_session_id(request, response)
-        projects = subtitle_manager.list_projects(session_id)
-        return {
-            "success": True,
-            "projects": projects
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取项目列表失败: {str(e)}")
+        from api.routes.projects import router as projects_router
+        app.include_router(projects_router)
+    except ImportError:
+        # 回退到原版本
+        @app.get("/api/projects")
+        async def get_projects(request: Request, response: Response):
+            """获取当前会话的字幕项目列表（兼容版本）"""
+            try:
+                session_id = get_or_create_session_id(request, response)
+                projects = subtitle_manager.list_projects(session_id)
+                return {
+                    "success": True,
+                    "projects": projects
+                }
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"获取项目列表失败: {str(e)}")
+else:
+    # 使用原有的项目管理路由
+    @app.get("/api/projects")
+    async def get_projects(request: Request, response: Response):
+        """获取当前会话的字幕项目列表"""
+        try:
+            session_id = get_or_create_session_id(request, response)
+            projects = subtitle_manager.list_projects(session_id)
+            return {
+                "success": True,
+                "projects": projects
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"获取项目列表失败: {str(e)}")
 
 
 @app.get("/api/subtitle/{project_id}/segments")
@@ -721,24 +743,6 @@ async def delete_subtitle_segment(project_id: str, segment_id: str):
         raise HTTPException(status_code=500, detail=f"删除段落失败: {str(e)}")
 
 
-@app.delete("/api/projects/{project_id}")
-async def delete_project(project_id: str):
-    """删除整个字幕项目"""
-    try:
-        # 删除磁盘文件和内存数据
-        success = await subtitle_manager.delete_project_from_disk(project_id)
-        if not success:
-            raise HTTPException(status_code=404, detail="项目未找到")
-        
-        return {
-            "success": True,
-            "message": "项目删除成功"
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"删除项目失败: {str(e)}")
 
 @app.get("/api/subtitle/{project_id}/export-srt")
 async def export_subtitle_srt(project_id: str):
