@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-音频路由
-处理音频拼接相关功能
+音频拼接路由
+处理项目音频按时间戳拼接功能
 """
 from fastapi import APIRouter, HTTPException, Form
 from datetime import datetime

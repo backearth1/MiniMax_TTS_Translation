@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-翻译路由
-处理批量翻译等翻译相关功能
+批量翻译路由
+处理项目级别的批量翻译功能
 """
 from fastapi import APIRouter, HTTPException, Form
 from typing import Optional

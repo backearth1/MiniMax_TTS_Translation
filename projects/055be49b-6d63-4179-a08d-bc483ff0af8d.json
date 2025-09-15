@@ -1,0 +1,62 @@
+{
+  "id": "055be49b-6d63-4179-a08d-bc483ff0af8d",
+  "filename": "double_life_English.srt_edited (7句话).srt_edited.srt",
+  "client_id": "client_8mgiwqoc0",
+  "session_id": "5I93uB8uTfC4-_gM_cxO79I8Kn9GOg_c_eRtEbDkpW4",
+  "total_segments": 3,
+  "created_at": "2025-09-15T21:57:27.710942",
+  "updated_at": "2025-09-15T21:57:47.067507",
+  "segments": [
+    {
+      "id": "b16948cd-beac-4b51-b8df-f6bcee64a97f",
+      "index": 1,
+      "start_time": "00:00:06,879",
+      "end_time": "00:00:11,039",
+      "speaker": "SPEAKER_00",
+      "text": "嘿，爸爸，我能借5万美元吗？",
+      "emotion": "sad",
+      "speed": 1.0,
+      "has_audio": true,
+      "audio_duration": 3428,
+      "audio_url": "/audio/segment_b16948cd-beac-4b51-b8df-f6bcee64a97f_1757944673_0.mp3",
+      "trace_id": "05174e4fd3af0d1a77f0e79381b098dc",
+      "translated_text": "Hey Dad, can I borrow $50,000?",
+      "created_at": "2025-09-15T21:57:27.710966",
+      "updated_at": "2025-09-15T21:57:53.069367"
+    },
+    {
+      "id": "c74f9375-c4a7-48c7-b004-f9a50bd89533",
+      "index": 2,
+      "start_time": "00:00:11,839",
+      "end_time": "00:00:14,199",
+      "speaker": "SPEAKER_00",
+      "text": "妈妈需要做肾透析，我们真的没有钱。",
+      "emotion": "sad",
+      "speed": 1.5,
+      "has_audio": true,
+      "audio_duration": 2270,
+      "audio_url": "/audio/segment_c74f9375-c4a7-48c7-b004-f9a50bd89533_1757944722_1.mp3",
+      "trace_id": "05174e7e1ef05173b0d44c54ca065f76",
+      "translated_text": null,
+      "created_at": "2025-09-15T21:57:27.711023",
+      "updated_at": "2025-09-15T21:58:42.540674"
+    },
+    {
+      "id": "d272dcbc-b264-4d3f-b492-f430034b3bd9",
+      "index": 3,
+      "start_time": "00:00:14,199",
+      "end_time": "00:00:15,759",
+      "speaker": "SPEAKER_04",
+      "text": "娜塔莉，事情是这样的...",
+      "emotion": "auto",
+      "speed": 1.4,
+      "has_audio": true,
+      "audio_duration": 884,
+      "audio_url": "/audio/segment_d272dcbc-b264-4d3f-b492-f430034b3bd9_1757944747_2.mp3",
+      "trace_id": "05174e9aa63ad5477da2557c2bab71d1",
+      "translated_text": "Natalie, here's the thing...",
+      "created_at": "2025-09-15T21:57:27.711075",
+      "updated_at": "2025-09-15T21:59:07.514614"
+    }
+  ]
+}

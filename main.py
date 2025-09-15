@@ -387,16 +387,16 @@ app.include_router(websocket_router)
 from api.routes.basic import router as basic_router
 app.include_router(basic_router)
 
-# 翻译路由
-from api.routes.translation import router as translation_router
+# 批量翻译路由
+from api.routes.batch_translation import router as batch_translation_router
 from api.core.global_state import global_state
 # 注入全局状态
 global_state.set_global_state(running_tasks, task_cancellation_flags)
-app.include_router(translation_router)
+app.include_router(batch_translation_router)
 
 # 音频拼接路由
-from api.routes.audio import router as audio_router
-app.include_router(audio_router)
+from api.routes.merge_audio import router as merge_audio_router
+app.include_router(merge_audio_router)
 
 # 字幕管理路由
 from api.routes.subtitle_management import router as subtitle_management_router
