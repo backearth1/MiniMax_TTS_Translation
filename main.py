@@ -232,10 +232,6 @@ app.include_router(custom_speakers_router)
 
 # 移除复杂的代理管理，使用系统网络
 
-@app.get("/")
-async def read_root():
-    """主页重定向到静态文件"""
-    return FileResponse(Config.STATIC_DIR / "index.html")
 
 
 # 健康检查端点 - 支持新旧版本兼容
@@ -454,16 +450,6 @@ async def generate_audio(
 
 
 
-@app.get("/api/config")
-async def get_config():
-    """获取前端配置信息"""
-    return {
-        "voices": Config.VOICE_MAPPING,
-        "models": ["speech-02-hd", "speech-01"],
-        "languages": Config.TTS_CONFIG["supported_languages"],
-        "limits": get_dynamic_limits(),
-        "supportedFormats": Config.AUDIO_CONFIG["supported_formats"]
-    }
 
 
 # 字幕解析与管理相关API
@@ -573,6 +559,19 @@ if MIGRATION_ENABLED and MigrationFlags.USE_NEW_WEBSOCKET_ROUTES:
         pass
 else:
     # 使用原有的WebSocket和日志路由 - 保持在原位置
+    pass
+
+# 基础路由 - 支持新旧版本兼容
+if MIGRATION_ENABLED and MigrationFlags.USE_NEW_BASIC_ROUTES:
+    # 使用新的基础路由
+    try:
+        from api.routes.basic import router as basic_router
+        app.include_router(basic_router)
+    except ImportError:
+        # 回退到原版本 - 基础路由保持在下面
+        pass
+else:
+    # 使用原有的基础路由 - 保持在原位置
     pass
 
 
