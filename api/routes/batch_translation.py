@@ -42,17 +42,12 @@ async def translate_text_with_minimax(text: str, target_language: str, group_id:
     base_url = get_api_endpoint("translation", api_endpoint)
     url = f"{base_url}?GroupId={group_id}"
 
-    # 构建翻译提示词
-    if custom_terms and custom_terms.strip():
-        user_prompt = f"""请将以下文本翻译成{target_language}，要求：
+    # 构建翻译提示词（总是包含专有词汇表）
+    user_prompt = f"""请将以下文本翻译成{target_language}，要求：
 1. 保持自然流畅的表达方式
 2. 如果包含以下专有词汇，请按照词表翻译，词表:{custom_terms}
-
 需要翻译的文本：{text}
-
 请直接给出翻译结果，不需要解释，你的翻译结果是："""
-    else:
-        user_prompt = f"请将以下文本翻译成{target_language}，保持自然流畅的表达方式，直接输出翻译结果：\n\n{text}"
 
     payload = {
         "model": Config.TRANSLATION_CONFIG["model"],

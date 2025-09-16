@@ -2891,7 +2891,13 @@
         }
 
         // 专有词汇管理功能
-        let customTerms = [];
+        let customTerms = [
+            {
+                id: Date.now(),
+                original: "北京",
+                translated: "Beijing"
+            }
+        ];
 
         // 添加专有词汇
         function addCustomTerm() {
@@ -3010,6 +3016,10 @@
             // 延迟加载确保DOM完全准备好
             setTimeout(() => {
                 loadCustomTerms();
+                // 如果加载后仍然为空，显示默认词汇
+                if (customTerms.length > 0) {
+                    updateCustomTermsDisplay();
+                }
             }, 100);
         });
 

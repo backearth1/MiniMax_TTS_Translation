@@ -59,18 +59,12 @@ async def optimize_translation_for_audio_length(
     # 如果是原文生成，则ORIGINAL_TEXT为空
     original_text_for_optimization = original_text if original_text else ""
 
-    # 构建翻译优化提示词
-    if custom_terms and custom_terms.strip():
-        user_prompt = f"""你的任务是翻译优化，要求：
-1. 原文："{original_text_for_optimization}"
-2. 当前{target_language}翻译："{current_translation}"
-3. 需要缩短翻译文字，同时保持口语化表达
-4. 当前字符数：{current_char_count}个字，需要精简成少于{target_char_count}个字
-5. 如果包含以下专有词汇，请按照词表翻译，词表:{custom_terms}
-
-请直接给出优化后的{target_language}翻译结果，不需要解释，你的翻译结果是："""
-    else:
-        user_prompt = f"你的任务是翻译优化，原文\"{original_text_for_optimization}\"当前\"{target_language}\"翻译\"{current_translation}\"，你需要缩短翻译的文字，同时保持口语化表达，当前字符数是{current_char_count}个字，需要精简成少于{target_char_count}个字，新的\"{target_language}\"翻译如下："
+    # 构建翻译优化提示词（按照用户提供的格式）
+    user_prompt = f"""你的任务是翻译优化，原文"{original_text_for_optimization}"当前"{target_language}"翻译"{current_translation}"，要求：
+1. 保持口语化表达
+2. 如果包含以下专有词汇，请按照词表翻译，词表{custom_terms}
+3. 当前字符数是{current_char_count}个字，需要精简成少于{target_char_count}个字，
+请直接输出新的"{target_language}"翻译如下："""
 
     payload = {
         "model": Config.TRANSLATION_CONFIG["model"],
@@ -79,7 +73,7 @@ async def optimize_translation_for_audio_length(
         "messages": [
             {
                 "role": "system",
-                "content": "你是一个翻译优化专家"
+                "content": "你是一个翻译优化专家，你必须严格按照指定的字符数要求进行文本缩短，不能超出范围。"
             },
             {
                 "role": "user",
