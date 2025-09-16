@@ -1128,65 +1128,6 @@
                 currentOperationClientId = null;
             }
         }
-        
-        // 开始实时日志更新
-        function startRealTimeLogUpdates(clientId) {
-            // 清除之前的定时器
-            if (window.logUpdateTimer) {
-                clearInterval(window.logUpdateTimer);
-            }
-            
-            // 设置定时器，每2秒检查一次日志更新
-            window.logUpdateTimer = setInterval(async () => {
-                try {
-                    const response = await fetch(`/api/logs/${clientId}`);
-                    
-                    if (response.ok) {
-                        const logs = await response.json();
-                        
-                        if (logs && logs.length > 0) {
-                            // 添加新的日志条目
-                            logs.forEach(log => {
-                                if (log.message && !window.processedLogs.has(log.id)) {
-                                    // 组合message和details
-                                    let logText = log.message;
-                                    if (log.details && log.details.trim()) {
-                                        logText += `: ${log.details}`;
-                                    }
-                                    
-                                    // 调试信息 - 特别关注ratio信息
-                                    if (log.message.includes('时长比例')) {
-                                        console.log('DEBUG: 接收到ratio日志', log);
-                                    }
-                                    
-                                    addLog(logText);
-                                    window.processedLogs.add(log.id);
-                                }
-                            });
-                        }
-                    }
-                } catch (error) {
-                    console.error('获取日志失败:', error);
-                }
-            }, 2000);
-            
-            // 初始化已处理日志集合
-            if (!window.processedLogs) {
-                window.processedLogs = new Set();
-            }
-        }
-        
-        // 停止实时日志更新
-        function stopRealTimeLogUpdates() {
-            if (window.logUpdateTimer) {
-                clearInterval(window.logUpdateTimer);
-                window.logUpdateTimer = null;
-            }
-            // 清空已处理日志集合
-            if (window.processedLogs) {
-                window.processedLogs.clear();
-            }
-        }
 
         // 拼接音频输出
         async function mergeAudio() {
@@ -1215,9 +1156,14 @@
                 addLog('调用拼接音频API...');
                 showToast('开始拼接音频...');
                 
+                // 确保WebSocket客户端ID存在
+                if (!currentClientId) {
+                    currentClientId = generateClientId();
+                    console.log('WebSocket未连接，生成临时客户端ID:', currentClientId);
+                }
+                currentOperationClientId = currentClientId;
+
                 const formData = new FormData();
-                const clientId = generateClientId();
-                currentOperationClientId = clientId;
                 formData.append('clientId', currentClientId);
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/merge-audio`, {

@@ -52,10 +52,7 @@ class WebSocketLogger:
     def _cleanup_user_data(self, client_id: str):
         """清理用户相关数据"""
         try:
-            # 清理日志存储
-            if client_id in log_storage:
-                del log_storage[client_id]
-                print(f"已清理用户日志: {client_id}")
+            # 日志通过WebSocket实时传输，无需清理存储
             
             # 清理字幕项目
             from subtitle_manager import subtitle_manager
@@ -241,16 +238,6 @@ class WebSocketLogger:
 # 全局日志管理器实例
 websocket_logger = WebSocketLogger()
 
-# 全局日志存储
-log_storage: Dict[str, List[Dict]] = {}
-
-# 调试函数
-def debug_log_storage():
-    """调试日志存储状态"""
-    print(f"当前日志存储状态:")
-    print(f"  总客户端数: {len(log_storage)}")
-    for client_id, logs in log_storage.items():
-        print(f"  {client_id}: {len(logs)} 条日志")
 
 class ProcessLogger:
     """处理过程日志记录器"""
@@ -259,69 +246,24 @@ class ProcessLogger:
         self.client_id = client_id
         self.logger = websocket_logger
         
-        # 初始化日志存储
-        if client_id not in log_storage:
-            log_storage[client_id] = []
         
     async def info(self, message: str, details: str = ""):
         await self.logger.send_log(self.client_id, LogLevel.INFO, message, details)
-        self._store_log("info", message, details)
-        
+
     async def success(self, message: str, details: str = ""):
         await self.logger.send_log(self.client_id, LogLevel.SUCCESS, message, details)
-        self._store_log("success", message, details)
-        
+
     async def warning(self, message: str, details: str = ""):
         await self.logger.send_log(self.client_id, LogLevel.WARNING, message, details)
-        self._store_log("warning", message, details)
-        
+
     async def error(self, message: str, details: str = ""):
         await self.logger.send_log(self.client_id, LogLevel.ERROR, message, details)
-        self._store_log("error", message, details)
-        
+
     async def progress(self, message: str, progress: int, details: str = ""):
         await self.logger.send_log(self.client_id, LogLevel.PROGRESS, message, details, progress)
-        self._store_log("progress", message, details, progress)
-        
+
     async def debug(self, message: str, details: str = ""):
         await self.logger.send_log(self.client_id, LogLevel.DEBUG, message, details)
-        self._store_log("debug", message, details)
-    
-    def _store_log(self, level: str, message: str, details: str = "", progress: Optional[int] = None):
-        """存储日志到内存"""
-        import uuid
-        
-        log_entry = {
-            "id": str(uuid.uuid4()),
-            "timestamp": datetime.now().isoformat(),
-            "level": level,
-            "message": message,
-            "details": details,
-            "progress": progress
-        }
-        
-        if self.client_id in log_storage:
-            log_storage[self.client_id].append(log_entry)
-            # 限制日志数量，保留最近1000条
-            if len(log_storage[self.client_id]) > 1000:
-                log_storage[self.client_id] = log_storage[self.client_id][-1000:]
-            
-            # 调试信息 - 特别关注ratio信息
-            if "时长比例" in message:
-                print(f"DEBUG: 存储ratio日志 - client_id={self.client_id}, message={message}, details={details}")
-        else:
-            print(f"警告: client_id {self.client_id} 不在日志存储中")
-    
-    def get_recent_logs(self, limit: int = 50) -> List[Dict]:
-        """获取最近的日志条目"""
-        # 确保日志存储已初始化
-        if self.client_id not in log_storage:
-            log_storage[self.client_id] = []
-            # print(f"初始化日志存储: client_id={self.client_id}")
-        
-        logs = log_storage[self.client_id][-limit:]
-        # print(f"获取日志: client_id={self.client_id}, 返回数量={len(logs)}")
-        return logs
 
 def get_process_logger(client_id: str) -> ProcessLogger:
     """获取处理过程日志记录器"""

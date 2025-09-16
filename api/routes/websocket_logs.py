@@ -52,18 +52,6 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
     finally:
         websocket_logger.disconnect(client_id)
 
-@router.get("/api/logs/{client_id}")
-async def get_logs(client_id: str):
-    """获取指定客户端的日志 - 保持原始格式"""
-    try:
-        logger = get_process_logger(client_id)
-
-        # 获取最新的日志条目 - 保持原始日志，不做任何总结
-        logs = logger.get_recent_logs(50)  # 获取最近50条日志
-
-        return logs  # 直接返回日志数组，前端期望这种格式
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取日志失败: {str(e)}")
 
 @router.post("/api/interrupt/{client_id}")
 async def interrupt_task(client_id: str):
