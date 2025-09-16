@@ -2948,13 +2948,10 @@
         // 更新专有词汇显示
         function updateCustomTermsDisplay() {
             const container = document.getElementById('customTermsList');
-            const noTermsText = document.getElementById('noTermsText');
 
             if (customTerms.length === 0) {
-                noTermsText.style.display = 'block';
                 container.innerHTML = '<div class="text-muted text-center py-2" id="noTermsText"><small>暂无专有词汇</small></div>';
             } else {
-                noTermsText.style.display = 'none';
                 container.innerHTML = customTerms.map((term, index) => `
                     <div class="d-flex align-items-center justify-content-between mb-2 p-2 bg-light rounded">
                         <div class="flex-grow-1">
