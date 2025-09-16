@@ -41,7 +41,8 @@ async def optimize_translation_for_audio_length(
     group_id: str,
     api_key: str,
     logger=None,
-    api_endpoint: str = "domestic"
+    api_endpoint: str = "domestic",
+    custom_terms: str = ""
 ) -> str:
     """优化翻译以适应目标音频长度"""
     # 生成trace_id
@@ -58,6 +59,19 @@ async def optimize_translation_for_audio_length(
     # 如果是原文生成，则ORIGINAL_TEXT为空
     original_text_for_optimization = original_text if original_text else ""
 
+    # 构建翻译优化提示词
+    if custom_terms and custom_terms.strip():
+        user_prompt = f"""你的任务是翻译优化，要求：
+1. 原文："{original_text_for_optimization}"
+2. 当前{target_language}翻译："{current_translation}"
+3. 需要缩短翻译文字，同时保持口语化表达
+4. 当前字符数：{current_char_count}个字，需要精简成少于{target_char_count}个字
+5. 如果包含以下专有词汇，请按照词表翻译，词表:{custom_terms}
+
+请直接给出优化后的{target_language}翻译结果，不需要解释，你的翻译结果是："""
+    else:
+        user_prompt = f"你的任务是翻译优化，原文\"{original_text_for_optimization}\"当前\"{target_language}\"翻译\"{current_translation}\"，你需要缩短翻译的文字，同时保持口语化表达，当前字符数是{current_char_count}个字，需要精简成少于{target_char_count}个字，新的\"{target_language}\"翻译如下："
+
     payload = {
         "model": Config.TRANSLATION_CONFIG["model"],
         "temperature": Config.TRANSLATION_CONFIG["temperature"],
@@ -69,7 +83,7 @@ async def optimize_translation_for_audio_length(
             },
             {
                 "role": "user",
-                "content": f"你的任务是翻译优化，原文\"{original_text_for_optimization}\"当前\"{target_language}\"翻译\"{current_translation}\"，你需要缩短翻译的文字，同时保持口语化表达，当前字符数是{current_char_count}个字，需要精简成少于{target_char_count}个字，新的\"{target_language}\"翻译如下："
+                "content": user_prompt
             }
         ],
     }
@@ -131,7 +145,8 @@ async def batch_generate_tts_for_project(
     language: str = Form(Config.TTS_CONFIG["default_language"]),
     voiceMapping: str = Form(...),
     clientId: str = Form(None),
-    apiEndpoint: str = Form("domestic")
+    apiEndpoint: str = Form("domestic"),
+    custom_terms: Optional[str] = Form("")
 ):
     """为项目中的所有字幕段落批量生成TTS音频（包含时间戳匹配和speed调整）"""
     # 检查用户数量限制
@@ -357,7 +372,9 @@ async def batch_generate_tts_for_project(
                                     target_audio_length=t_srt_ms / 1000.0,
                                     group_id=groupId,
                                     api_key=apiKey,
-                                    logger=logger # 传递logger
+                                    logger=logger, # 传递logger
+                                    api_endpoint=apiEndpoint,
+                                    custom_terms=custom_terms
                                 )
 
                                 if optimized_text:

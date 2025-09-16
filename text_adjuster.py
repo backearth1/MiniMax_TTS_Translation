@@ -33,14 +33,15 @@ router = APIRouter()
 
 async def adjust_text_length(
     original_text: str,
-    current_text: str, 
+    current_text: str,
     target_language: str,
     adjustment_type: str,  # "shorten" 或 "lengthen"
     adjustment_ratio: float,  # 调整比例，如0.8表示缩短20%，1.2表示加长20%
     group_id: str,
     api_key: str,
     logger=None,
-    api_endpoint: str = "domestic"
+    api_endpoint: str = "domestic",
+    custom_terms: str = ""
 ) -> Optional[str]:
     """
     调整文本长度
@@ -78,6 +79,12 @@ async def adjust_text_length(
     if adjustment_type == "shorten":
         # 缩短文本的专用提示词 - 严格限制字符数
         system_prompt = "你是一个专业的文本优化专家。你必须严格按照指定的字符数要求进行文本缩短，不能超出范围。"
+
+        # 构建专有词汇要求
+        custom_terms_requirement = ""
+        if custom_terms and custom_terms.strip():
+            custom_terms_requirement = f"6. 如果包含以下专有词汇，请按照词表翻译，词表:{custom_terms}\n"
+
         user_prompt = f"""【任务】：缩短翻译文本，严格控制字符数
 
 【原文】：{original_text}
@@ -91,11 +98,17 @@ async def adjust_text_length(
 3. 删除冗余词汇
 4. 输出字符数必须在{target_char_count-2}-{target_char_count+2}字范围内
 5. 只输出优化后的{target_language}翻译文本，不要其他说明
-
+{custom_terms_requirement}
 【输出】："""
     else:  # lengthen
         # 加长文本的专用提示词 - 严格限制字符数
         system_prompt = "你是一个专业的文本优化专家。你必须严格按照指定的字符数要求进行文本扩展，不能超出范围。"
+
+        # 构建专有词汇要求
+        custom_terms_requirement = ""
+        if custom_terms and custom_terms.strip():
+            custom_terms_requirement = f"6. 如果包含以下专有词汇，请按照词表翻译，词表:{custom_terms}\n"
+
         user_prompt = f"""【任务】：扩展翻译文本，严格控制字符数
 
 【原文】：{original_text}
@@ -109,7 +122,7 @@ async def adjust_text_length(
 3. 使表达更生动自然
 4. 输出字符数必须在{target_char_count-2}-{target_char_count+2}字范围内
 5. 只输出优化后的{target_language}翻译文本，不要其他说明
-
+{custom_terms_requirement}
 【输出】："""
     
     payload = {
@@ -196,7 +209,8 @@ async def adjust_segment_text(
     groupId: str = Form(...),
     apiKey: str = Form(...),
     target_language: str = Form(...),
-    apiEndpoint: str = Form("domestic")
+    apiEndpoint: str = Form("domestic"),
+    custom_terms: Optional[str] = Form("")
 ):
     """
     调整字幕段落文本长度
@@ -248,7 +262,8 @@ async def adjust_segment_text(
             group_id=groupId,
             api_key=apiKey,
             logger=logger,
-            api_endpoint=apiEndpoint
+            api_endpoint=apiEndpoint,
+            custom_terms=custom_terms
         )
         
         if adjusted_text and adjusted_text != segment.translated_text:

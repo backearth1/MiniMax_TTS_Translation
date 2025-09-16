@@ -248,7 +248,39 @@
                                             </button>
                                         </div>
                                     </div>
-                                    
+
+                                    <!-- 专有词汇管理 -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-12">
+                                            <label class="form-label">
+                                                <i class="bi bi-translate me-1"></i>专有词汇管理
+                                                <small class="text-muted">（人名、地名等固定翻译）</small>
+                                            </label>
+                                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                                <div id="customTermsList">
+                                                    <div class="text-muted text-center py-2" id="noTermsText">
+                                                        <small>暂无专有词汇</small>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <div class="row g-2">
+                                                        <div class="col-5">
+                                                            <input type="text" class="form-control form-control-sm" id="newTermOriginal" placeholder="原词">
+                                                        </div>
+                                                        <div class="col-5">
+                                                            <input type="text" class="form-control form-control-sm" id="newTermTranslated" placeholder="译词">
+                                                        </div>
+                                                        <div class="col-2">
+                                                            <button type="button" class="btn btn-success btn-sm w-100" onclick="addCustomTerm()">
+                                                                <i class="bi bi-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- 隐藏的文件输入，用于兼容现有生成逻辑 -->
                                     <input type="file" id="subtitleFile" accept=".srt,.txt" style="display: none;">
                                 </form>
@@ -1071,6 +1103,7 @@
                 formData.append('language', language);
                 formData.append('voiceMapping', JSON.stringify(voiceMapping));
                 formData.append('clientId', currentClientId);
+                formData.append('custom_terms', getCustomTermsString());
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-generate-tts`, {
                     method: 'POST',
@@ -1943,6 +1976,7 @@
                 formData.append('apiEndpoint', document.getElementById('apiEndpoint').value);
                 formData.append('target_language', targetLanguage);
                 formData.append('clientId', currentClientId);
+                formData.append('custom_terms', getCustomTermsString());
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-translate`, {
                     method: 'POST',
@@ -2428,6 +2462,7 @@
                 formData.append('apiEndpoint', document.getElementById('apiEndpoint').value);
                 formData.append('target_language', targetLanguage);
                 formData.append('clientId', currentOperationClientId);
+                formData.append('custom_terms', getCustomTermsString());
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-translate`, {
                     method: 'POST',
@@ -2457,6 +2492,7 @@
                 formData.append('language', document.getElementById('language').value);
                 formData.append('voiceMapping', JSON.stringify(getVoiceMapping()));
                 formData.append('clientId', currentOperationClientId);
+                formData.append('custom_terms', getCustomTermsString());
 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-generate-tts`, {
                     method: 'POST',
@@ -2544,6 +2580,7 @@
                 formData.append('apiKey', apiKey);
                 formData.append('target_language', targetLanguage);
                 formData.append('apiEndpoint', apiEndpoint);
+                formData.append('custom_terms', getCustomTermsString());
 
                 // 发送调整请求
                 const url = `/api/subtitle/${currentSubtitleProject.id}/segment/${segmentId}/adjust-text`;
@@ -2852,6 +2889,153 @@
                 console.error('加载自定义角色配置失败:', error);
             }
         }
+
+        // 专有词汇管理功能
+        let customTerms = [];
+
+        // 添加专有词汇
+        function addCustomTerm() {
+            const originalInput = document.getElementById('newTermOriginal');
+            const translatedInput = document.getElementById('newTermTranslated');
+
+            const original = originalInput.value.trim();
+            const translated = translatedInput.value.trim();
+
+            if (!original || !translated) {
+                showToast('请输入原词和译词');
+                return;
+            }
+
+            // 检查是否已存在
+            if (customTerms.some(term => term.original === original)) {
+                showToast('该词汇已存在');
+                return;
+            }
+
+            // 添加到数组
+            const newTerm = {
+                id: Date.now(),
+                original: original,
+                translated: translated
+            };
+            customTerms.push(newTerm);
+
+            // 清空输入框
+            originalInput.value = '';
+            translatedInput.value = '';
+
+            // 更新显示和保存
+            updateCustomTermsDisplay();
+            saveCustomTerms();
+
+            showToast('专有词汇添加成功');
+        }
+
+        // 删除专有词汇
+        function removeCustomTerm(id) {
+            customTerms = customTerms.filter(term => term.id !== id);
+            updateCustomTermsDisplay();
+            saveCustomTerms();
+            showToast('专有词汇删除成功');
+        }
+
+        // 更新专有词汇显示
+        function updateCustomTermsDisplay() {
+            const container = document.getElementById('customTermsList');
+            const noTermsText = document.getElementById('noTermsText');
+
+            if (customTerms.length === 0) {
+                noTermsText.style.display = 'block';
+                container.innerHTML = '<div class="text-muted text-center py-2" id="noTermsText"><small>暂无专有词汇</small></div>';
+            } else {
+                noTermsText.style.display = 'none';
+                container.innerHTML = customTerms.map((term, index) => `
+                    <div class="d-flex align-items-center justify-content-between mb-2 p-2 bg-light rounded">
+                        <div class="flex-grow-1">
+                            <span class="badge bg-secondary me-2">${index + 1}</span>
+                            <span class="fw-bold">${escapeHtml(term.original)}</span>
+                            <span class="mx-2">→</span>
+                            <span class="text-primary">${escapeHtml(term.translated)}</span>
+                        </div>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeCustomTerm(${term.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // HTML转义函数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 保存专有词汇到本地存储
+        function saveCustomTerms() {
+            try {
+                localStorage.setItem('custom_terms', JSON.stringify(customTerms));
+            } catch (error) {
+                console.error('保存专有词汇失败:', error);
+            }
+        }
+
+        // 加载专有词汇
+        function loadCustomTerms() {
+            try {
+                const saved = localStorage.getItem('custom_terms');
+                if (saved) {
+                    customTerms = JSON.parse(saved);
+                    updateCustomTermsDisplay();
+                }
+            } catch (error) {
+                console.error('加载专有词汇失败:', error);
+            }
+        }
+
+        // 获取专有词汇表格式化字符串
+        function getCustomTermsString() {
+            if (customTerms.length === 0) {
+                return '';
+            }
+
+            return customTerms.map((term, index) =>
+                `${index + 1}，${term.original}，${term.translated}`
+            ).join('；') + '；';
+        }
+
+        // 在页面加载时自动加载专有词汇
+        document.addEventListener('DOMContentLoaded', function() {
+            // 延迟加载确保DOM完全准备好
+            setTimeout(() => {
+                loadCustomTerms();
+            }, 100);
+        });
+
+        // 支持回车键添加词汇
+        document.addEventListener('DOMContentLoaded', function() {
+            const originalInput = document.getElementById('newTermOriginal');
+            const translatedInput = document.getElementById('newTermTranslated');
+
+            if (originalInput) {
+                originalInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        translatedInput.focus();
+                    }
+                });
+            }
+
+            if (translatedInput) {
+                translatedInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addCustomTerm();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html> 

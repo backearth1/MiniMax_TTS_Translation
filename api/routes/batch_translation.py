@@ -22,7 +22,7 @@ def get_api_endpoint(api_type: str, endpoint_type: str = "domestic") -> str:
     """获取API端点URL"""
     return Config.API_ENDPOINTS[api_type][endpoint_type]
 
-async def translate_text_with_minimax(text: str, target_language: str, group_id: str, api_key: str, logger=None, api_endpoint: str = "domestic") -> str:
+async def translate_text_with_minimax(text: str, target_language: str, group_id: str, api_key: str, logger=None, api_endpoint: str = "domestic", custom_terms: str = "") -> str:
     """使用MiniMax API翻译文本"""
     # 获取动态配置
     try:
@@ -42,6 +42,18 @@ async def translate_text_with_minimax(text: str, target_language: str, group_id:
     base_url = get_api_endpoint("translation", api_endpoint)
     url = f"{base_url}?GroupId={group_id}"
 
+    # 构建翻译提示词
+    if custom_terms and custom_terms.strip():
+        user_prompt = f"""请将以下文本翻译成{target_language}，要求：
+1. 保持自然流畅的表达方式
+2. 如果包含以下专有词汇，请按照词表翻译，词表:{custom_terms}
+
+需要翻译的文本：{text}
+
+请直接给出翻译结果，不需要解释，你的翻译结果是："""
+    else:
+        user_prompt = f"请将以下文本翻译成{target_language}，保持自然流畅的表达方式，直接输出翻译结果：\n\n{text}"
+
     payload = {
         "model": Config.TRANSLATION_CONFIG["model"],
         "temperature": Config.TRANSLATION_CONFIG["temperature"],
@@ -53,7 +65,7 @@ async def translate_text_with_minimax(text: str, target_language: str, group_id:
             },
             {
                 "role": "user",
-                "content": f"请将以下文本翻译成{target_language}，保持自然流畅的表达方式，直接输出翻译结果：\n\n{text}"
+                "content": user_prompt
             }
         ],
     }
@@ -119,7 +131,8 @@ async def batch_translate_project(
     apiKey: str = Form(...),
     target_language: str = Form(...),
     clientId: Optional[str] = Form(None),
-    apiEndpoint: str = Form("domestic")
+    apiEndpoint: str = Form("domestic"),
+    custom_terms: Optional[str] = Form("")
 ):
     """为项目中的所有字幕段落批量翻译"""
     # 检查用户数量限制
@@ -198,7 +211,8 @@ async def batch_translate_project(
                     groupId,
                     apiKey,
                     logger,
-                    api_endpoint=apiEndpoint
+                    api_endpoint=apiEndpoint,
+                    custom_terms=custom_terms
                 )
 
                 if translated_text:
