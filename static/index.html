@@ -1052,17 +1052,12 @@
             batchTTSBtn.disabled = true;
             batchTTSBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>正在生成...';
             
-            // 开始实时日志更新
-            const clientId = generateClientId();
-            currentOperationClientId = clientId;
-            let logUpdateInterval;
-            
+            // 使用WebSocket的客户端ID
+            currentOperationClientId = currentClientId;
+
             try {
                 addLog(`调用批量TTS API: 模型=${model}, 语言=${language}`);
                 showToast('开始批量生成TTS...');
-                
-                // 开始实时日志更新
-                startRealTimeLogUpdates(clientId);
                 
                 const formData = new FormData();
                 formData.append('groupId', groupId);
@@ -1079,11 +1074,6 @@
                 });
 
                 const result = await response.json();
-
-                // 延迟停止日志更新，确保总结日志能够显示（无论成功失败）
-                setTimeout(() => {
-                    stopRealTimeLogUpdates();
-                }, 5000); // 延迟5秒
 
                 if (result.success) {
                     const stats = result.statistics || {};
@@ -1697,7 +1687,61 @@
         }
 
         // 页面加载完成后自动加载示例文件
+        // WebSocket连接管理
+        let websocket = null;
+        let currentClientId = null;
+
+        // 建立WebSocket连接
+        function initWebSocket() {
+            if (!currentClientId) {
+                currentClientId = generateClientId();
+                console.log('生成新的客户端ID:', currentClientId);
+            }
+
+            const wsUrl = `ws://${window.location.host}/ws/${currentClientId}`;
+            console.log('连接WebSocket:', wsUrl);
+
+            websocket = new WebSocket(wsUrl);
+
+            websocket.onopen = function(event) {
+                console.log('✅ WebSocket连接成功');
+                addLog('WebSocket连接成功', 'success');
+            };
+
+            websocket.onmessage = function(event) {
+                try {
+                    const logData = JSON.parse(event.data);
+                    // 组合message和details显示完整日志
+                    let logText = logData.message;
+                    if (logData.details && logData.details.trim()) {
+                        logText += `: ${logData.details}`;
+                    }
+                    addLog(logText);
+                } catch (error) {
+                    console.error('解析WebSocket消息失败:', error);
+                }
+            };
+
+            websocket.onclose = function(event) {
+                console.log('WebSocket连接关闭');
+                addLog('WebSocket连接断开', 'warning');
+                // 自动重连
+                setTimeout(() => {
+                    console.log('尝试重新连接WebSocket...');
+                    initWebSocket();
+                }, 3000);
+            };
+
+            websocket.onerror = function(error) {
+                console.error('WebSocket错误:', error);
+                addLog('WebSocket连接错误', 'error');
+            };
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            // 初始化WebSocket连接
+            initWebSocket();
+
             // 加载HTML组件 - Phase 2组件化
             try {
                 await componentLoader.loadBatch([
@@ -1940,8 +1984,6 @@
                 const clientId = generateClientId();
                 currentOperationClientId = clientId;
                 
-                // 开始实时日志更新
-                startRealTimeLogUpdates(clientId);
                 
                 const formData = new FormData();
                 formData.append('groupId', groupId);
@@ -1957,8 +1999,6 @@
                 
                 const result = await response.json();
                 
-                // 停止实时日志更新
-                stopRealTimeLogUpdates();
                 
                 if (result.success) {
                     // 安全地获取统计数据
@@ -1990,8 +2030,6 @@
                 }
             } catch (error) {
                 console.error('批量翻译失败:', error);
-                // 停止实时日志更新
-                stopRealTimeLogUpdates();
                 
                 let errorMessage = '未知错误';
                 if (error.message) {
@@ -2005,8 +2043,6 @@
                 addLog(`批量翻译失败: ${errorMessage}`);
                 showToast('批量翻译失败: ' + errorMessage);
             } finally {
-                // 停止实时日志更新
-                stopRealTimeLogUpdates();
                 // 恢复按钮，清除客户端ID
                 batchTranslateBtn.disabled = false;
                 batchTranslateBtn.innerHTML = originalText;
@@ -2385,8 +2421,8 @@
             oneClickBtn.disabled = true;
             oneClickBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>正在处理...';
             
-            // 生成客户端ID用于一键翻译
-            currentOperationClientId = generateClientId();
+            // 使用WebSocket的客户端ID
+            currentOperationClientId = currentClientId;
             
             try {
                 addLog('=== 开始一键翻译流程 ===');
@@ -2433,8 +2469,6 @@
 
         // 执行批量翻译的辅助函数
         async function executeBatchTranslate(targetLanguage, groupId, apiKey) {
-            startRealTimeLogUpdates(currentOperationClientId);
-            
             try {
                 const formData = new FormData();
                 formData.append('groupId', groupId);
@@ -2449,7 +2483,6 @@
                 });
                 
                 const result = await response.json();
-                stopRealTimeLogUpdates();
                 
                 if (result.success) {
                     loadSubtitleSegments(); // 重新加载以显示翻译结果
@@ -2457,15 +2490,12 @@
                 
                 return result;
             } catch (error) {
-                stopRealTimeLogUpdates();
                 return { success: false, message: error.message };
             }
         }
 
         // 执行批量TTS的辅助函数
         async function executeBatchTTS(groupId, apiKey) {
-            startRealTimeLogUpdates(currentOperationClientId);
-
             try {
                 const formData = new FormData();
                 formData.append('groupId', groupId);
@@ -2483,29 +2513,18 @@
 
                 const result = await response.json();
 
-                // 延迟停止日志更新，确保总结日志能够显示
-                setTimeout(() => {
-                    stopRealTimeLogUpdates();
-                }, 5000); // 延迟5秒
-
                 if (result.success) {
                     loadSubtitleSegments(); // 重新加载以显示TTS结果
                 }
 
                 return result;
             } catch (error) {
-                // 延迟停止日志更新，确保错误日志能够显示
-                setTimeout(() => {
-                    stopRealTimeLogUpdates();
-                }, 5000);
                 return { success: false, message: error.message };
             }
         }
 
         // 执行拼接音频的辅助函数
         async function executeMergeAudio() {
-            startRealTimeLogUpdates(currentOperationClientId);
-            
             try {
                 const formData = new FormData();
                 formData.append('clientId', currentOperationClientId);
@@ -2516,7 +2535,6 @@
                 });
                 
                 const result = await response.json();
-                stopRealTimeLogUpdates();
                 
                 if (result.success) {
                     showMergeResult(result);
@@ -2524,7 +2542,6 @@
                 
                 return result;
             } catch (error) {
-                stopRealTimeLogUpdates();
                 return { success: false, message: error.message };
             }
         }
