@@ -83,12 +83,45 @@
                         <!-- 批量操作面板 - 组件化 -->
                         <div id="batchPanelSection"></div>
 
+                        <!-- 简化批量操作区 -->
+                        <div id="simplifiedBatchOperations" style="display: none;" class="mb-3 p-3 border rounded bg-light">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">
+                                    <span class="badge bg-info" id="selectedCount">已选择: 0</span>
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label small mb-0">修改说话人:</label>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select form-select-sm" id="batchSpeakerSelect">
+                                        <option value="">选择说话人</option>
+                                        <option value="SPEAKER_00">SPEAKER_00</option>
+                                        <option value="SPEAKER_01">SPEAKER_01</option>
+                                        <option value="SPEAKER_02">SPEAKER_02</option>
+                                        <option value="SPEAKER_03">SPEAKER_03</option>
+                                        <option value="SPEAKER_04">SPEAKER_04</option>
+                                        <option value="SPEAKER_05">SPEAKER_05</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <button class="btn btn-warning btn-sm" onclick="batchUpdateSpeaker()" id="batchUpdateBtn" disabled>
+                                        <i class="bi bi-person-lines-fill me-1"></i>应用修改
+                                    </button>
+                                </div>
+                                <div class="col-auto">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="clearAllSelections()">
+                                        <i class="bi bi-x-circle me-1"></i>清除选择
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- 翻译功能区域 -->
                         <div class="d-flex gap-2 justify-content-center mb-3" id="translationSection" style="display: none;">
                         </div>
 
                         <!-- 字幕段落列表 -->
-                        <div class="subtitle-editor" id="subtitleEditor" style="min-height: 200px;">
+                        <div class="subtitle-editor" id="subtitleEditor" style="height: 400px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 0.375rem; padding: 10px;">
                             <div class="text-center py-5" style="color: var(--pink-400);">
                                 <i class="bi bi-hourglass-split fs-1"></i>
                                 <p class="mt-2">正在加载示例字幕文件...</p>
@@ -588,7 +621,7 @@
             }
 
             const segmentsHtml = segments.map((segment, index) => `
-                <div class="segment-item">
+                <div class="segment-item" style="border-bottom: 1px solid #f1f3f4; padding: 12px 8px; margin-bottom: 8px; background: #fafbfc; border-radius: 6px;">
                     <div class="d-flex flex-column">
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <input type="checkbox" class="form-check-input segment-checkbox" 
@@ -2046,25 +2079,25 @@
             const checkboxes = document.querySelectorAll('.segment-checkbox:checked');
             const count = checkboxes.length;
             const selectedCountBadge = document.getElementById('selectedCount');
-            const batchOperationSection = document.getElementById('batchOperationSection');
+            const simplifiedBatchOperations = document.getElementById('simplifiedBatchOperations');
             const batchUpdateBtn = document.getElementById('batchUpdateBtn');
-            
+
             // 更新选中的段落ID集合
             selectedSegmentIds.clear();
             checkboxes.forEach(checkbox => {
                 selectedSegmentIds.add(checkbox.getAttribute('data-segment-id'));
             });
-            
+
             // 更新显示
             if (selectedCountBadge) {
                 selectedCountBadge.textContent = `已选择: ${count}`;
             }
-            
-            // 显示或隐藏批量操作区域
-            if (batchOperationSection) {
-                batchOperationSection.style.display = count > 0 ? 'flex' : 'none';
+
+            // 显示或隐藏简化批量操作区域
+            if (simplifiedBatchOperations) {
+                simplifiedBatchOperations.style.display = count > 0 ? 'block' : 'none';
             }
-            
+
             // 启用或禁用批量更新按钮
             if (batchUpdateBtn) {
                 batchUpdateBtn.disabled = count === 0;
