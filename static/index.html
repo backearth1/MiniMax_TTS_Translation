@@ -1051,8 +1051,12 @@
             const originalText = batchTTSBtn.innerHTML;
             batchTTSBtn.disabled = true;
             batchTTSBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>正在生成...';
-            
-            // 使用WebSocket的客户端ID
+
+            // 确保WebSocket客户端ID存在
+            if (!currentClientId) {
+                currentClientId = generateClientId();
+                console.log('WebSocket未连接，生成临时客户端ID:', currentClientId);
+            }
             currentOperationClientId = currentClientId;
 
             try {
@@ -1066,7 +1070,7 @@
                 formData.append('model', model);
                 formData.append('language', language);
                 formData.append('voiceMapping', JSON.stringify(voiceMapping));
-                formData.append('clientId', clientId);
+                formData.append('clientId', currentClientId);
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-generate-tts`, {
                     method: 'POST',
@@ -1214,7 +1218,7 @@
                 const formData = new FormData();
                 const clientId = generateClientId();
                 currentOperationClientId = clientId;
-                formData.append('clientId', clientId);
+                formData.append('clientId', currentClientId);
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/merge-audio`, {
                     method: 'POST',
@@ -1979,18 +1983,20 @@
             try {
                 addLog(`开始批量翻译: 目标语言=${targetLanguage}, 段落数=${segments.length}`);
                 showToast('开始批量翻译...');
-                
-                // 生成客户端ID用于日志
-                const clientId = generateClientId();
-                currentOperationClientId = clientId;
-                
-                
+
+                // 确保WebSocket客户端ID存在
+                if (!currentClientId) {
+                    currentClientId = generateClientId();
+                    console.log('WebSocket未连接，生成临时客户端ID:', currentClientId);
+                }
+                currentOperationClientId = currentClientId;
+
                 const formData = new FormData();
                 formData.append('groupId', groupId);
                 formData.append('apiKey', apiKey);
                 formData.append('apiEndpoint', document.getElementById('apiEndpoint').value);
                 formData.append('target_language', targetLanguage);
-                formData.append('clientId', clientId);
+                formData.append('clientId', currentClientId);
                 
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-translate`, {
                     method: 'POST',
