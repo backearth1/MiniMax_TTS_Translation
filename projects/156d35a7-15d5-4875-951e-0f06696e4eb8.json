@@ -5,7 +5,7 @@
   "session_id": "3voOP02-YFqEeT8aXiLRQNZeDDgJh_lO9om66ledG68",
   "total_segments": 3,
   "created_at": "2025-09-15T23:45:19.598150",
-  "updated_at": "2025-09-15T23:46:12.187751",
+  "updated_at": "2025-09-15T23:50:42.985518",
   "segments": [
     {
       "id": "81f0cfed-568a-4f98-95d3-5dc2965fc6de",
@@ -17,12 +17,12 @@
       "emotion": "sad",
       "speed": 1.0,
       "has_audio": true,
-      "audio_duration": 3350,
-      "audio_url": "/audio/segment_81f0cfed-568a-4f98-95d3-5dc2965fc6de_1757951196_0.mp3",
-      "trace_id": "051767ca0e2fab2fe2e027e01fc8a7ec",
+      "audio_duration": 3300,
+      "audio_url": "/audio/segment_81f0cfed-568a-4f98-95d3-5dc2965fc6de_1757951829_0.mp3",
+      "trace_id": "05176a4214031fecf75487d7146c61ff",
       "translated_text": "Hey Dad, can I borrow $50,000?",
       "created_at": "2025-09-15T23:45:19.598167",
-      "updated_at": "2025-09-15T23:46:36.245458"
+      "updated_at": "2025-09-15T23:57:09.435727"
     },
     {
       "id": "82deb6e3-db9e-41db-973d-a456a1d53baa",
@@ -34,12 +34,12 @@
       "emotion": "sad",
       "speed": 1.7,
       "has_audio": true,
-      "audio_duration": 1627,
-      "audio_url": "/audio/segment_82deb6e3-db9e-41db-973d-a456a1d53baa_1757951201_1.mp3",
-      "trace_id": "051767d0b6fcf0dea15feff6b4afb6d9",
+      "audio_duration": 1929,
+      "audio_url": "/audio/segment_82deb6e3-db9e-41db-973d-a456a1d53baa_1757951846_1.mp3",
+      "trace_id": "05176a490256c92dabb03884b4220bda",
       "translated_text": "Mom needs dialysis, but we can't afford it.",
       "created_at": "2025-09-15T23:45:19.598201",
-      "updated_at": "2025-09-15T23:46:41.407168"
+      "updated_at": "2025-09-15T23:57:26.311185"
     },
     {
       "id": "ba76f851-9b74-441a-9566-acdf22e3762f",
@@ -49,14 +49,14 @@
       "speaker": "SPEAKER_04",
       "text": "娜塔莉，事情是这样的...",
       "emotion": "auto",
-      "speed": 1.4,
+      "speed": 1.7,
       "has_audio": true,
-      "audio_duration": 1488,
-      "audio_url": "/audio/segment_ba76f851-9b74-441a-9566-acdf22e3762f_1757951205_2.mp3",
-      "trace_id": "051767d402994e4c9a0d1a85dab7498e",
+      "audio_duration": 1174,
+      "audio_url": "/audio/segment_ba76f851-9b74-441a-9566-acdf22e3762f_1757951857_2.mp3",
+      "trace_id": "05176a5ad559f64a3d0999e09c39006c",
       "translated_text": "Natalie, here's the deal...",
       "created_at": "2025-09-15T23:45:19.598236",
-      "updated_at": "2025-09-15T23:46:45.830141"
+      "updated_at": "2025-09-15T23:57:37.410995"
     }
   ]
 }

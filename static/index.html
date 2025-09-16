@@ -1077,12 +1077,14 @@
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const result = await response.json();
-                
-                // 停止实时日志更新
-                stopRealTimeLogUpdates();
-                
+
+                // 延迟停止日志更新，确保总结日志能够显示（无论成功失败）
+                setTimeout(() => {
+                    stopRealTimeLogUpdates();
+                }, 5000); // 延迟5秒
+
                 if (result.success) {
                     const stats = result.statistics || {};
                     const total = stats.total_segments || result.updated_segments.length;
@@ -1108,24 +1110,9 @@
                             message += `，最大加速 ${maxSpeed} 个`;
                         }
                         
-                        addLog(`批量TTS生成成功: ${successful}/${total}个段落`);
-                        if (failed > 0) {
-                            addLog(`失败段落: ${failed}个`);
-                        }
-                        if (accelerated > 0) {
-                            addLog(`加速段落: ${accelerated}个`);
-                        }
-                        if (maxSpeed > 0) {
-                            addLog(`最大加速段落: ${maxSpeed}个`);
-                        }
-                        
-                        // 显示速度调整详情
-                        if (result.speed_adjustments && result.speed_adjustments.length > 0) {
-                            addLog(`速度调整详情:`);
-                            result.speed_adjustments.forEach(adjustment => {
-                                addLog(`  ${adjustment}`);
-                            });
-                        }
+                        // 移除前端重复的总结日志，使用后端的详细总结日志
+                        // addLog(`批量TTS生成成功: ${successful}/${total}个段落`);
+                        // 后端已经提供详细的总结信息，前端不再重复显示简化版本
                         
                         showToast(message);
                     }
@@ -1141,8 +1128,6 @@
                 addLog(`批量TTS生成失败: ${error.message}`);
                 showToast('批量TTS生成失败: ' + error.message);
             } finally {
-                // 停止实时日志更新
-                stopRealTimeLogUpdates();
                 // 恢复按钮，清除客户端ID
                 batchTTSBtn.disabled = false;
                 batchTTSBtn.innerHTML = originalText;
@@ -2480,7 +2465,7 @@
         // 执行批量TTS的辅助函数
         async function executeBatchTTS(groupId, apiKey) {
             startRealTimeLogUpdates(currentOperationClientId);
-            
+
             try {
                 const formData = new FormData();
                 formData.append('groupId', groupId);
@@ -2490,22 +2475,29 @@
                 formData.append('language', document.getElementById('language').value);
                 formData.append('voiceMapping', JSON.stringify(getVoiceMapping()));
                 formData.append('clientId', currentOperationClientId);
-                
+
                 const response = await fetch(`/api/subtitle/${currentSubtitleProject.id}/batch-generate-tts`, {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const result = await response.json();
-                stopRealTimeLogUpdates();
-                
+
+                // 延迟停止日志更新，确保总结日志能够显示
+                setTimeout(() => {
+                    stopRealTimeLogUpdates();
+                }, 5000); // 延迟5秒
+
                 if (result.success) {
                     loadSubtitleSegments(); // 重新加载以显示TTS结果
                 }
-                
+
                 return result;
             } catch (error) {
-                stopRealTimeLogUpdates();
+                // 延迟停止日志更新，确保错误日志能够显示
+                setTimeout(() => {
+                    stopRealTimeLogUpdates();
+                }, 5000);
                 return { success: false, message: error.message };
             }
         }
